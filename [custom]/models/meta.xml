@@ -1,0 +1,5 @@
+<meta>
+    <file src="vehicle/**" />
+
+    <script src="client.lua" type="client" />
+</meta>

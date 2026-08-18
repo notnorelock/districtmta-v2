@@ -15,6 +15,8 @@ Permissions.Bit = {
     VIEW_REPORTS = 512,
     RESOLVE_REPORTS = 1024,
     VIEW_STATS = 2048,
+    TELEPORT = 4096,
+    HEAL = 8192,
 }
 
 local function bitOr(...)
@@ -33,7 +35,9 @@ local MODERATOR_PERMISSIONS = bitOr(
     Permissions.Bit.ADMIN_PANEL,
     Permissions.Bit.TOGGLE_DUTY,
     Permissions.Bit.VIEW_REPORTS,
-    Permissions.Bit.RESOLVE_REPORTS
+    Permissions.Bit.RESOLVE_REPORTS,
+    Permissions.Bit.TELEPORT,
+    Permissions.Bit.HEAL
 )
 local ADMINISTRATOR_PERMISSIONS = bitOr(MODERATOR_PERMISSIONS, Permissions.Bit.BAN, Permissions.Bit.REVOKE_PENALTY)
 -- VIEW_STATS is RCON+/BOARD-only, deliberately not in ADMINISTRATOR_PERMISSIONS.

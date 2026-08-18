@@ -43,6 +43,14 @@ local NotificationService = {
     broadcast = function(notification) exports.core:notificationServiceBroadcast(notification) end,
 }
 
+local Logger = {
+    debug = function(scope, message, context) exports.core:loggerDebug(scope, message, context) end,
+    info = function(scope, message, context) exports.core:loggerInfo(scope, message, context) end,
+    warn = function(scope, message, context) exports.core:loggerWarn(scope, message, context) end,
+    error = function(scope, message, context) exports.core:loggerError(scope, message, context) end,
+    security = function(scope, message, context) exports.core:loggerSecurity(scope, message, context) end,
+}
+
 local ElementData = setmetatable({
     accountField = function(field) return exports.core_shared:elementDataAccountField(field) end,
 }, {
@@ -77,6 +85,9 @@ setmetatable(_G, {
         end
         if key == "NotificationService" then
             return isResourceAvailable("core") and NotificationService or false
+        end
+        if key == "Logger" then
+            return isResourceAvailable("core") and Logger or false
         end
 
         local tableSpec = TABLE_RESOURCE_MAP[key]

@@ -77,3 +77,131 @@ CommandRegistry.register("apanel", Permissions.Bit.ADMIN_PANEL, function(player)
 
     triggerClientEvent(player, Events.ADMIN_PANEL_TOGGLE, player)
 end)
+
+--- Moves `to` to `from`'s position, dimension, and interior.
+-- @param from element
+-- @param to element
+local function copyPosition(from, to)
+    local x, y, z = getElementPosition(from)
+    setElementDimension(to, getElementDimension(from))
+    setElementInterior(to, getElementInterior(from))
+    setElementPosition(to, x, y, z)
+end
+
+CommandRegistry.register("goto", Permissions.Bit.TELEPORT, function(player, target)
+    if CommandRegistry.isConsole(player) then
+        CommandRegistry.reply(player, "/goto can only be used in-game")
+        return
+    end
+
+    if not target then
+        CommandRegistry.reply(player, "Usage: /goto <login|id|nick>")
+        return
+    end
+
+    local targetPlayer, ambiguous = PlayerId.tryResolve(target)
+    if not targetPlayer then
+        CommandRegistry.reply(player, ambiguous
+            and "Znaleziono więcej niż jednego gracza - podaj więcej liter nicku lub użyj numeru gracza."
+            or "Nie znaleziono gracza online o podanym loginie/nicku/id.")
+        return
+    end
+
+    if targetPlayer == player then
+        CommandRegistry.reply(player, "Nie możesz teleportować się do samego siebie.")
+        return
+    end
+
+    copyPosition(targetPlayer, player)
+
+    Logger.security("AdminCommands", "Teleported to player", {
+        player = getPlayerName(player),
+        target = getPlayerName(targetPlayer),
+    })
+    CommandRegistry.reply(player, "Teleportowano do " .. getPlayerName(targetPlayer) .. ".")
+end)
+
+CommandRegistry.register("gethere", Permissions.Bit.TELEPORT, function(player, target)
+    if CommandRegistry.isConsole(player) then
+        CommandRegistry.reply(player, "/gethere can only be used in-game")
+        return
+    end
+
+    if not target then
+        CommandRegistry.reply(player, "Usage: /gethere <login|id|nick>")
+        return
+    end
+
+    local targetPlayer, ambiguous = PlayerId.tryResolve(target)
+    if not targetPlayer then
+        CommandRegistry.reply(player, ambiguous
+            and "Znaleziono więcej niż jednego gracza - podaj więcej liter nicku lub użyj numeru gracza."
+            or "Nie znaleziono gracza online o podanym loginie/nicku/id.")
+        return
+    end
+
+    if targetPlayer == player then
+        CommandRegistry.reply(player, "Nie możesz przywołać samego siebie.")
+        return
+    end
+
+    copyPosition(player, targetPlayer)
+
+    Logger.security("AdminCommands", "Teleported player to self", {
+        player = getPlayerName(player),
+        target = getPlayerName(targetPlayer),
+    })
+    CommandRegistry.reply(player, "Przywołano " .. getPlayerName(targetPlayer) .. " do siebie.")
+    CommandRegistry.reply(targetPlayer, "Zostałeś przywołany przez " .. getPlayerName(player) .. ".")
+end)
+
+local DEFAULT_HEALTH = 100
+
+CommandRegistry.register("heal", Permissions.Bit.HEAL, function(player, target)
+    if CommandRegistry.isConsole(player) then
+        CommandRegistry.reply(player, "/heal can only be used in-game")
+        return
+    end
+
+    local targetPlayer = player
+
+    if target then
+        local resolved, ambiguous = PlayerId.tryResolve(target)
+        if not resolved then
+            CommandRegistry.reply(player, ambiguous
+                and "Znaleziono więcej niż jednego gracza - podaj więcej liter nicku lub użyj numeru gracza."
+                or "Nie znaleziono gracza online o podanym loginie/nicku/id.")
+            return
+        end
+        targetPlayer = resolved
+    end
+
+    -- A dead ped can't have its health set directly (MTA silently no-ops)
+    -- - respawn it in place first, at its current model/dimension/
+    -- interior, same as it was at the moment of death.
+    if isPedDead(targetPlayer) then
+        local x, y, z = getElementPosition(targetPlayer)
+        local _, _, heading = getElementRotation(targetPlayer)
+        local model = getElementModel(targetPlayer)
+        local dimension = getElementDimension(targetPlayer)
+        local interior = getElementInterior(targetPlayer)
+
+        spawnPlayer(targetPlayer, x, y, z, heading, model, interior, dimension)
+        setElementInterior(targetPlayer, interior)
+        setElementDimension(targetPlayer, dimension)
+    end
+
+    setElementHealth(targetPlayer, DEFAULT_HEALTH)
+
+    Logger.security("AdminCommands", "Player healed", {
+        player = getPlayerName(player),
+        target = getPlayerName(targetPlayer),
+    })
+
+    if targetPlayer == player then
+        CommandRegistry.reply(player, "Zostałeś uleczony.")
+    else
+        CommandRegistry.reply(player, "Uleczono " .. getPlayerName(targetPlayer) .. ".")
+        CommandRegistry.reply(targetPlayer, "Zostałeś uleczony przez " .. getPlayerName(player) .. ".")
+    end
+end)

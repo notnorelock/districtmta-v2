@@ -18,6 +18,7 @@
     <script src="server/GlobalResources.lua" type="server" cache="false" />
     <script src="server/GameplayBootstrap.lua" type="server" cache="false" />
     <script src="server/Chat.lua" type="server" cache="false" />
+    <script src="server/VehicleCommands.lua" type="server" cache="false" />
 
     <export function="gameplayEnterWorld" type="server" />
 </meta>
