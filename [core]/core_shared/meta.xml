@@ -1,0 +1,42 @@
+<meta>
+    <info author="district" name="core_shared" description="Shared constants, exposed to other resources via exports getters" version="1.0.0" type="script" />
+
+    <!-- download_priority_group (its own top-level tag, per MTA wiki's
+         Meta.xml page - NOT an <info> attribute): default 0, higher
+         values are downloaded/started on the CLIENT earlier than lower
+         ones. Set to mirror core_bootstrap's server-side START_ORDER
+         (core_shared -> core -> core_ui -> core_loading -> core_auth ->
+         gm_roleplay) so a connecting client's file downloads land in
+         roughly the same order the server starts resources in. This does
+         NOT replace core_bootstrap's own server-side ordering or gotcha
+         #11's client-side script-timing race (a client can still finish
+         downloading resource N+1 before N - this only biases the
+         download QUEUE order), but it reduces how often that race is
+         actually lost in practice. core_shared is what every other
+         resource's client-side scripts read from at module load time, so
+         it gets the highest priority. -->
+    <download_priority_group>5</download_priority_group>
+
+    <script src="shared/Events.lua" type="shared" cache="false" />
+    <script src="shared/ErrorCodes.lua" type="shared" cache="false" />
+    <script src="shared/ValidationRules.lua" type="shared" cache="false" />
+    <script src="shared/Enums.lua" type="shared" cache="false" />
+    <script src="shared/ElementData.lua" type="shared" cache="false" />
+    <script src="shared/Registry.lua" type="shared" cache="false" />
+
+    <export function="getEvents" type="shared" />
+    <export function="getErrorCodes" type="shared" />
+    <export function="getValidationRules" type="shared" />
+    <export function="getEnums" type="shared" />
+    <export function="getElementData" type="shared" />
+    <export function="elementDataAccountField" type="shared" />
+
+    <export function="validationRulesIsValidLogin" type="shared" />
+    <export function="validationRulesIsValidEmail" type="shared" />
+    <export function="validationRulesNormalizeLogin" type="shared" />
+    <export function="validationRulesNormalizeEmail" type="shared" />
+    <export function="validationRulesIsValidPassword" type="shared" />
+
+    <export function="successResponse" type="shared" />
+    <export function="errorResponse" type="shared" />
+</meta>

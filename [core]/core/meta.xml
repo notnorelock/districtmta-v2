@@ -1,0 +1,111 @@
+<meta>
+    <info
+        author="district"
+        name="core"
+        description="Core services: database abstraction, logging, player/account runtime context, account domain, notifications. CEF bridge lives in core_ui - see docs/Architecture.md."
+        version="1.0.0"
+        type="script"
+    />
+    <!-- No <download_priority_group> here - it only affects what a
+         connecting client downloads, and this resource has zero
+         type="client"/"shared" files (see core_shared/meta.xml's comment
+         on the same tag for the full rationale used where it DOES
+         matter). -->
+
+    <include resource="core_shared" />
+    <!-- Deliberately NOT including core_ui here even though
+         AccountEndpoints.lua calls into it: core_ui itself includes
+         core (it needs Logger/PlayerService/SecurityService), and a
+         mutual <include> is undocumented/unverified MTA behavior. Every
+         cross-resource call in this resource is resolved lazily at call
+         time (see GlobalResources.lua's injector pattern and
+         exports.core_ui:... call sites), not at load time, so core_ui
+         only needs to be running by the time a browser request actually
+         arrives - not before core itself starts. -->
+
+    <settings>
+        <setting name="MYSQL_HOST" value="127.0.0.1" />
+        <setting name="MYSQL_PORT" value="3306" />
+        <setting name="MYSQL_DATABASE" value="district" />
+        <setting name="MYSQL_USERNAME" value="root" />
+        <setting name="MYSQL_PASSWORD" value="amethyst" />
+        <setting name="MYSQL_CHARSET" value="utf8mb4" />
+    </settings>
+
+    <!-- Server: order matters - GlobalResources first, then the ORM
+         (Model/QueryBuilder/Schema depend on each other and must load
+         before any model definition), then adapters (which depend on the
+         ORM's Schema.migrate), then leaf modules before the modules that
+         depend on them. -->
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/Logger.lua" type="server" cache="false" />
+
+    <script src="server/orm/Uuid.lua" type="server" cache="false" />
+    <script src="server/orm/QueryBuilder.lua" type="server" cache="false" />
+    <script src="server/orm/Schema.lua" type="server" cache="false" />
+    <script src="server/orm/Model.lua" type="server" cache="false" />
+
+    <script src="server/database/DatabaseAdapter.lua" type="server" cache="false" />
+    <script src="server/database/models/Account.lua" type="server" cache="false" />
+    <script src="server/database/models/Character.lua" type="server" cache="false" />
+    <script src="server/database/models/AccountPenalty.lua" type="server" cache="false" />
+    <script src="server/database/models/Report.lua" type="server" cache="false" />
+    <script src="server/database/models/AdminDutySession.lua" type="server" cache="false" />
+    <script src="server/database/repositories/AccountRepository.lua" type="server" cache="false" />
+    <script src="server/database/repositories/CharacterRepository.lua" type="server" cache="false" />
+    <script src="server/database/repositories/AccountPenaltyRepository.lua" type="server" cache="false" />
+    <script src="server/database/repositories/ReportRepository.lua" type="server" cache="false" />
+    <script src="server/database/repositories/AdminDutySessionRepository.lua" type="server" cache="false" />
+    <script src="server/database/adapters/MySqlAdapter.lua" type="server" cache="false" />
+    <script src="server/database/adapters/MySqlAdapterBootstrap.lua" type="server" cache="false" />
+
+    <script src="server/PlayerService.lua" type="server" cache="false" />
+    <script src="server/PlayerId.lua" type="server" cache="false" />
+    <script src="server/SecurityService.lua" type="server" cache="false" />
+    <script src="server/SessionKeyService.lua" type="server" cache="false" />
+
+    <script src="server/accounts/Permissions.lua" type="server" cache="false" />
+    <script src="server/accounts/AccountService.lua" type="server" cache="false" />
+    <script src="server/accounts/AccountPenaltyService.lua" type="server" cache="false" />
+    <script src="server/accounts/ReportService.lua" type="server" cache="false" />
+    <script src="server/accounts/AdminDutyStatsService.lua" type="server" cache="false" />
+    <script src="server/accounts/AccountEndpoints.lua" type="server" cache="false" />
+    <script src="server/accounts/AdminGuiEndpoints.lua" type="server" cache="false" />
+
+    <script src="server/commands/CommandRegistry.lua" type="server" cache="false" />
+    <script src="server/commands/AccountPenaltyCommands.lua" type="server" cache="false" />
+    <script src="server/commands/AccountRoleCommands.lua" type="server" cache="false" />
+    <script src="server/commands/AdminCommands.lua" type="server" cache="false" />
+
+    <script src="server/notifications/NotificationService.lua" type="server" cache="false" />
+
+    <script src="server/Bootstrap.lua" type="server" cache="false" />
+
+    <!-- Exports: only plain-data calls, one hop, into this resource from
+         gameplay/system resources or core_ui. Deep async chains
+         (Database.*, AccountService.*, FetchBridge.register with a
+         handler closure) are intentionally NOT exported - see
+         docs/Architecture.md. -->
+    <export function="loggerDebug" type="server" />
+    <export function="loggerInfo" type="server" />
+    <export function="loggerWarn" type="server" />
+    <export function="loggerError" type="server" />
+    <export function="loggerSecurity" type="server" />
+
+    <export function="playerServiceIsAuthenticated" type="server" />
+    <export function="playerServiceGetRole" type="server" />
+    <export function="playerServiceIsOnDuty" type="server" />
+    <export function="playerIdById" type="server" />
+    <export function="playerIdOf" type="server" />
+    <export function="playerIdResolve" type="server" />
+    <export function="securityServiceReport" type="server" />
+    <export function="getSessionKey" type="server" />
+
+    <export function="permissionsColorForRole" type="server" />
+    <export function="permissionsHasRole" type="server" />
+    <export function="getPermissionsBit" type="server" />
+    <export function="accountServiceFormatExpiryForDisplay" type="server" />
+
+    <export function="notificationServiceSend" type="server" />
+    <export function="notificationServiceBroadcast" type="server" />
+</meta>

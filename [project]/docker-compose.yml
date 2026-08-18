@@ -1,0 +1,30 @@
+# Local MariaDB for core/server/database/adapters/MySqlAdapter.lua - MTA's
+# dbConnect("mysql", ...) driver talks the MySQL wire protocol, which
+# MariaDB implements, so no Lua-side changes are needed to point core at
+# this instead of real MySQL.
+#
+# Credentials/port/database name below are kept in sync with the MYSQL_*
+# settings in ../[core]/core/meta.xml - if you change one, change the
+# other.
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: district_mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: amethyst
+      MARIADB_DATABASE: district
+      MARIADB_CHARACTER_SET: utf8mb4
+      MARIADB_COLLATE: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - district_mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  district_mariadb_data:

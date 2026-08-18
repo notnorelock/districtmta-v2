@@ -1,0 +1,23 @@
+<meta>
+    <info author="district" name="gm_roleplay" description="Roleplay gamemode entry point - minimal vertical slice proving the account/UI/spawn-selection chain end-to-end" version="0.1.0" type="gamemode" gamemode="Roleplay" />
+    <!-- No <download_priority_group> here either - see core_shared/meta.xml's
+         comment on the tag. Server-only, no type="client"/"shared" files. -->
+
+    <!-- Server-only: this resource has no client-side logic of its own.
+         Both the auth UI and the spawn-selection UI open/close flows live
+         in core_auth (see core_auth/server/AuthUiController.lua,
+         SpawnUiController.lua, SpawnEndpoints.lua, SpawnLocations.lua, and
+         their client/*Client.lua counterparts) - gm_roleplay has no
+         knowledge of either. Its remaining jobs are the genuinely
+         gameplay-side pieces: actually spawning a player (exposed to
+         core_auth as the gameplayEnterWorld export - see
+         server/GameplayBootstrap.lua) and local/IC chat (server/Chat.lua). -->
+    <include resource="core_shared" />
+    <include resource="core" />
+
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/GameplayBootstrap.lua" type="server" cache="false" />
+    <script src="server/Chat.lua" type="server" cache="false" />
+
+    <export function="gameplayEnterWorld" type="server" />
+</meta>

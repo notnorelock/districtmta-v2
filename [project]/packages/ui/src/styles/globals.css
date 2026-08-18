@@ -1,0 +1,195 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+  Design tokens for the district UI. This is a game overlay, not a web
+  app - the palette favors a dark, low-chrome, slightly translucent look
+  over a typical SaaS/admin light theme. Components consume these via
+  Tailwind's generated utilities (bg-background, text-foreground, ...).
+
+  UI components (Button, TextField, Tabs, Dialog, Card, Select, Checkbox,
+  Switch - components/ui/*.tsx) are ported from solid-ui
+  (github.com/stefan-karger/solid-ui, a shadcn/ui equivalent for SolidJS
+  built on Kobalte, the same style of headless primitives Radix UI provides
+  React's shadcn/ui). solid-ui's own CLI/registry currently targets
+  Tailwind v3 (hsl(var(--x)) tokens, tailwind.config.cjs, tailwindcss-animate)
+  - this project is Tailwind v4, so component SOURCE was copied by hand from
+  solid-ui's GitHub repo and every class name was rewritten against this
+  file's v4 @theme tokens instead of running solid-ui's CLI (which would
+  have overwritten this file with v3 config). tw-animate-css (imported
+  above) is the v4-native replacement for the tailwindcss-animate plugin
+  solid-ui's own dialog/toast animations assume - it provides the same
+  animate-in/animate-out/fade-in/zoom-in-95/slide-in-from-* utility classes
+  as a set of plain CSS animations, no plugin config required.
+
+  Token naming follows shadcn's semantic convention (background,
+  foreground, primary, secondary, muted, accent, destructive, border,
+  input, ring, card, popover - each with a matching -foreground) so ported
+  component class strings (bg-primary, text-muted-foreground, ...) work
+  unmodified. --color-accent-indigo/--color-accent-violet remain as
+  additional, non-shadcn tokens backing the auth panel's indigo/violet
+  gradient treatment specifically (see features/auth/AuthCard.tsx) - kept
+  separate from --color-primary (gold) since the auth panel is deliberately
+  its own visual register from the rest of the UI chrome.
+*/
+@theme {
+  --color-background: #0b0d10;
+  --color-foreground: #e8ebef;
+
+  --color-card: #14171c;
+  --color-card-foreground: #e8ebef;
+
+  --color-popover: #1b1f26;
+  --color-popover-foreground: #e8ebef;
+
+  --color-surface: #14171c;
+  --color-surface-elevated: #1b1f26;
+  --color-border: #262b33;
+  --color-input: #262b33;
+  --color-ring: #d4a441;
+
+  --color-primary: #d4a441;
+  --color-primary-foreground: #14100a;
+
+  --color-secondary: #2a2f38;
+  --color-secondary-foreground: #e8ebef;
+
+  --color-accent: #2a2f38;
+  --color-accent-foreground: #e8ebef;
+
+  --color-destructive: #e5484d;
+  --color-destructive-foreground: #ffffff;
+
+  --color-danger: #e5484d;
+  --color-danger-foreground: #ffffff;
+
+  --color-success: #3dd68c;
+  --color-success-foreground: #08150f;
+
+  --color-warning: #f2b84b;
+  --color-warning-foreground: #1a1206;
+
+  --color-muted: #7c8494;
+  --color-muted-foreground: #a6acb8;
+
+  --color-accent-indigo: #6366f1;
+  --color-accent-violet: #8b5cf6;
+
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Titillium Web", "Inter", "Segoe UI", system-ui, sans-serif;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  src: url("~@/assets/fonts/TitilliumWeb-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  src: url("~@/assets/fonts/TitilliumWeb-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  src: url("~@/assets/fonts/TitilliumWeb-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  src: url("~@/assets/fonts/TitilliumWeb-Black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: transparent;
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/*
+  Auth panel glow - a soft radial wash behind the login/register form,
+  ported from the reference design's smoke/particle backdrop. That version
+  used an animated smoke shader; this is a static, much cheaper CSS
+  approximation (this panel renders inside MTA's CEF browser, not a full
+  desktop browser - keep it light).
+*/
+.auth-panel__glow {
+  background:
+    radial-gradient(circle at 20% 15%, rgba(99, 102, 241, 0.18), transparent 55%),
+    radial-gradient(circle at 80% 85%, rgba(139, 92, 246, 0.14), transparent 60%);
+}
+
+/*
+  Login <-> register slide transition. Tabs.Content is rendered with
+  forceMount so both panels stay mounted at once (Kobalte's default
+  behavior fully unmounts the inactive panel, which makes a simultaneous
+  slide-out/slide-in impossible) - the active panel is picked out via
+  Kobalte's own `data-selected` presence attribute instead. The inactive
+  panel is stacked on top via absolute positioning so it doesn't affect
+  layout height while transitioning. Direction (left/right) is driven by
+  AuthCard's own tab-order comparison, applied as a class on the shared
+  viewport wrapper - see features/auth/AuthCard.tsx.
+
+  Height is animated too, via an explicit inline `height` style AuthCard
+  sets from the active panel's measured offsetHeight (login and register
+  have different field counts, so a hard cut would otherwise jump the
+  panel and everything below/around it). The transition here is what
+  turns that discrete style change into a smooth resize.
+*/
+.auth-panel__viewport {
+  overflow: hidden;
+  transition: height 0.35s cubic-bezier(0.36, 0.66, 0.04, 1);
+}
+
+.auth-panel__content {
+  transition: transform 0.35s cubic-bezier(0.36, 0.66, 0.04, 1), opacity 0.35s ease;
+}
+
+.auth-panel__content:not([data-selected]) {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.auth-panel__content[data-selected] {
+  position: relative;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.auth-panel__slide-right .auth-panel__content:not([data-selected]) {
+  transform: translateX(-100%);
+}
+
+.auth-panel__slide-left .auth-panel__content:not([data-selected]) {
+  transform: translateX(100%);
+}
