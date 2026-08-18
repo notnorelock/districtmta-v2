@@ -19,7 +19,7 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
 end)
 
 addEventHandler("onClientResourceStop", resourceRoot, function()
-	for _, v in pairs(MODELS) do
+	for _, v in ipairs(MODELS) do
 		engineRestoreModel(v.model)
 		engineRestoreCOL(v.model)
 	end
