@@ -20,12 +20,20 @@ addEvent(Events.ADMIN_REQUEST_STATS, true)
 addEvent(Events.ADMIN_STATS, true)
 addEvent(Events.ADMIN_PERMISSIONS, true)
 
---- @param player element
+--- Also used as the gate for every admin:* handler below - a legitimate
+--- client hides/disables the corresponding button when the caller lacks
+--- the permission, so reaching the server without it means the client was
+--- modified to bypass that UI gating. Kicks on sight - see SecurityService.
+-- @param player element
 -- @param bit number one of Permissions.Bit's values
 -- @return boolean
 local function callerHasPermission(player, bit)
     local account = PlayerService.getAccount(player)
-    return account ~= nil and Permissions.has(account, bit)
+    local allowed = account ~= nil and Permissions.has(account, bit)
+    if not allowed then
+        SecurityService.report(player, "UNAUTHORIZED_ADMIN_ACTION", { requiredBit = bit })
+    end
+    return allowed
 end
 
 --- @param player element

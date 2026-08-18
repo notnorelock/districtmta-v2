@@ -10,8 +10,12 @@ function pushSessionKeyToBrowser()
     ))
 end
 
-addEvent("sessionKey", true)
-addEventHandler("sessionKey", root, function(key)
+-- Mirrors core_ui/server/SessionKeyDelivery.lua's sessionKeyEventName -
+-- see that file's module comment for why the event name is derived from
+-- getPlayerSerial rather than a fixed literal.
+local sessionKeyEventName = "sk:" .. sha256(getPlayerSerial())
+addEvent(sessionKeyEventName, true)
+addEventHandler(sessionKeyEventName, root, function(key)
     SessionKeyState.key = key
     pushSessionKeyToBrowser()
 end)
