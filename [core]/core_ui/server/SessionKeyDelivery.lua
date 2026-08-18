@@ -14,7 +14,7 @@
 -- docs/UiBridge.md's "Payload obfuscation" section; the actual security
 -- boundary is FetchBridge's server-side validation, unaffected either way.
 local function sessionKeyEventName(player)
-    return "sk:" .. sha256(getPlayerSerial(player))
+    return sha256(getPlayerSerial(player))
 end
 
 local MAX_ATTEMPTS = 5

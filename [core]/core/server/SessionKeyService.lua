@@ -1,10 +1,6 @@
 local sessionKeys = {}
-
--- generateString is NOT an MTA built-in (a community wiki snippet, not a
--- native function). Seeded once at module load rather than per call -
--- reseeding per-call risks two keys generated in the same tick being
--- identical.
 local ALLOWED_BYTE_RANGES = { { 48, 57 }, { 65, 90 }, { 97, 122 } } -- 0-9, A-Z, a-z
+
 math.randomseed(getTickCount())
 
 local function generateRandomString(length)
@@ -17,10 +13,12 @@ local function generateRandomString(length)
 end
 
 local function generateSessionKey()
-    -- Not documented/guaranteed cryptographically secure - fine here, see
-    -- the module comment above on why this is obfuscation, not real
-    -- cryptography.
-    return generateRandomString(32)
+    local timestamp = getRealTime().timestamp
+    local randomString = generateRandomString(64)
+
+    local key = sha256(string.format("%d:%s", timestamp, randomString))
+    iprint("Generated session key:", key)
+    return key
 end
 
 --- @param player element
@@ -34,17 +32,7 @@ local function issueSessionKey(player)
         return nil
     end
 
-    local key = getElementData(player, ElementData.Player.SESSION_KEY) or generateSessionKey()
-    if key then
-        sessionKeys[player] = key
-        setElementData(player, ElementData.Player.SESSION_KEY, key, false)
-
-        Logger.debug("SessionKeyService", "Session key issued", { player = getPlayerName(player) })
-        return key
-    else
-        Logger.warn("SessionKeyService", "Failed to issue session key", { player = getPlayerName(player) })
-        return nil
-    end
+    sessionKeys[player] = generateSessionKey()
 end
 
 addEventHandler("onPlayerJoin", root, function()
