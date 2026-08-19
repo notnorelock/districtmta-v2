@@ -7,12 +7,12 @@
 -- already decided (see BlackoutState.lua).
 BlackoutService = BlackoutService or {}
 
-local BLACKOUT_DURATION_S = 60
+local BLACKOUT_DURATION_S = 120
 -- Health a player is left with the instant blackout starts/ends -
 -- deliberately not 0 (dead) or full (implies "fine now") - low enough to
 -- read as "barely alive", matching the old reference implementation's
 -- BW_HP=25 constant this was ported from.
-local BLACKOUT_HP = 25
+local BLACKOUT_HP = 5
 
 --- @param player element
 -- @return boolean
