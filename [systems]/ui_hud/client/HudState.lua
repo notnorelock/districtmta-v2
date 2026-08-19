@@ -13,25 +13,12 @@ local lastInWater = false
 local lastUpdateTick = 0
 
 local function getPedMaxOxygenLevel(ped)
-    -- underwater stamina ped
     local underwater_stamina = getPedStat(ped, 225)
-    
-    -- stamina ped
     local stamina = getPedStat(ped, 22)
-    
-    -- Do a linear interpolation to get how many oxygen a ped can have.
-    -- Assumes: 1000 level = 0 underwater_stamina and 0 stamina stat, 4000 level = 1000 underwater_stamina and 1000 stamina stat.
     local maxoxygen = 1000 + underwater_stamina * 1.5 + stamina * 1.5
-    
-    -- Return the max oxygen level.
     return maxoxygen
 end
 
---- getPedOxygenLevel"s native scale is 0-1000+ (base 1000, up to 4000
---- with max stamina/underwater-stamina stats), NOT 0-100 like health -
---- normalize against getPedMaxOxygenLevel so this reads on the same
---- 0-100 scale as the rest of the HUD.
--- @return number 0-100
 local function oxygenPercent()
     local max = getPedMaxOxygenLevel(localPlayer)
     if not max or max <= 0 then return 100 end
