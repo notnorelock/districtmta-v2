@@ -6,6 +6,8 @@ const [stats, setStats] = createStore<HudStats>({
   health: 100,
   hunger: 100,
   thirst: 100,
+  oxygen: 100,
+  drowning: false,
   voiceActive: false,
 });
 

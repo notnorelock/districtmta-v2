@@ -214,8 +214,12 @@ CommandRegistry.register("jetpack", Permissions.Bit.JETPACK, function(player)
         return
     end
 
-    local hasJetpack = not hasPedGotJetPack(player)
-    setPedHasJetPack(player, hasJetpack)
+    local hasJetpack = not isPedWearingJetpack(player)
+    if hasJetpack then
+        givePedJetPack(player)
+    else
+        removePedJetPack(player)
+    end
 
     Logger.security("AdminCommands", "Jetpack toggled", {
         player = getPlayerName(player),

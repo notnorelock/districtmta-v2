@@ -1,4 +1,4 @@
-import { type Component, type JSX, Show } from "solid-js";
+import { type Component, type JSX, Show, createMemo } from "solid-js";
 import { cn } from "@/lib/cn";
 
 interface HudIconProps {
@@ -32,11 +32,17 @@ const DEFAULT_CRITICAL_THRESHOLD = 10;
 export const HudIcon: Component<HudIconProps> = (props) => {
   const clamped = () => Math.max(0, Math.min(100, props.value));
   const threshold = () => props.criticalThreshold ?? DEFAULT_CRITICAL_THRESHOLD;
-  const isCritical = () => !props.static && threshold() > 0 && clamped() <= threshold();
+  // createMemo (not a plain getter) so this only re-evaluates to a NEW
+  // boolean when the critical state actually flips, not on every health
+  // tick - a plain () => ... getter re-runs class={cn(...)} on every
+  // single value change (health is pushed every frame), which reassigns
+  // className every time and restarts the CSS animation from 0%, making
+  // the glow flicker/reset instead of pulsing smoothly.
+  const isCritical = createMemo(() => !props.static && threshold() > 0 && clamped() <= threshold());
 
   return (
     <div
-      class={cn("relative flex items-center justify-center", isCritical() && "hud-icon--critical", props.class)}
+      class={cn("relative flex items-center justify-center rounded-xl", isCritical() && "hud-icon--critical", props.class)}
       style={{ width: `${SIZE}px`, height: `${SIZE}px`, "--glow-color": props.color }}
     >
       {/* Solid dark chip so the icon reads as UI instead of a hole showing
@@ -60,6 +66,10 @@ export const HudIcon: Component<HudIconProps> = (props) => {
           stroke-width={STROKE}
         />
         <Show when={!props.static}>
+          {/* stroke-linecap MUST stay "butt", not "round" - at/near 100%
+              the arc's start and end land on the same point, and "round"
+              draws an overlapping cap blob right there (looked like a
+              stray colored fragment in one corner at full health). */}
           <rect
             x={INSET}
             y={INSET}
@@ -69,7 +79,7 @@ export const HudIcon: Component<HudIconProps> = (props) => {
             fill="none"
             stroke={props.color}
             stroke-width={STROKE}
-            stroke-linecap="round"
+            stroke-linecap="butt"
             pathLength={100}
             stroke-dasharray="100"
             stroke-dashoffset={100 - clamped()}
