@@ -25,9 +25,12 @@ district/                                   MTA server runtime root
 │   │   ├── core_loading/        gates Events.LOADING_READY per player until the server chain AND that player's CEF are both ready
 │   │   ├── core_auth/           "remember me" local credential persistence + all post-login UI orchestration (auth window, spawn selection)
 │   │   └── core_admin/          client-only native dxGUI/dxDraw admin panel + reports overlay (the duty/report/penalty business logic itself lives in core)
-│   ├── [systems]/                independent gameplay-adjacent systems (empty for now)
+│   ├── [systems]/                independent gameplay-adjacent systems, each its own resource
+│   │   ├── gm_voice/            proximity voice chat - whisper/talk/shout modes, distance falloff/panning, CEF HUD nearby-speaker indicator
+│   │   ├── gm_radio/            vehicle radio - fixed station list, driver-only scroll/R controls, CEF HUD "now playing" card
+│   │   └── ui_hud/               always-on CEF HUD overlay (health/hunger/thirst/voice) - reads gm_voice's exports for the local player's talk state
 │   ├── [gameplay]/
-│   │   └── gm_roleplay/         the gamemode entry resource (type="gamemode") - server-only, just spawnPlayer
+│   │   └── gm_roleplay/         the gamemode entry resource (type="gamemode") - spawnPlayer + local chat (server), baseline world tweaks + player radar blips (client)
 │   └── [project]/                <- this doc's own directory, NOT an MTA resource
 │       ├── packages/
 │       │   └── ui/               SolidJS + TypeScript + Webpack + Tailwind v4 CEF frontend
@@ -235,17 +238,27 @@ responsibility table below for what each resource actually needs.
 | `core_loading` | `script` | Gates `Events.LOADING_READY` per player until BOTH `core_bootstrap`'s server-side chain has finished (`exports.core_bootstrap:bootstrapIsChainReady()`) AND that specific player's CEF has reported ready (`exports.core_ui:uiStateIsBrowserReady(player)`) - see `LoadingGate.lua`. Exists so a player is never told to open the auth window before the CEF bridge (or the rest of the resource chain) is actually ready to receive it - see "Loading gate" below. |
 | `core_auth` | `script`, server + client | Owns essentially all post-login UI orchestration - "which named window is open right now, and why": (1) "remember me" local credential persistence (`CredentialStore.lua`/`CredentialTransport.lua`) - `core_ui/client/ui/Transport.lua` forwards the relevant browser events here (as plain custom events, never a closure) after verifying they came from the tracked browser element, and `core_auth` calls back into `core_ui`'s `uiExecuteInBrowser`/`uiObfuscateForBrowser`/`uiDeobfuscateFromBrowser` exports rather than touching the browser element or `SessionKeyState` directly (see "Remember me" below); (2) auth UI AND spawn-select UI open/close orchestration, both handled together in `AuthUiController.lua`/`AuthUiClient.lua` - listens for `Events.LOADING_READY`/`Events.PLAYER_ACCOUNT_RESOLVED` and drives `UI.open`/`UI.close` for both windows via `Events.AUTH_BEGIN_AUTHENTICATION`/`Events.AUTH_SUCCESS_AUTHENTICATION` (the latter only means "login/register succeeded, close the auth window" - not "the player is in the game world", which still waits on spawn selection) and `Events.SPAWN_SELECT_OPEN`/`_CLOSE`, backed by a static location list and two FetchBridge endpoints (`SpawnLocations.lua`/`SpawnEndpoints.lua`'s `spawn.list`/`spawn.select`, registered the same way `AccountEndpoints.lua` registers `auth.*`). `spawn.select` calls `exports.gm_roleplay:gameplayEnterWorld(player, location)` (a one-hop, plain-data call) to actually spawn the player, then closes its own window - see the account lifecycle diagram below. |
 | `core_admin` | `script`, client-only | The admin panel and reports overlay, rendered as native MTA dxGUI/dxDraw (`client/gui/` - `AdminGuiWindow.lua`, `PlayersTab.lua`, `ReportsTab.lua`, `PenaltyDialog.lua`), not CEF. Has zero `server/` scripts - toggled by `/apanel`/`/reports` (`Events.ADMIN_PANEL_TOGGLE`/`REPORTS_OVERLAY_TOGGLE`, fired from `core`) and talks to the server over plain `triggerServerEvent`/`triggerClientEvent` pairs, not FetchBridge. Does NOT own the duty/report/penalty business logic itself - that lives in `core` (`AdminGuiEndpoints.lua` - see "Admin duty, panel, and reports" below) for the same reason `core_auth` doesn't own `AccountService`: anything that needs to call back into `core`'s services directly has to live in the same resource as those services. Includes only `core_shared`, not `core`/`core_ui`. |
+| `gm_voice` | `script`, server + client | Proximity voice chat, entirely independent of MTA's built-in `voice` resource (this project doesn't use it). Server (`VoiceService.lua`): whisper/talk/shout talk mode per player (`ElementData.Player.VOICE_MODE`, cycled by `Events.VOICE_CYCLE_MODE`, client-requested but server-authoritative), each mode driving a different `setPlayerVoiceBroadcastTo` distance (speaker-centric - a shout reaches farther listeners, not "listeners set their own range"), and admin-mute enforcement that reuses `core`'s existing account mute penalty (`ElementData.Account.MUTE`) rather than a separate voice-only mute. Client (`VoiceState.lua`): distance/fade volume falloff and stereo panning toward the speaker (replicates MTA's own built-in voice panning formula) for whoever the server already decided this client can hear, plus a small "who's nearby talking" list pushed into the CEF HUD (`Events.PUSH_VOICE_NEARBY_UPDATED` - see `VoiceIndicator.tsx`). Exports `voiceStateIsTalking`/`voiceStateGetMode` (client) so `ui_hud` can read the local player's own live talk state without duplicating the tracking logic or reading `ElementData.Player.VOICE`/`VOICE_MODE` directly. |
+| `gm_radio` | `script`, server + client | Vehicle radio - a fixed station list (`RadioService.lua`'s `STATIONS`; no per-account saved stations or YouTube-proxy support, unlike an earlier non-project version of this feature that depended on a third-party stream-conversion service this project doesn't own). Station state lives on the vehicle itself (`ElementData.Vehicle.RADIO_STATION`, distinct from "never touched" so a deliberately-silenced radio doesn't spring back on the next driver - see `RadioService.lua`'s `RADIO_OFF` sentinel/`hasStationEverBeenSet`), not per-player, so every occupant (including one who enters mid-ride, or a driver re-entering after getting out) hears the same thing via a driver-only scroll-wheel/`R` control (`Events.RADIO_CHANGE_STATION`, server-authoritative same pattern as `gm_voice`'s mode cycle). Client (`RadioState.lua`) plays the stream and pushes a "now playing" state into the CEF HUD (`Events.PUSH_RADIO_STATION_CHANGED` - see `RadioCard.tsx`), including a loading state driven by `onClientSoundStream` (fires once a stream actually starts, well after `playSound()` itself already returned) rather than assuming "got a sound element back" means "audible". |
+| `ui_hud` | `script`, client-only | Always-on CEF HUD overlay (health/hunger/thirst/voice) rendered inside `core_ui`'s shared browser (`HudState.lua` pushes `Events.PUSH_HUD_UPDATED`) - hunger/thirst remain placeholders (no server-side systems back them yet); voice reads `gm_voice`'s exports (`voiceStateIsTalking`/`voiceStateGetMode`) for the local player's own live talk state/mode, driving the mic icon's fill level (33/66/100% for whisper/talk/shout) and a steady (non-pulsing) glow while actually transmitting - two independently-driven pieces of the same icon, see `HudBar.tsx`. Also owns the always-visible server watermark (a separate overlay key from the HUD itself, so a future "hide HUD" toggle doesn't take it down too). Declares `<include resource="gm_voice">` and must start AFTER it in `core_bootstrap`'s `START_ORDER` (see below) purely to document/guarantee that exports dependency - `ui_hud` has no gameplay logic of its own beyond reading and displaying state other resources own. |
 | `system_notifications` *(empty placeholder today)* | — | Reserved for future systems that don't belong inside `core` but also don't have deep callback coupling with it. |
-| `gm_roleplay` | `gamemode`, server-only | The actual gamemode entry point - deliberately thin. Has no knowledge of any UI (auth window or spawn-select window) - that's entirely `core_auth`'s job. Its responsibilities are `gameplayEnterWorld(player, location)` (exported, see `GameplayBootstrap.lua`): `spawnPlayer` + camera fade, called by `core_auth`'s `SpawnEndpoints.lua` once a player confirms a spawn choice; and local/IC chat (`Chat.lua` - see "Local chat" below). |
+| `gm_roleplay` | `gamemode`, server + client | The gamemode entry point. Server: `gameplayEnterWorld(player, location)` (exported, see `GameplayBootstrap.lua`) - `spawnPlayer` + camera fade, called by `core_auth`'s `SpawnEndpoints.lua` once a player confirms a spawn choice; and local/IC chat (`Chat.lua` - see "Local chat" below). Client: baseline world/rendering tweaks on start (`GameplayBootstrap.lua` - disables the GTA targeting marker/blur/gunfire ambience, removes mapped-out world objects) and player radar blips (`PlayerBlips.lua` - same-interior/dimension/spawned/visible players only; per-group or wanted-level blip coloring is a documented `TODO` inside the file, not implemented, since neither a group/gang-duty nor a wanted-level system exists in this project yet - porting that logic from an earlier, unrelated project would have been dead code). Has no knowledge of any UI (auth window or spawn-select window) - that's entirely `core_auth`'s job. |
 
 Start order: `core_shared` → `core` → `core_ui` → `core_loading` →
-`core_auth` → `core_admin` → `gm_roleplay`, enforced automatically by `core_bootstrap`
+`core_auth` → `core_admin` → `gm_voice` → `gm_radio` → `ui_hud` →
+`gm_roleplay`, enforced automatically by `core_bootstrap`
 rather than left to `mtaserver.conf`'s `<resource>` line order (which MTA
 does not treat as a dependency graph) or manual `/start`/`/restart`
 discipline - see `core_bootstrap/server/Bootstrap.lua`. `core_loading`
 sits right before `core_auth` specifically so `core_auth`'s
 `AuthUiController.lua` never starts listening for `Events.LOADING_READY`
-before `core_loading` exists to fire it. The reasoning behind the order
+before `core_loading` exists to fire it. `gm_voice` sits before `gm_radio`/
+`ui_hud` (though `gm_radio` and `gm_voice` don't actually depend on each
+other - only `ui_hud` depends on `gm_voice`) specifically because `ui_hud`'s
+client (`HudState.lua`) calls `gm_voice`'s exports
+(`voiceStateIsTalking`/`voiceStateGetMode`) for the local player's own
+voice-mode HUD ring - `gm_voice` must exist first or those export calls
+would simply fail. The reasoning behind the `core`-tier order
 itself: `core_ui` declares `<include resource="core">` (it needs
 `PlayerService`/`SecurityService` early - `Logger` is the one exception:
 `core_ui` has its own local copy, `core_ui/server/Logger.lua`, instead of proxying to
@@ -276,8 +289,18 @@ the moment a player actually confirms a spawn choice, well after both
 resources have started, and a core resource including a gameplay resource
 would invert this project's core → systems → gameplay dependency
 direction. `gm_roleplay` itself only declares `core_shared`/`core` - it
-has no client-side scripts and no dependency on `core_ui`/`core_auth` at
-all (see the resource responsibility table above).
+has client-side scripts (`GameplayBootstrap.lua`, `PlayerBlips.lua`, each
+with their own `client/GlobalResources.lua` proxying just `ElementData`)
+but no dependency on `core_ui`/`core_auth`/any of the `systems/*`
+resources at all (see the resource responsibility table above).
+
+`gm_voice`/`gm_radio` each declare `core_shared`/`core_ui` only (voice/
+radio state is pushed straight into the CEF HUD the same way `ui_hud`
+pushes health - neither needs anything from `core`/`core_auth`). `ui_hud`
+declares `core_shared`/`core_ui`/`gm_voice` - the `gm_voice` include exists
+purely to document/enforce the exports dependency described above; `ui_hud`
+is not started BY `gm_voice`, `core_bootstrap`'s `START_ORDER` already
+guarantees the ordering.
 
 Future systems (inventory, economy, jobs, organizations, ...) should
 default to being their own resource under `systems/` or `gameplay/`,
@@ -301,8 +324,8 @@ core_loading: LoadingGate.lua starts polling this player (every 200ms)
      |
      +-- exports.core_bootstrap:bootstrapIsChainReady()? ---- false --> keep polling
      |         (true once core_bootstrap's startNext has walked all the
-     |          way through core_shared -> core -> core_ui -> core_loading
-     |          -> core_auth -> gm_roleplay at least once)
+     |          way through the full START_ORDER - see "Start order" above -
+     |          at least once)
      |
      +-- exports.core_ui:uiStateIsBrowserReady(player)? ----- false --> keep polling
      |         (true once THIS player's CEF frontend has fired
@@ -341,6 +364,39 @@ outside CEF - a player watches MTA's own resource download UI until
 `core_ui`'s files finish downloading and the CEF frontend mounts, and
 `ResourceCheckScreen` covers everything from that point until a window is
 actually pushed.
+
+**A gap this surfaced**: `Events.LOADING_READY` fires again every time
+`core_loading` (re)starts - including a mid-session `core_bootstrap`/
+`/restartchain` restart while a player is already logged in AND already
+spawned (not mid-auth, not mid-spawn-select - genuinely standing in the
+world). `AuthUiController.lua`'s `LOADING_READY` handler originally only
+branched on two cases: not logged in (open the auth window) or logged in
+but not yet spawned (`reopenSpawnSelectForUnspawnedPlayers` covers this
+separately, on `core_auth`'s own `onResourceStart`, for the same
+`PLAYER_ACCOUNT_RESOLVED`-lost-during-a-full-chain-restart reason
+described in "Surviving a `core` restart" below). Neither branch fires
+for an already-spawned player, which means no `ui.open` push ever
+reaches the browser - and since the CEF frontend itself was just
+remounted from scratch (`core_ui` restarting recreates the browser),
+`uiStore.hasOpenedAnyWindow()` resets to `false` with nothing left to
+ever set it `true` again. The player would sit on `ResourceCheckScreen`
+forever despite already being fully in the game (the HUD, which doesn't
+route through `uiStore` at all, would render normally underneath it -
+this was caught live as a spinner overlapping a visible, working HUD,
+not a fully blank screen).
+
+The fix is a third, explicit branch: if `LOADING_READY` fires for a
+player who is both logged in AND already spawned,
+`AuthUiController.lua` fires `Events.AUTH_ALREADY_IN_WORLD` (client-side,
+`AuthUiClient.lua`) which pushes `PUSH_UI_ALREADY_IN_WORLD`
+(`"ui.alreadyInWorld"`) straight into the CEF HUD via
+`exports.core_ui:uiPushEvent` - a plain push, not a
+`UI.open`/`UI.close` pair, since no window is actually opening or
+closing here. `ui.store.ts` sets `hasOpenedAnyWindow(true)` directly on
+receiving it. This is the one case in the whole auth/spawn flow where a
+push exists purely to unstick frontend state rather than to open/close an
+actual window - see `docs/UiBridge.md`'s push-event channel section for
+where this fits among the other push events.
 
 Once mounted, `ResourceCheckScreen` isn't just a generic spinner: it also
 shows this specific client's OWN resource-file download progress, driven
@@ -1182,16 +1238,52 @@ lookups ever needed something beyond the plain Active Record API.
 1. Decide whether the new system needs to hand closures to/from `core`
    constantly (rare) or only needs plain-data exports/events (the common
    case). Default to a new resource under `systems/` or `gameplay/`.
-2. Give it its own `meta.xml`, `server/GlobalResources.lua` (if it needs
-   anything from `core_shared`, `core`, or `core_ui`), and organize files
-   by responsibility (`XxxService.lua`, `XxxRepository.lua` if it needs
-   its own persistence, `XxxEndpoints.lua` if it exposes FetchBridge
-   endpoints - follow the `exports.core_ui:fetchBridgeRegisterMeta` +
-   local `addEventHandler("endpoint:...", ...)` +
+2. Give it its own `meta.xml`, `server/GlobalResources.lua` and/or
+   `client/GlobalResources.lua` (if it needs anything from `core_shared`,
+   `core`, or `core_ui` - a client-only resource with no server-side
+   state, like `gm_voice`/`gm_radio`/`ui_hud`, still needs its own
+   `client/GlobalResources.lua` even without a matching server-side one),
+   and organize files by responsibility (`XxxService.lua`,
+   `XxxRepository.lua` if it needs its own persistence, `XxxEndpoints.lua`
+   if it exposes FetchBridge endpoints - follow the
+   `exports.core_ui:fetchBridgeRegisterMeta` + local
+   `addEventHandler("endpoint:...", ...)` +
    `exports.core_ui:fetchBridgeRespond` pattern from `AccountEndpoints.lua`,
-   see "FetchBridge across the core/core_ui boundary" above).
-3. Never trust data arriving from client-side Lua or the browser -
+   see "FetchBridge across the core/core_ui boundary" above). Not every
+   system needs FetchBridge at all - `gm_voice`/`gm_radio`/`ui_hud` never
+   register a single endpoint; they only ever push one-way state into the
+   CEF HUD via `exports.core_ui:uiPushEvent(eventName, data)` (see
+   `docs/UiBridge.md`'s push-event channel), which is the right choice
+   whenever the browser only needs to be *told* something (current
+   health, who's nearby talking, what station is playing) rather than
+   *ask* for it - default to a plain push before reaching for a full
+   request/response endpoint.
+3. If a client-side resource needs to call another resource's client-side
+   export (e.g. `ui_hud` reading `gm_voice`'s `voiceStateIsTalking`), add
+   an explicit `<include resource="...">` documenting that dependency even
+   though `<include>` itself is only a start-order hint, not a strict
+   gate, and make sure `core_bootstrap/server/Bootstrap.lua`'s
+   `START_ORDER` actually lists the dependency before the dependent
+   resource - `<include>` alone does not affect `core_bootstrap`'s own
+   start sequence.
+4. Never trust data arriving from client-side Lua or the browser -
    validate everything at the boundary (see `UiBridge.md`'s security
-   section).
-4. Add new shared constants (event names, error codes) to `core_shared`
-   rather than inventing ad hoc strings in the new resource.
+   section). Server-authoritative state that a client only *requests* a
+   change to (e.g. `gm_voice`'s talk-mode cycle, `gm_radio`'s station
+   change) should go through a client→server custom event the server
+   fully validates and decides on, never a client-set value trusted
+   as-is.
+5. Add new shared constants (event names, error codes, element data keys)
+   to `core_shared` rather than inventing ad hoc strings in the new
+   resource - including a new `ElementData.*` top-level group: `core_shared/
+   shared/Registry.lua`'s `getElementData()` re-lists every group by hand
+   (MTA's exports strip function fields from returned tables, so this
+   function can't just return `ElementData` wholesale - see "The
+   `GlobalResources.lua` pattern" above) and does **not** automatically
+   pick up a new group added to `ElementData.lua` - a new group must be
+   added to both places, or every consuming resource's proxy will read it
+   back as `nil` despite the source table looking correct (found live:
+   `ElementData.Vehicle` existed in `ElementData.lua` but was missing from
+   `getElementData()`'s return table, so every read through the normal
+   `GlobalResources.lua` proxy chain came back `nil` even after a full
+   `core_bootstrap` restart).

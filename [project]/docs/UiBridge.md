@@ -83,6 +83,51 @@ RPC responses and pushed events deliberately use different JS entry points
 whether an incoming message is "the answer to something I asked" or "the
 server telling me something unprompted."
 
+**A second, shorter push path exists entirely on the client side**, used
+by every push in this project that doesn't originate on the server at
+all - `gm_voice`/`gm_radio`/`ui_hud` all read purely local client-side
+state (this client's own nearby-speaker list, this client's own vehicle
+radio, this client's own health) and push it straight into the browser:
+
+```
+gm_voice/client/VoiceState.lua (or ui_hud/HudState.lua, gm_radio/RadioState.lua)
+     |  exports.core_ui:uiPushEvent(eventName, data)  -- plain data only
+     v
+core_ui/client/ui/BrowserManager.lua's UI.pushEvent
+     |  executeBrowserJavascript(browser, "window.__mtaPushEvent(event, data)")
+     v
+MtaTransport (browser side)                   window.__mtaPushEvent installed by MtaTransport.onPush
+     v
+MtaBridge dispatches to any mta.on(event, handler) subscribers
+```
+
+This skips `PushService`/`Events.UI_PUSH_EVENT`/the server round trip
+entirely (there's no player-targeting concern - `uiPushEvent` always
+targets the local machine's own single browser instance) but lands on
+the exact same `__mtaPushEvent`/`mta.on` entry points on the frontend
+side, so a SolidJS store never needs to know or care which of the two
+paths a given push event traveled. Use this path whenever the data is
+already local to one client (this player's own talk state, this
+vehicle's own radio) - reach for the server-originated
+`NotificationService`/`PushService` path instead whenever the server is
+the one deciding what to tell the player (a penalty notice, an admin
+action's result, anything another player's action produced).
+
+Current push event names (`core_shared/shared/Events.lua`'s `PUSH_*`
+constants) and which path each takes:
+
+| Event | Path | Purpose |
+|---|---|---|
+| `notification.created` | server → client-side push | `NotificationService.send` - toasts (`ToastStack.tsx`) |
+| `account.updated`/`account.resolved` | server → client-side push | account state changes |
+| `ui.open`/`ui.close` | server → client-side push, or client-side directly (`BrowserManager.lua`'s `UI.open`/`UI.close`) | named-window visibility (`uiStore`) |
+| `ui.alreadyInWorld` | client-side only | tells the frontend "no window is opening, stop showing the loading screen" for a player who reconnected-in-place after a mid-session resource restart while already spawned - see `docs/Architecture.md`'s "Loading gate" section |
+| `overlay.show`/`overlay.hide` | client-side only (`BrowserManager.lua`'s `UI.showOverlay`/`hideOverlay`) | non-blocking overlay visibility (HUD, watermark - a separate registry from `ui.open`/`ui.close`, never touches cursor/input) |
+| `loading.progress` | client-side only (`core_loading/client/DownloadTracker.lua`) | this client's own resource-download progress |
+| `hud.updated` | client-side only (`ui_hud/client/HudState.lua`) | health/hunger/thirst/voice for the HUD ring row |
+| `voice.nearbyUpdated` | client-side only (`gm_voice/client/VoiceState.lua`) | who's talking nearby + their talk mode, for the HUD's speaker list |
+| `radio.stationChanged` | client-side only (`gm_radio/client/RadioState.lua`) | this vehicle's current radio station + loading state, for the HUD's "now playing" card |
+
 ## Request envelope
 
 ```ts
