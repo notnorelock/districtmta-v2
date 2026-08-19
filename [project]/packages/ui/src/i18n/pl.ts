@@ -65,4 +65,5 @@ export const pl = {
   "radio.buffering": "Buforowanie...",
   "radio.subtitle": "Radio pojazdu",
   "radio.footerLabel": "Muzyka z telefonu",
+  "radio.off": "Radio wyłączone",
 } as const;

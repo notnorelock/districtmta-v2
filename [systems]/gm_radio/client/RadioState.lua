@@ -8,7 +8,7 @@ RadioState = RadioState or {}
 
 local VOLUME = 0.6
 local SCROLL_DELAY_MS = 300
-local HIDE_CARD_DELAY_MS = 4000
+local HIDE_CARD_DELAY_MS = 6000
 
 local sound = nil
 local lastScrollTick = 0
@@ -52,40 +52,47 @@ local function stopSound()
     sound = nil
 end
 
---- Pushes the current station (or nil) into the CEF HUD, and schedules
+--- Pushes the current station (or "off") into the CEF HUD, and schedules
 --- auto-hide a few seconds later - the card itself is a "just changed"
 --- notification, not a permanent fixture (matches the old dxDraw
---- version's RADIO_FADE_TIME banner behavior). A station switching to nil
---- (off) hides it immediately instead of waiting out the timer.
+--- version's RADIO_FADE_TIME banner behavior). A station switching off
+--- still shows the card briefly (with an "off" message) instead of
+--- vanishing silently - otherwise scrolling past the last station into
+--- "off" gives no feedback at all that anything happened.
 --
 -- Always wrapped in a { station, loading } table, and `station` is
--- normalized to `station or false` before going in - exports.X:fn(a, nil)
+-- normalized to `station or "off"` before going in - exports.X:fn(a, nil)
 -- drops a literal nil argument entirely (MTA's export call marshalling
 -- doesn't distinguish "nil argument" from "argument omitted"), so
 -- UI.pushEvent's `data` would receive nothing at all and
 -- toJsonValue(nil) blows up on the other side. Wrapping in a table isn't
 -- enough by itself either: `{ station = nil }` doesn't create a `station`
 -- key at all (assigning nil to a table field removes/never creates it),
--- so toJSON would emit `{}` instead of `{"station":false}` - the frontend
--- would then see `undefined`, not the null/false it checks for.
--- @param station table|nil
+-- so toJSON would emit `{}` instead of `{"station":"off"}` - the frontend
+-- would then see `undefined`, not the sentinel it checks for.
+-- @param station table|nil nil means "off"
 -- @param loading boolean|nil true while playSound has been called but
 --        onClientSoundStream hasn't confirmed success yet - drives the
 --        cover spinner on the frontend.
-local function pushCardState(station, loading)
+-- @param hideImmediately boolean|nil true to hide the card with no delay
+--        (vehicle exit) instead of showing an "off" state first.
+local function pushCardState(station, loading, hideImmediately)
     if isTimer(hideCardTimer) then
         killTimer(hideCardTimer)
         hideCardTimer = nil
     end
 
-    exports.core_ui:uiPushEvent(Events.PUSH_RADIO_STATION_CHANGED, { station = station or false, loading = loading == true })
-
-    if station then
-        hideCardTimer = setTimer(function()
-            hideCardTimer = nil
-            exports.core_ui:uiPushEvent(Events.PUSH_RADIO_STATION_CHANGED, { station = false, loading = false })
-        end, HIDE_CARD_DELAY_MS, 1)
+    if not station and hideImmediately then
+        exports.core_ui:uiPushEvent(Events.PUSH_RADIO_STATION_CHANGED, { station = false, loading = false })
+        return
     end
+
+    exports.core_ui:uiPushEvent(Events.PUSH_RADIO_STATION_CHANGED, { station = station or "off", loading = loading == true })
+
+    hideCardTimer = setTimer(function()
+        hideCardTimer = nil
+        exports.core_ui:uiPushEvent(Events.PUSH_RADIO_STATION_CHANGED, { station = false, loading = false })
+    end, HIDE_CARD_DELAY_MS, 1)
 end
 
 -- Attached to root, not resourceRoot - triggerClientEvent(occupant, ...)
@@ -99,7 +106,7 @@ addEventHandler(Events.RADIO_STATION_CHANGED, root, function(station)
     stopSound()
 
     if not station then
-        pushCardState(nil)
+        pushCardState(nil, false)
         return
     end
 
@@ -131,7 +138,7 @@ end)
 addEventHandler("onClientVehicleExit", root, function(player)
     if player == localPlayer then
         stopSound()
-        pushCardState(nil)
+        pushCardState(nil, false, true)
     end
 end)
 

@@ -24,6 +24,11 @@
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent-violet));
 }
 
+.coverOff {
+  @apply text-muted-foreground;
+  background: var(--color-secondary);
+}
+
 .spinner {
   animation: spin 1s linear infinite;
 }

@@ -67,4 +67,5 @@ export const en: Record<keyof typeof pl, string> = {
   "radio.buffering": "Buffering...",
   "radio.subtitle": "Vehicle radio",
   "radio.footerLabel": "Music from phone",
+  "radio.off": "Radio off",
 };

@@ -8,18 +8,21 @@ import { mta } from "@/lib/mta/MtaBridge";
  * bare value. Lua's own `nil` can't cross the exports.core_ui:uiPushEvent
  * call (a nil argument is dropped, not passed through) and can't be a
  * table field's value either (assigning nil to a table field removes the
- * key), so the Lua side normalizes "off" to `station = false` - false is
- * what arrives here for "off", not null/undefined.
+ * key), so the Lua side normalizes "hidden" to `station = false` and
+ * "explicitly turned off (but card still shown briefly)" to the "off"
+ * string sentinel - both arrive as those exact values here, never
+ * null/undefined.
  */
 interface RadioStationChangedPayload {
-  station: RadioStation | false;
+  station: RadioStation | "off" | false;
   loading: boolean;
 }
 
-// null = "off"/hidden in this store's own signal - gm_radio pushes
-// { station: false } both when the radio is explicitly turned off and a
-// few seconds after a station change (auto-hide), not just on vehicle exit.
-const [station, setStation] = createSignal<RadioStation | null>(null);
+// null = card hidden entirely. "off" = card shown with a "radio off"
+// message (RadioService.setStation(vehicle, nil) or scrolling past the
+// last station) - distinct from null so the driver gets confirmation
+// scrolling actually turned it off, instead of the card just vanishing.
+const [station, setStation] = createSignal<RadioStation | "off" | null>(null);
 // True from the moment playSound() is called until onClientSoundStream
 // confirms the stream actually started (or failed) - see RadioState.lua.
 const [loading, setLoading] = createSignal(false);
@@ -31,6 +34,6 @@ export const radioStore = {
 
 mta.on("radio.stationChanged", (data) => {
   const payload = data as RadioStationChangedPayload;
-  setStation(payload.station || null);
+  setStation(payload.station === false ? null : payload.station);
   setLoading(payload.loading);
 });

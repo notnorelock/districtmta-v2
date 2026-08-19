@@ -16,6 +16,21 @@ local STATIONS = {
     { name = "Radio Zet", url = "http://zet-net-01.cdn.eurozet.pl:8400/listen.pls" },
     { name = "RMF MAXX", url = "http://www.rmfon.pl/n/rmfmaxxx.pls" },
     { name = "Antyradio", url = "http://ant-waw-01.cdn.eurozet.pl:8602/listen.pls" },
+    { name = "REYFM - Charts", url = "https://listen.reyfm.de/reyfm-charts/" },
+    { name = "REYFM - Dance", url = "https://listen.reyfm.de/reyfm-dance/" },
+    { name = "REYFM - Deutschrap", url = "https://listen.reyfm.de/reyfm-deutschrap/" },
+    { name = "REYFM - Hits", url = "https://listen.reyfm.de/reyfm-hits/" },
+    { name = "REYFM - Piano House", url = "https://listen.reyfm.de/reyfm-piano_house/" },
+    { name = "REYFM - Hip-Hop", url = "https://listen.reyfm.de/reyfm-hip-hop/" },
+    { name = "REYFM - Hits2K", url = "https://listen.reyfm.de/reyfm-hits2k/" },
+    { name = "REYFM - Summer", url = "https://listen.reyfm.de/reyfm-summer/" },
+    { name = "REYFM - Original", url = "https://listen.reyfm.de/reyfm-original/" },
+    { name = "REYFM - Deutschrap Gold", url = "https://listen.reyfm.de/reyfm-deutschrap_gold/" },
+    { name = "REYFM - Hip-Hop Gold", url = "https://listen.reyfm.de/reyfm-hip-hop_gold/" },
+    { name = "REYFM - Lo-Fi", url = "https://listen.reyfm.de/reyfm-lofi/" },
+    { name = "REYFM - Chill", url = "https://listen.reyfm.de/reyfm-chill/" },
+    { name = "REYFM - Gaming", url = "https://listen.reyfm.de/reyfm-gaming/" },
+    { name = "REYFM - XMAS", url = "https://listen.reyfm.de/reyfm-party_unlimited/" },
 }
 
 -- Explicit "radio turned off" sentinel - distinct from ElementData's own
