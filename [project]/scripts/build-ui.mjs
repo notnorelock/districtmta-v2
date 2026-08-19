@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Builds packages/ui and copies the production bundle into the MTA
  * "core_ui" resource's client/html directory, which is what meta.xml's
@@ -54,13 +55,16 @@ if (!existsSync(distDir)) {
 const JS_CONFUSER_OPTIONS = {
   target: "browser",
   preset: false,
-  renameVariables: true,
+  renameVariables: false,
   renameGlobals: false,
   renameLabels: true,
-  identifierGenerator: "randomized",
+  identifierGenerator: "mangled",
   stringConcealing: true,
-  controlFlowFlattening: false,
+  controlFlowFlattening: true,
   compact: true,
+  lock: {
+    integrity: true,
+  }
 };
 
 console.log("[build-ui] Obfuscating built JS with js-confuser...");
