@@ -37,7 +37,16 @@ const AppContent: Component = () => {
       </Switch>
 
       <Overlay name="hud" transitionName="hud">
-        <div>
+        {/* fixed + inset-0, not a plain block div - HudBar/VoiceIndicator
+            are both independently `fixed` already, but THIS wrapper is
+            what .hud-enter-from/.hud-exit-to's translateX(48px) actually
+            animates (see globals.css). A plain block div sits in normal
+            flow at full body width, so translating IT right pushed its
+            own box past the viewport edge and forced document.body's
+            horizontal scrollbar to appear - fixed+inset-0 takes it out of
+            flow entirely, so the transform only moves this (invisible,
+            pointer-events-none) box, never the page's scrollable width. */}
+        <div class="pointer-events-none fixed inset-0">
           <HudBar />
           <VoiceIndicator />
         </div>

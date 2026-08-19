@@ -1,0 +1,39 @@
+-- Resolves ElementData from core_shared via the lazy-metatable pattern
+-- used across this project. Must be the first client script loaded in
+-- meta.xml.
+
+local function isResourceAvailable(resourceName)
+    local resource = getResourceFromName(resourceName)
+    if not resource then
+        return false
+    end
+
+    local state = getResourceState(resource)
+    return state == "running" or state == "loaded"
+end
+
+local cachedElementData = nil
+
+local ElementData = setmetatable({
+    accountField = function(field) return exports.core_shared:elementDataAccountField(field) end,
+}, {
+    __index = function(table, key)
+        if cachedElementData == nil then
+            if not isResourceAvailable("core_shared") then
+                return nil
+            end
+            cachedElementData = exports.core_shared:getElementData()
+        end
+        return cachedElementData[key]
+    end,
+})
+
+setmetatable(_G, {
+    __index = function(table, key)
+        if key == "ElementData" then
+            return isResourceAvailable("core_shared") and ElementData or false
+        end
+
+        return rawget(table, key)
+    end,
+})
