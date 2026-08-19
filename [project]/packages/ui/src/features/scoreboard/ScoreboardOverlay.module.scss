@@ -33,6 +33,18 @@
   @apply flex-1;
 }
 
+.searchInputWrap {
+  @apply relative flex items-center;
+}
+
+.searchInput {
+  @apply pr-8;
+}
+
+.searchClear {
+  @apply absolute right-2 flex items-center justify-center text-muted-foreground transition-colors hover:text-foreground;
+}
+
 .count {
   @apply flex shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-sm font-semibold text-foreground;
 }

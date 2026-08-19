@@ -1,5 +1,5 @@
 import { type Component, For, Show, createMemo, createSignal } from "solid-js";
-import { Users, Wifi } from "lucide-solid";
+import { Users, Wifi, X } from "lucide-solid";
 import { Overlay } from "@/components/common/Overlay";
 import { TextField, TextFieldInput } from "@/components/ui/TextField";
 import { scoreboardStore } from "@/stores/scoreboard.store";
@@ -107,7 +107,19 @@ export const ScoreboardOverlay: Component = () => {
             </div>
 
             <TextField class={styles.search} value={search()} onChange={setSearch}>
-              <TextFieldInput type="search" placeholder={t()("scoreboard.searchPlaceholder")} />
+              <div class={styles.searchInputWrap}>
+                {/* type="text", not "search" - Chromium/CEF's native
+                    search-input clear-X doesn't match this project's
+                    styling, so this uses a plain text input plus an
+                    explicit lucide X button instead, shown only once
+                    there's something to clear. */}
+                <TextFieldInput type="text" class={styles.searchInput} placeholder={t()("scoreboard.searchPlaceholder")} />
+                <Show when={search().length > 0}>
+                  <button type="button" class={styles.searchClear} onClick={() => setSearch("")} aria-label={t()("scoreboard.searchClear")}>
+                    <X size={14} />
+                  </button>
+                </Show>
+              </div>
             </TextField>
 
             <div class={styles.count}>
@@ -127,7 +139,8 @@ export const ScoreboardOverlay: Component = () => {
 
                   <div class={styles.identity}>
                     <span class={styles.playerName}>
-                      <span class={styles.playerId}>({player.id})</span> {player.login ?? player.name}
+                      <span class={styles.playerId}>({player.id})</span>{" "}
+                      <span style={player.nameColor ? { color: player.nameColor } : undefined}>{player.login ?? player.name}</span>
                     </span>
                     <span class={styles.playerStatus}>
                       <span class={`${styles.dot} ${STATUS_DOT_CLASS[player.status]}`} />

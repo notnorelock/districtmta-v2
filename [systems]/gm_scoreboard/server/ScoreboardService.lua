@@ -50,34 +50,45 @@ local function isOnDuty(player)
 end
 
 --- @param player element
--- @return table plain-data entry for the CEF scoreboard - login/role are
---         nil (become false, see uiPushEvent's own nil-handling comment
---         elsewhere in this project) until the player has actually
---         authenticated, since neither exists before then. role is ALSO
---         nil while authenticated but off duty - see isOnDuty above.
+-- @return table plain-data entry for the CEF scoreboard - login/role/
+--         faction are explicitly `false` (NOT bare nil - a table field
+--         set to nil never creates the key at all, so toJSON would omit
+--         it entirely and the frontend would see `undefined`, not the
+--         `false` sentinel it checks for, same uiPushEvent nil-handling
+--         gotcha documented elsewhere in this project, e.g. RadioState.lua)
+--         until the player has actually authenticated, since neither
+--         exists before then. role is ALSO false while authenticated but
+--         off duty - see isOnDuty above.
 local function toEntry(player)
     local ok, login = pcall(function()
         return exports.core:playerServiceGetLogin(player)
     end)
 
-    local role = nil
+    local role = false
     if isOnDuty(player) then
         local roleOk, roleValue = pcall(function()
             return exports.core:playerServiceGetRole(player)
         end)
-        role = roleOk and roleValue or nil
+        role = (roleOk and roleValue) or false
+    end
+
+    local nametagR, nametagG, nametagB = getPlayerNametagColor(player)
+    local nameColor = false
+    if nametagR then
+        nameColor = string.format("#%02X%02X%02X", nametagR, nametagG, nametagB)
     end
 
     return {
         id = getElementData(player, ElementData.Player.ID) or 0,
         name = getPlayerName(player),
-        login = (ok and login) or nil,
+        login = (ok and login) or false,
         role = role,
+        nameColor = nameColor,
         -- No faction/group system exists yet in this project (see
         -- gm_blackout/server/BlackoutService.lua's own TODO on the same
-        -- gap) - nil today, a placeholder column on the frontend until
+        -- gap) - false today, a placeholder column on the frontend until
         -- one exists to actually populate it.
-        faction = nil,
+        faction = false,
         status = statusOf(player),
         ping = getPlayerPing(player),
     }

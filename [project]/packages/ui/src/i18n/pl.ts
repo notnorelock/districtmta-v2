@@ -68,6 +68,7 @@ export const pl = {
   "radio.off": "Radio wyłączone",
 
   "scoreboard.searchPlaceholder": "Wpisz nick lub ID",
+  "scoreboard.searchClear": "Wyczyść wyszukiwanie",
   "scoreboard.status.downloading": "Pobiera zasoby",
   "scoreboard.status.authenticating": "Loguje się",
   "scoreboard.status.selectingSpawn": "Wybiera spawn",

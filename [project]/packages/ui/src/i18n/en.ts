@@ -70,6 +70,7 @@ export const en: Record<keyof typeof pl, string> = {
   "radio.off": "Radio off",
 
   "scoreboard.searchPlaceholder": "Type nick or ID",
+  "scoreboard.searchClear": "Clear search",
   "scoreboard.status.downloading": "Downloading",
   "scoreboard.status.authenticating": "Logging in",
   "scoreboard.status.selectingSpawn": "Selecting spawn",
