@@ -2,7 +2,7 @@
     <info
         author="district"
         name="core_bootstrap"
-        description="Starts every project resource in the correct dependency order (core_shared -> core -> core_ui -> core_auth -> gm_roleplay) on server boot, and restarts the whole chain when this resource itself is restarted (or via the /restartchain command). This is the only project resource that should be startup=1 in mtaserver.conf - see Bootstrap.lua's module comment."
+        description="Starts every project resource in the correct dependency order (core_shared -> core -> core_ui -> core_auth -> gm_voice -> ui_hud -> gm_roleplay) on server boot, and restarts the whole chain when this resource itself is restarted (or via the /restartchain command). This is the only project resource that should be startup=1 in mtaserver.conf - see Bootstrap.lua's module comment."
         version="1.0.0"
         type="script"
     />

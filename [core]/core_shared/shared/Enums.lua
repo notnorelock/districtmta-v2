@@ -27,6 +27,15 @@ Enums = {
         KICK = "kick",
     },
 
+    -- gm_voice's per-player talk mode - cycled with a keybind (see
+    -- gm_voice/client/VoiceModeState.lua), drives broadcast distance
+    -- (VoiceService.lua) and the HUD's per-speaker indicator color.
+    VoiceMode = {
+        WHISPER = "whisper",
+        TALK = "talk",
+        SHOUT = "shout",
+    },
+
     -- Never renumber existing values, only append new roles above BOARD.
     AccountRole = {
         PLAYER = 0,

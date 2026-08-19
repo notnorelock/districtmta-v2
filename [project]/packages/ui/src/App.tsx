@@ -8,6 +8,7 @@ import { SpawnSelectView } from "@/features/spawn/SpawnSelectView";
 import { ResourceCheckScreen } from "@/features/loading/ResourceCheckScreen";
 import { ToastStack } from "@/features/notifications/ToastStack";
 import { HudBar } from "@/features/hud/HudBar";
+import { VoiceIndicator } from "@/features/hud/VoiceIndicator";
 import { Watermark } from "@/components/common/Watermark";
 import { authStore } from "@/stores/auth.store";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -36,7 +37,10 @@ const AppContent: Component = () => {
       </Switch>
 
       <Overlay name="hud" transitionName="hud">
-        <HudBar />
+        <div>
+          <HudBar />
+          <VoiceIndicator />
+        </div>
       </Overlay>
 
       <Watermark />

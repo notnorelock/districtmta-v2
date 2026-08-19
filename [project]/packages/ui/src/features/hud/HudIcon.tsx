@@ -12,6 +12,8 @@ interface HudIconProps {
   static?: boolean;
   /** value <= this pulses a glow in `color` around the icon - default 10, pass 0 to disable */
   criticalThreshold?: number;
+  /** Steady (non-pulsing) glow in `color` around the icon - e.g. voice while transmitting. Independent of criticalThreshold's pulse. */
+  glowing?: boolean;
   class?: string;
 }
 
@@ -43,7 +45,8 @@ export const HudIcon: Component<HudIconProps> = (props) => {
   // the glow flicker/reset instead of pulsing smoothly.
   const isCritical = createMemo(() => !props.static && threshold() > 0 && clamped() <= threshold());
 
-  const rootClass = () => [styles.root, isCritical() && styles.critical, props.class].filter(Boolean).join(" ");
+  const rootClass = () =>
+    [styles.root, isCritical() && styles.critical, props.glowing && styles.glowing, props.class].filter(Boolean).join(" ");
 
   return (
     <div class={rootClass()} style={{ "--glow-color": props.color }}>

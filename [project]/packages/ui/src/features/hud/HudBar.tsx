@@ -47,9 +47,20 @@ export const HudBar: Component = () => {
           <HudIcon value={hudStore.stats.thirst} color={THIRST_COLOR} icon={<Droplet size={ICON_SIZE} />} />
         </Show>
         <Show when={true}>
+          {/* value tracks voiceLevel (33/66/100 for whisper/talk/shout,
+              see HudState.lua) and is ALWAYS filled to the current mode -
+              not gated behind voiceActive - so the ring shows "what mode
+              am I set to" at a glance even while silent. criticalThreshold={0}
+              disables the glow-pulse-when-low behavior other icons use -
+              a quiet whisper isn't a "critical" state worth pulsing red.
+              glowing (steady, not pulsing - see HudIcon.module.scss's
+              .glowing) is the only thing voiceActive drives here -
+              highlights the icon for as long as voice is actually
+              transmitting, on top of the always-shown mode fill. */}
           <HudIcon
-            value={100}
-            static={!hudStore.stats.voiceActive}
+            value={hudStore.stats.voiceLevel}
+            criticalThreshold={0}
+            glowing={hudStore.stats.voiceActive}
             color={VOICE_COLOR_ACTIVE}
             icon={<Volume2 size={ICON_SIZE} />}
           />

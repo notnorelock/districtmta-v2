@@ -1,5 +1,18 @@
 HUD = HUD or {}
 
+-- Same isResourceAvailable helper every GlobalResources.lua in this
+-- project defines locally - not shared/exported anywhere, so duplicated
+-- here rather than introducing a new shared module for one function.
+local function isResourceAvailable(resourceName)
+    local resource = getResourceFromName(resourceName)
+    if not resource then
+        return false
+    end
+
+    local state = getResourceState(resource)
+    return state == "running" or state == "loaded"
+end
+
 local HUD_OVERLAY = "hud"
 -- Separate overlay key from HUD_OVERLAY on purpose - toggled alongside it
 -- here (same spawn/despawn trigger) but independently, so a future
@@ -11,10 +24,29 @@ local UPDATE_INTERVAL_MS = 2500
 local PLACEHOLDER_HUNGER = 100
 local PLACEHOLDER_THIRST = 100
 
+-- Voice fill level per talk mode (gm_voice's Enums.VoiceMode) - read
+-- through gm_voice's own exports (voiceStateIsTalking/voiceStateGetMode,
+-- see below) rather than ElementData.Player.VOICE/VOICE_MODE directly, so
+-- this stays correct if gm_voice ever changes how it tracks talk state
+-- internally. 3 discrete levels instead of a smooth 0-100 so the ring
+-- visibly steps whisper -> talk -> shout rather than reading as one
+-- continuous "volume" bar. voiceLevel reflects the CURRENT MODE at all
+-- times (not just while actively talking) - it's "what mode am I set to",
+-- separate from voiceActive ("am I transmitting right now"), which only
+-- drives the icon's glow (see HudBar.tsx).
+local VOICE_MODE_LEVEL = {
+    [Enums.VoiceMode.WHISPER] = 33,
+    [Enums.VoiceMode.TALK] = 66,
+    [Enums.VoiceMode.SHOUT] = 100,
+}
+local DEFAULT_VOICE_LEVEL = VOICE_MODE_LEVEL[Enums.VoiceMode.TALK]
+
 local active = false
 local lastHealth = 0
 local lastOxygenPercent = 100
 local lastInWater = false
+local lastVoiceActive = false
+local lastVoiceLevel = DEFAULT_VOICE_LEVEL
 local lastUpdateTick = 0
 
 local function getPedMaxOxygenLevel(ped)
@@ -30,25 +62,45 @@ local function oxygenPercent()
     return math.floor(math.min(100, (getPedOxygenLevel(localPlayer) / max) * 100))
 end
 
+--- @return boolean, number isVoiceActive, voiceLevel (always reflects the
+--         CURRENT mode, regardless of isVoiceActive - see VOICE_MODE_LEVEL's
+--         own comment) - false/DEFAULT_VOICE_LEVEL if gm_voice isn't
+--         running (its exports simply won't be there yet).
+local function voiceState()
+    if not isResourceAvailable("gm_voice") then
+        return false, DEFAULT_VOICE_LEVEL
+    end
+
+    local isVoiceActive = exports.gm_voice:voiceStateIsTalking(localPlayer) == true
+    local mode = exports.gm_voice:voiceStateGetMode(localPlayer)
+    return isVoiceActive, VOICE_MODE_LEVEL[mode] or DEFAULT_VOICE_LEVEL
+end
+
 local function resetTrackedState()
     lastUpdateTick = getTickCount()
     lastHealth = 0
     lastOxygenPercent = 100
     lastInWater = false
+    lastVoiceActive = false
+    lastVoiceLevel = DEFAULT_VOICE_LEVEL
 end
 
 local function trackStateChanged()
     local health = isPedDead(localPlayer) and 0 or math.floor(getElementHealth(localPlayer))
     local oxygenPct = oxygenPercent()
     local inWater = isElementInWater(localPlayer)
+    local voiceActive, voiceLevel = voiceState()
 
-    if health == lastHealth and oxygenPct == lastOxygenPercent and inWater == lastInWater then
+    if health == lastHealth and oxygenPct == lastOxygenPercent and inWater == lastInWater
+        and voiceActive == lastVoiceActive and voiceLevel == lastVoiceLevel then
         return false
     end
 
     lastHealth = health
     lastOxygenPercent = oxygenPct
     lastInWater = inWater
+    lastVoiceActive = voiceActive
+    lastVoiceLevel = voiceLevel
     return true
 end
 
@@ -59,6 +111,7 @@ HUD.pushHudState = function(force)
         lastHealth = isPedDead(localPlayer) and 0 or math.floor(getElementHealth(localPlayer))
         lastOxygenPercent = oxygenPercent()
         lastInWater = isElementInWater(localPlayer)
+        lastVoiceActive, lastVoiceLevel = voiceState()
         lastUpdateTick = getTickCount()
     end
 
@@ -72,7 +125,11 @@ HUD.pushHudState = function(force)
         -- water" and the icon should already be visible by then.
         oxygen = lastOxygenPercent,
         drowning = lastInWater or lastOxygenPercent < 100,
-        voiceActive = false,
+        voiceActive = lastVoiceActive,
+        -- 33/66/100 (whisper/talk/shout) while voiceActive - see
+        -- VOICE_MODE_LEVEL's own comment. HudIcon renders this as the
+        -- ring's fill percentage, same mechanic as health/hunger/thirst.
+        voiceLevel = lastVoiceLevel,
     })
 end
 

@@ -38,6 +38,14 @@ $inset: calc($stroke / 2);
   animation: glow-pulse 1.2s ease-in-out infinite;
 }
 
+// Steady glow (voice-while-talking) - same peak intensity as glow-pulse's
+// 50% keyframe, but fixed, not animated - explicitly NOT reusing .critical
+// (the user asked for no pulsing/blinking here, just a constant highlight
+// while voice is active).
+.glowing {
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--glow-color) 50%, transparent);
+}
+
 .fill {
   @apply absolute inset-0 rounded-xl bg-popover;
 }

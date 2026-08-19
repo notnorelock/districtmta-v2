@@ -6,7 +6,7 @@
          values are downloaded/started on the CLIENT earlier than lower
          ones. Set to mirror core_bootstrap's server-side START_ORDER
          (core_shared -> core -> core_ui -> core_loading -> core_auth ->
-         gm_roleplay) so a connecting client's file downloads land in
+         gm_voice -> ui_hud -> gm_roleplay) so a connecting client's file downloads land in
          roughly the same order the server starts resources in. This does
          NOT replace core_bootstrap's own server-side ordering or gotcha
          #11's client-side script-timing race (a client can still finish

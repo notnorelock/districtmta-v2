@@ -1,0 +1,53 @@
+// CSS Modules + Sass, scoped to features/hud/ only - see
+// webpack.config.js's *.module.scss rule comment for why.
+// @reference (not @import "tailwindcss"), relative path not the "@/"
+// alias - see HudIcon.module.scss's comment on the same directive for why.
+@reference "../../styles/globals.css";
+
+// Anchored directly above HudBar's icon row (fixed bottom-4 right-4, 44px
+// icons) so the two never overlap regardless of how many speakers are listed.
+.list {
+  @apply pointer-events-none fixed bottom-20 right-4 z-40 flex flex-col-reverse items-end gap-1;
+}
+
+.row {
+  @apply flex items-center gap-1.5 rounded-md bg-popover/80 px-2 py-1 text-xs text-foreground;
+}
+
+.icon {
+  @apply flex items-center justify-center;
+}
+
+// Per-mode color, alongside MODE_ICON's distinct shape (VoiceIndicator.tsx)
+// - whisper dim/muted (quiet), talk the same green voice-active used
+// elsewhere in the HUD, shout hot/red (loud, draws the eye).
+.iconWhisper {
+  color: var(--color-muted-foreground);
+}
+
+.iconTalk {
+  color: var(--color-success);
+}
+
+.iconShout {
+  color: var(--color-destructive);
+}
+
+.name {
+  @apply max-w-[140px] truncate;
+}
+
+.rowMove {
+  transition: transform 0.3s ease;
+}
+
+.rowEnterActive,
+.rowExitActive {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.rowEnterFrom,
+.rowExitTo {
+  opacity: 0;
+  transform: translateX(24px);
+}

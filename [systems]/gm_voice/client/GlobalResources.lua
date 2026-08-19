@@ -1,5 +1,6 @@
--- Resolves Events from core_shared via the lazy-metatable pattern used
--- across this project. Must be the first client script loaded in meta.xml.
+-- Resolves Events/Enums/ElementData from core_shared via the lazy-metatable
+-- pattern used across this project. Must be the first client script loaded
+-- in meta.xml.
 
 local function isResourceAvailable(resourceName)
     local resource = getResourceFromName(resourceName)
@@ -17,10 +18,6 @@ local TABLE_RESOURCE_MAP = {
 }
 local cachedTables = {}
 
--- ElementData has a function field (accountField), which MTA's exports
--- mechanism strips from a plain returned table - same special-casing as
--- every other GlobalResources.lua that proxies it (see core/server/
--- GlobalResources.lua's own comment).
 local ElementData = setmetatable({
     accountField = function(field) return exports.core_shared:elementDataAccountField(field) end,
 }, {

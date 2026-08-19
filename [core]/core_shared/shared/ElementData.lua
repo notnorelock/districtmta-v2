@@ -11,6 +11,9 @@ ElementData = {
         ID = "player:id",
         SKIN = "player:skin",
         SESSION_KEY = "player:sessionKey",
+        VOICE = "player:voice",
+        VOICE_START = "player:voiceStart",
+        VOICE_MODE = "player:voiceMode",
     },
     Account = {
         PREMIUM = "account:premium",

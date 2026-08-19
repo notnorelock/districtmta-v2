@@ -10,6 +10,8 @@ export interface HudStats {
   oxygen: number;
   /** True once oxygen is depleting (underwater) - drives whether the lungs icon renders at all */
   drowning: boolean;
-  /** placeholder - no real voice-chat activity signal wired up yet */
+  /** True while the local player is transmitting on gm_voice */
   voiceActive: boolean;
+  /** 0-100, only meaningful while voiceActive - 33/66/100 for whisper/talk/shout (gm_voice's Enums.VoiceMode) */
+  voiceLevel: number;
 }

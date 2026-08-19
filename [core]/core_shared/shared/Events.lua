@@ -86,4 +86,17 @@ Events = {
     -- ui_hud/client/HudState.lua). hunger/thirst/voice are placeholders,
     -- no server-side system backs them yet.
     PUSH_HUD_UPDATED = "hud.updated",
+
+    -- gm_voice/client's own local list of nearby speakers (name + voice
+    -- mode), pushed into the browser directly on talking-list change -
+    -- never touches the server (see gm_voice/client/VoiceState.lua).
+    -- Separate from PUSH_HUD_UPDATED's voiceActive (which is only "is the
+    -- LOCAL player talking") - this is "who ELSE nearby is talking right now".
+    PUSH_VOICE_NEARBY_UPDATED = "voice.nearbyUpdated",
+
+    -- Client -> server: player pressed the cycle-voice-mode key (B).
+    -- Server is authoritative over the resulting mode (drives broadcast
+    -- distance in VoiceService.lua) - the client only requests a cycle,
+    -- it never sets ElementData.Player.VOICE_MODE itself.
+    VOICE_CYCLE_MODE = "voice:cycleMode",
 }
