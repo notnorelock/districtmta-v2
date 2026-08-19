@@ -76,9 +76,7 @@ HUD.start = function()
     if active then return end
 
     for _, v in ipairs(GTA_COMPONENTS) do
-        if isPlayerHudComponentVisible(v) then
-            setPlayerHudComponentVisible(v, not isPlayerHudComponentVisible(v))
-        end
+        setPlayerHudComponentVisible(v, false)
     end
 
     active = true
@@ -90,13 +88,6 @@ HUD.stop = function()
     if not active then return end
 
     exports.core_ui:uiHideOverlay(HUD_OVERLAY)
-
-    for _, v in ipairs(GTA_COMPONENTS) do
-        if not isPlayerHudComponentVisible(v) then
-            setPlayerHudComponentVisible(v, not isPlayerHudComponentVisible(v))
-        end
-    end
-
     active = false
 end
 
