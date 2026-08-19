@@ -99,8 +99,14 @@ export default (env, argv) => {
       // Exposes the current commit to app code as __BUILD_COMMIT__ (see
       // components/common/Watermark.tsx) - read once per build via
       // getBuildCommit() above, not at runtime (no git available in CEF).
+      // process.env.NODE_ENV is defined here too (there's no @types/node
+      // dependency, and webpack only auto-injects this for its own
+      // internal library code, not app source) - gates BrowserDevTransport's
+      // dynamic import in MtaBridge.ts so it's statically eliminated from
+      // a production build entirely, not just unused at runtime.
       new webpack.DefinePlugin({
         __BUILD_COMMIT__: JSON.stringify(getBuildCommit()),
+        "process.env.NODE_ENV": JSON.stringify(isProduction ? "production" : "development"),
       }),
       ...(isProduction
         ? [
