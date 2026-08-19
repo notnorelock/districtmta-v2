@@ -1,6 +1,11 @@
 HUD = HUD or {}
 
 local HUD_OVERLAY = "hud"
+-- Separate overlay key from HUD_OVERLAY on purpose - toggled alongside it
+-- here (same spawn/despawn trigger) but independently, so a future
+-- "hide HUD" toggle that only touches HUD_OVERLAY doesn't take the
+-- watermark down with it.
+local WATERMARK_OVERLAY = "watermark"
 local GTA_COMPONENTS = { "radar", "area_name", "vehicle_name", "armour", "breath", "clock", "health", "money", "weapon", "wanted", "radio", "ammo" }
 local UPDATE_INTERVAL_MS = 2500
 local PLACEHOLDER_HUNGER = 100
@@ -73,6 +78,7 @@ end
 
 HUD.start = function()
     exports.core_ui:uiShowOverlay(HUD_OVERLAY)
+    exports.core_ui:uiShowOverlay(WATERMARK_OVERLAY)
     if active then return end
 
     for _, v in ipairs(GTA_COMPONENTS) do

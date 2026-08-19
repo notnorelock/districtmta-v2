@@ -1,11 +1,23 @@
 import path from "node:path";
+import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import webpack from "webpack";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import TerserPlugin from "terser-webpack-plugin";
 
 const srcDir = fileURLToPath(new URL("./src", import.meta.url));
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
+
+// Read once at build time - "unknown" outside a git checkout (e.g. a
+// packaged release with no .git/) rather than failing the build.
+function getBuildCommit() {
+  try {
+    return execSync("git rev-parse --short HEAD", { cwd: rootDir }).toString().trim();
+  } catch {
+    return "unknown";
+  }
+}
 
 /**
  * @param {Record<string, string>} env
@@ -54,10 +66,21 @@ export default (env, argv) => {
           // Font files referenced from styles/globals.css's @font-face
           // rules (Titillium Web) - emitted alongside the JS/CSS bundle,
           // not inlined, matching the previous Vite build's asset output.
+          // Lands in dist/assets/ via output.assetModuleFilename below.
+          // publicPath: "../" here is required because css-loader resolves
+          // this url() relative to output.publicPath ("./" = dist/), NOT
+          // relative to where index.css itself ends up (dist/assets/) -
+          // without this override the generated path was
+          // ./assets/TitilliumWeb-*.ttf, which from inside dist/assets/
+          // resolved to the nonexistent dist/assets/assets/*.ttf (browser
+          // reported this as "OTS parsing error: file less than 4 bytes",
+          // not a clearer 404). "../" cancels out the extra assets/ level
+          // css-loader would otherwise add on top of assetModuleFilename's
+          // own "assets/" prefix.
           test: /\.(ttf|woff2?|eot)$/,
           type: "asset/resource",
           generator: {
-            filename: "assets/[name][ext]",
+            publicPath: "../",
           },
         },
       ],
@@ -72,6 +95,12 @@ export default (env, argv) => {
         // constraint the previous Vite config's `base: "./"` addressed.
         publicPath: "./",
         scriptLoading: "module",
+      }),
+      // Exposes the current commit to app code as __BUILD_COMMIT__ (see
+      // components/common/Watermark.tsx) - read once per build via
+      // getBuildCommit() above, not at runtime (no git available in CEF).
+      new webpack.DefinePlugin({
+        __BUILD_COMMIT__: JSON.stringify(getBuildCommit()),
       }),
       ...(isProduction
         ? [
