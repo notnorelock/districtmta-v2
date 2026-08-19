@@ -1,6 +1,7 @@
 addEventHandler("onClientResourceStart", resourceRoot, function()
 	setPedTargetingMarkerEnabled(false)
 	setBlurLevel(0)
+	setHeatHaze ( 0 )
 	engineSetAsynchronousLoading(true, true)
 	setAmbientSoundEnabled("gunfire", false)
 	setOcclusionsEnabled(false)
