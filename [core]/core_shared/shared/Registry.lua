@@ -36,11 +36,15 @@ end
 
 -- Returns only the constant key tables, not accountField - MTA's exports
 -- mechanism strips function fields from returned tables. accountField is
--- reached through its own flat function below instead.
+-- reached through its own flat function below instead. Every top-level
+-- ElementData.* group must be listed here explicitly - this whitelist
+-- doesn't automatically pick up a new group added to ElementData.lua (see
+-- the ElementData.Vehicle addition that initially went missing here).
 function getElementData()
     return {
         Player = ElementData.Player,
         Account = ElementData.Account,
+        Vehicle = ElementData.Vehicle,
     }
 end
 

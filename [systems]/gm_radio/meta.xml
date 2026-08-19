@@ -1,0 +1,20 @@
+<meta>
+    <info
+        author="district"
+        name="gm_radio"
+        description="Vehicle radio: fixed station list (no per-account saved stations/YouTube proxy yet - see RadioService.lua's own comment), driver-only scroll/R controls, broadcast to every occupant, CEF HUD station card (top-center)."
+        version="1.0.0"
+        type="script"
+    />
+    <!-- Same priority tier as gm_voice/ui_hud/core_admin - see core_shared/meta.xml's comment on the tag. -->
+    <download_priority_group>3</download_priority_group>
+
+    <include resource="core_shared" />
+    <include resource="core_ui" />
+
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/RadioService.lua" type="server" cache="false" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/RadioState.lua" type="client" cache="false" />
+</meta>

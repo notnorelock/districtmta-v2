@@ -1,0 +1,147 @@
+-- Vehicle radio client: driver-only scroll/R controls, playing the
+-- current station's stream, and pushing station-change info into the CEF
+-- HUD (see the RadioCard component on the frontend) instead of the old
+-- dxDraw text banner - the real HUD lives in CEF, dxGUI/dxDraw is
+-- reserved for small one-off admin tools (same reasoning as gm_voice's
+-- nearby-speaker indicator).
+RadioState = RadioState or {}
+
+local VOLUME = 0.6
+local SCROLL_DELAY_MS = 300
+local HIDE_CARD_DELAY_MS = 4000
+
+local sound = nil
+local lastScrollTick = 0
+local hideCardTimer = nil
+
+--- @param player element
+-- @return boolean true if `player` is in the driver seat of a vehicle
+local function isDriving(player)
+    local vehicle = getPedOccupiedVehicle(player)
+    return vehicle ~= nil and getVehicleController(vehicle) == player
+end
+
+local function requestChangeStation(next)
+    if isCursorShowing() then
+        return
+    end
+    if getTickCount() < lastScrollTick + SCROLL_DELAY_MS then
+        return
+    end
+    if not isDriving(localPlayer) then
+        return
+    end
+
+    lastScrollTick = getTickCount()
+    triggerServerEvent(Events.RADIO_CHANGE_STATION, resourceRoot, next)
+end
+
+local function scrollStation(key)
+    if key == "mouse_wheel_up" then
+        requestChangeStation(true)
+    elseif key == "mouse_wheel_down" then
+        requestChangeStation(false)
+    end
+end
+
+--- Stops and forgets the current stream, if any.
+local function stopSound()
+    if sound and isElement(sound) then
+        destroyElement(sound)
+    end
+    sound = nil
+end
+
+--- Pushes the current station (or nil) into the CEF HUD, and schedules
+--- auto-hide a few seconds later - the card itself is a "just changed"
+--- notification, not a permanent fixture (matches the old dxDraw
+--- version's RADIO_FADE_TIME banner behavior). A station switching to nil
+--- (off) hides it immediately instead of waiting out the timer.
+--
+-- Always wrapped in a { station, loading } table, and `station` is
+-- normalized to `station or false` before going in - exports.X:fn(a, nil)
+-- drops a literal nil argument entirely (MTA's export call marshalling
+-- doesn't distinguish "nil argument" from "argument omitted"), so
+-- UI.pushEvent's `data` would receive nothing at all and
+-- toJsonValue(nil) blows up on the other side. Wrapping in a table isn't
+-- enough by itself either: `{ station = nil }` doesn't create a `station`
+-- key at all (assigning nil to a table field removes/never creates it),
+-- so toJSON would emit `{}` instead of `{"station":false}` - the frontend
+-- would then see `undefined`, not the null/false it checks for.
+-- @param station table|nil
+-- @param loading boolean|nil true while playSound has been called but
+--        onClientSoundStream hasn't confirmed success yet - drives the
+--        cover spinner on the frontend.
+local function pushCardState(station, loading)
+    if isTimer(hideCardTimer) then
+        killTimer(hideCardTimer)
+        hideCardTimer = nil
+    end
+
+    exports.core_ui:uiPushEvent(Events.PUSH_RADIO_STATION_CHANGED, { station = station or false, loading = loading == true })
+
+    if station then
+        hideCardTimer = setTimer(function()
+            hideCardTimer = nil
+            exports.core_ui:uiPushEvent(Events.PUSH_RADIO_STATION_CHANGED, { station = false, loading = false })
+        end, HIDE_CARD_DELAY_MS, 1)
+    end
+end
+
+-- Attached to root, not resourceRoot - triggerClientEvent(occupant, ...)
+-- fires the event ON THE PLAYER ELEMENT, which propagates up through
+-- root (every element's ultimate ancestor), never through resourceRoot
+-- (a separate node that only parents elements THIS resource created -
+-- players aren't among them). A handler on resourceRoot here would never
+-- have fired at all - this was the actual reason nothing happened.
+addEvent(Events.RADIO_STATION_CHANGED, true)
+addEventHandler(Events.RADIO_STATION_CHANGED, root, function(station)
+    stopSound()
+
+    if not station then
+        pushCardState(nil)
+        return
+    end
+
+    pushCardState(station, true)
+
+    sound = playSound(station.url, true, false)
+    if not sound then
+        return
+    end
+
+    setSoundVolume(sound, VOLUME)
+
+    -- onClientSoundStream fires once the stream actually starts playing
+    -- (or fails) - playSound() itself returns immediately, well before
+    -- the real audio data has buffered, so the loading state waits for
+    -- this rather than assuming "returned an element" means "audible".
+    -- Captured as thisSound (not the outer `sound`) - by the time this
+    -- fires, a fast station change may have already replaced the module-
+    -- level `sound` with a newer stream, and this stale handler must not
+    -- push a loading update for a station that isn't current anymore.
+    local thisSound = sound
+    addEventHandler("onClientSoundStream", thisSound, function(success)
+        if sound == thisSound and isElement(thisSound) then
+            pushCardState(station, not success)
+        end
+    end)
+end)
+
+addEventHandler("onClientVehicleExit", root, function(player)
+    if player == localPlayer then
+        stopSound()
+        pushCardState(nil)
+    end
+end)
+
+addEventHandler("onClientResourceStart", resourceRoot, function()
+    -- "down", not "both" - mouse wheel binds are known to misbehave with
+    -- "both" in MTA (the old version of this file used "down" too; this
+    -- got changed to "both" without reason during the rewrite).
+    bindKey("mouse_wheel_up", "down", scrollStation)
+    bindKey("mouse_wheel_down", "down", scrollStation)
+    bindKey("r", "down", function() requestChangeStation(false) end)
+end)
+
+addEventHandler("onClientResourceStop", resourceRoot, stopSound)

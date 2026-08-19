@@ -99,4 +99,22 @@ Events = {
     -- distance in VoiceService.lua) - the client only requests a cycle,
     -- it never sets ElementData.Player.VOICE_MODE itself.
     VOICE_CYCLE_MODE = "voice:cycleMode",
+
+    -- Client -> server: driver scrolled/pressed R to change the vehicle
+    -- radio station. `next` boolean (true = forward, false = back).
+    -- Server is authoritative (validates the driver seat + station list),
+    -- see gm_radio/server/RadioService.lua.
+    RADIO_CHANGE_STATION = "radio:changeStation",
+
+    -- Server -> every occupant of a vehicle whose station changed -
+    -- station is nil for "off". Client (gm_radio/client/RadioState.lua)
+    -- both plays the stream AND pushes PUSH_RADIO_STATION_CHANGED into
+    -- the CEF HUD from this same handler.
+    RADIO_STATION_CHANGED = "radio:stationChanged",
+
+    -- Pushed into the CEF HUD (gm_radio/client/RadioState.lua) whenever
+    -- the local player's vehicle radio station changes, and hidden again
+    -- on RADIO_CARD_HIDE (a few seconds later, or on vehicle exit).
+    -- station is nil for "off" (hides the card immediately instead).
+    PUSH_RADIO_STATION_CHANGED = "radio.stationChanged",
 }

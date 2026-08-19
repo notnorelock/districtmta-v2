@@ -19,6 +19,13 @@ ElementData = {
         PREMIUM = "account:premium",
         MUTE = "account:mute",
     },
+    Vehicle = {
+        -- { name: string, url: string } or nil for "off" - mirrored onto
+        -- the vehicle itself (not just pushed to occupants) so a player
+        -- entering an already-playing vehicle mid-song can be caught up
+        -- via a synchronous read instead of waiting on the next change.
+        RADIO_STATION = "vehicle:radioStation",
+    },
 }
 
 -- AuthUiController.lua mirrors most of an account row's own columns onto

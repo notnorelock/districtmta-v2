@@ -1,0 +1,98 @@
+// CSS Modules + Sass, scoped to features/hud/ only - see
+// webpack.config.js's *.module.scss rule comment for why.
+// @reference (not @import "tailwindcss"), relative path not the "@/"
+// alias - see HudIcon.module.scss's comment on the same directive for why.
+@reference "../../styles/globals.css";
+
+.dock {
+  @apply pointer-events-none fixed left-1/2 top-6 z-40 -translate-x-1/2;
+}
+
+// font-display (Titillium Web, matches Watermark/the rest of the HUD) -
+// the plain <div>/<span> text here otherwise falls back to body's
+// font-sans (Inter), which read as "wrong font" next to everything else.
+.card {
+  @apply flex w-85 flex-col overflow-hidden rounded-xl border border-border bg-popover/95 font-display shadow-lg;
+}
+
+.row {
+  @apply flex items-center gap-3 px-4 py-3;
+}
+
+.cover {
+  @apply flex size-11 shrink-0 items-center justify-center rounded-lg text-primary-foreground;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent-violet));
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.info {
+  @apply flex min-w-0 flex-1 flex-col;
+}
+
+.stationName {
+  @apply truncate text-sm font-semibold text-foreground;
+}
+
+.subtitle {
+  @apply truncate text-xs text-muted-foreground;
+}
+
+// Cosmetic only - MTA's playSound gives no real frequency/amplitude data
+// for a streamed URL, so this is a staggered CSS keyframe loop, not an
+// actual audio analyzer. Hidden while loading (RadioCard.tsx) since
+// nothing is audible yet.
+.visualizer {
+  @apply flex h-5 shrink-0 items-end gap-0.5;
+}
+
+.visualizerBar {
+  @apply w-1 rounded-full bg-primary;
+  height: 30%;
+  animation: visualizer-bounce 0.9s ease-in-out infinite;
+}
+
+@keyframes visualizer-bounce {
+  0%,
+  100% {
+    height: 25%;
+  }
+  50% {
+    height: 100%;
+  }
+}
+
+.footer {
+  @apply flex items-center gap-2 border-t border-border px-4 py-2;
+}
+
+.footerIcon {
+  @apply shrink-0 text-muted-foreground;
+}
+
+.footerLabelLeft {
+  @apply flex-1 truncate text-xs text-muted-foreground;
+}
+
+.footerLabelRight {
+  @apply flex-1 truncate text-right text-xs font-medium text-foreground;
+}
+
+.cardEnterActive,
+.cardExitActive {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.cardEnterFrom,
+.cardExitTo {
+  opacity: 0;
+  transform: translateY(-12px);
+}

@@ -9,6 +9,7 @@ import { ResourceCheckScreen } from "@/features/loading/ResourceCheckScreen";
 import { ToastStack } from "@/features/notifications/ToastStack";
 import { HudBar } from "@/features/hud/HudBar";
 import { VoiceIndicator } from "@/features/hud/VoiceIndicator";
+import { RadioCard } from "@/features/hud/RadioCard";
 import { Watermark } from "@/components/common/Watermark";
 import { authStore } from "@/stores/auth.store";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -53,6 +54,10 @@ const AppContent: Component = () => {
       </Overlay>
 
       <Watermark />
+      {/* Not gated behind the "hud" overlay - the radio card is its own
+          independent system (gm_radio, not ui_hud) and should show even
+          if the HUD itself is hidden, same reasoning as Watermark. */}
+      <RadioCard />
       <ToastStack />
     </div>
   );
