@@ -16,7 +16,7 @@
          itself still starts where docs/Architecture.md's START_ORDER says
          (after core_ui) on the SERVER side - this tag only affects the
          CLIENT-side download queue order, which is independent of that. -->
-    <download_priority_group>10</download_priority_group>
+    <download_priority_group>5</download_priority_group>
 
     <include resource="core_shared" />
     <include resource="core_bootstrap" />

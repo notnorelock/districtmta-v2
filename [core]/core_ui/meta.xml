@@ -11,7 +11,7 @@
          client files (the CEF html/assets, plus Transport.lua/
          BrowserManager.lua, which read core_shared's Events at module
          load time), so getting these to the client promptly matters. -->
-    <download_priority_group>4</download_priority_group>
+    <download_priority_group>5</download_priority_group>
 
     <include resource="core_shared" />
     <include resource="core" />
