@@ -137,6 +137,24 @@ Events = {
     -- station is nil for "off" (hides the card immediately instead).
     PUSH_RADIO_STATION_CHANGED = "radio.stationChanged",
 
+    -- Client -> server: sent once from gm_radio/client/RadioState.lua on
+    -- onClientResourceStart, asking to be sent the fixed station list -
+    -- request/response (rather than the server pushing it unprompted on
+    -- join) so a mid-session gm_radio restart on either side still ends
+    -- up with the client holding the list, not just a fresh connection.
+    RADIO_REQUEST_STATIONS = "radio:requestStations",
+
+    -- Server -> requesting client only: response to RADIO_REQUEST_STATIONS,
+    -- the full fixed station list in order. RadioState.lua stores it and
+    -- forwards it into the CEF HUD via PUSH_RADIO_STATIONS.
+    RADIO_STATIONS_RECEIVED = "radio:stationsReceived",
+
+    -- Pushed into the CEF HUD once RADIO_STATIONS_RECEIVED arrives - the
+    -- full fixed station list in order, so the frontend can show the
+    -- upcoming station's name next to the skip-forward/back glyphs
+    -- instead of just the currently-playing one (see RadioCard.tsx).
+    PUSH_RADIO_STATIONS = "radio.stations",
+
     -- Server -> localPlayer only: fired when gm_blackout puts a player
     -- into blackout (near-fatal damage intercepted before it would have
     -- killed them, or a revive-in-place after an already-fatal hit that

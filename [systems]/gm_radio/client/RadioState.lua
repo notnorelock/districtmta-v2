@@ -142,6 +142,11 @@ addEventHandler("onClientVehicleExit", root, function(player)
     end
 end)
 
+addEvent(Events.RADIO_STATIONS_RECEIVED, true)
+addEventHandler(Events.RADIO_STATIONS_RECEIVED, root, function(stations)
+    exports.core_ui:uiPushEvent(Events.PUSH_RADIO_STATIONS, stations)
+end)
+
 addEventHandler("onClientResourceStart", resourceRoot, function()
     -- "down", not "both" - mouse wheel binds are known to misbehave with
     -- "both" in MTA (the old version of this file used "down" too; this
@@ -149,6 +154,11 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
     bindKey("mouse_wheel_up", "down", scrollStation)
     bindKey("mouse_wheel_down", "down", scrollStation)
     bindKey("r", "down", function() requestChangeStation(false) end)
+
+    -- Static/fixed list, requested once - the frontend needs it to show
+    -- the upcoming station's name next to the skip glyphs (RadioCard.tsx),
+    -- not just react to RADIO_STATION_CHANGED after the fact.
+    triggerServerEvent(Events.RADIO_REQUEST_STATIONS, resourceRoot)
 end)
 
 addEventHandler("onClientResourceStop", resourceRoot, stopSound)

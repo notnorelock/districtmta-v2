@@ -26,14 +26,23 @@ const [station, setStation] = createSignal<RadioStation | "off" | null>(null);
 // True from the moment playSound() is called until onClientSoundStream
 // confirms the stream actually started (or failed) - see RadioState.lua.
 const [loading, setLoading] = createSignal(false);
+// The fixed station list in order, requested once by RadioState.lua on
+// resource start - lets the card show the upcoming station's name next
+// to the skip glyphs instead of just the currently-playing one.
+const [stations, setStations] = createSignal<RadioStation[]>([]);
 
 export const radioStore = {
   station,
   loading,
+  stations,
 };
 
 mta.on("radio.stationChanged", (data) => {
   const payload = data as RadioStationChangedPayload;
   setStation(payload.station === false ? null : payload.station);
   setLoading(payload.loading);
+});
+
+mta.on("radio.stations", (data) => {
+  setStations(data as RadioStation[]);
 });

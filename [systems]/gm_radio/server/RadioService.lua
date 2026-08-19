@@ -85,6 +85,11 @@ local function drivenVehicleOf(player)
     return nil
 end
 
+addEvent(Events.RADIO_REQUEST_STATIONS, true)
+addEventHandler(Events.RADIO_REQUEST_STATIONS, root, function()
+    triggerClientEvent(client, Events.RADIO_STATIONS_RECEIVED, client, STATIONS)
+end)
+
 addEvent(Events.RADIO_CHANGE_STATION, true)
 addEventHandler(Events.RADIO_CHANGE_STATION, root, function(next)
     local player = client

@@ -35,8 +35,26 @@ const VISUALIZER_BAR_COUNT = 4;
  * playing. MTA's playSound gives no access to real frequency/amplitude
  * data from the stream, so the bars are a purely cosmetic CSS animation
  * (staggered infinite keyframes), not a real audio analyzer.
+ *
+ * The footer's right-hand label is the UPCOMING station (what
+ * skip-forward would switch to), not the one currently playing - mirrors
+ * RadioService.lua's own index math server-side: "off" sits at index 0,
+ * STATIONS[1..N] after it, wrapping around in either direction. Needs
+ * radioStore.stations() (the full fixed list, requested once from the
+ * server - see radio.store.ts) to compute that without guessing.
  */
 export const RadioCard: Component = () => {
+  const nextStationName = (currentStation: RadioStation | "off") => {
+    const stations = radioStore.stations();
+    if (stations.length === 0) return t()("radio.off");
+
+    const currentIndex = currentStation === "off" ? 0 : stations.findIndex((entry) => entry.url === currentStation.url) + 1;
+
+    const nextIndex = currentIndex + 1 > stations.length ? 0 : currentIndex + 1;
+    const nextStation = nextIndex === 0 ? undefined : stations[nextIndex - 1];
+    return nextStation ? nextStation.name : t()("radio.off");
+  };
+
   return (
     <div class={styles.dock}>
       <Transition
@@ -78,7 +96,7 @@ export const RadioCard: Component = () => {
                 <div class={styles.footer}>
                   <SkipBack size={13} class={styles.footerIcon} />
                   <span class={styles.footerLabelLeft}>{t()("radio.footerLabel")}</span>
-                  <span class={styles.footerLabelRight}>{stationName()}</span>
+                  <span class={styles.footerLabelRight}>{nextStationName(station())}</span>
                   <SkipForward size={13} class={styles.footerIcon} />
                 </div>
               </div>
