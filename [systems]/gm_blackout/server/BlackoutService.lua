@@ -40,8 +40,10 @@ BlackoutService.start = function(player, durationSeconds)
         return
     end
 
-    local until_ = os.time() + (durationSeconds or BLACKOUT_DURATION_S)
+    local duration = durationSeconds or BLACKOUT_DURATION_S
+    local until_ = os.time() + duration
     setElementData(player, ElementData.Player.BLACKOUT_UNTIL, until_)
+    setElementData(player, ElementData.Player.BLACKOUT_DURATION, duration)
     setElementHealth(player, BLACKOUT_HP)
 
     -- TODO: once a faction/group system exists, this is where a medic
@@ -52,12 +54,23 @@ BlackoutService.start = function(player, durationSeconds)
     -- prior project). For now blackout only ever ends via its own timer
     -- or an explicit BlackoutService.finish call.
 
-    -- Sends the SECONDS REMAINING (computed here, server-side, from
-    -- os.time()), not the raw until_ timestamp - the client seeds its own
+    -- Sends SECONDS REMAINING (computed here, server-side, from os.time()),
+    -- not the raw until_ timestamp - the client seeds its own
     -- getTickCount()-based countdown from this value rather than reading
-    -- its own (potentially wrong/differently-configured) system clock.
-    -- See BlackoutState.lua's own comment on why.
-    triggerClientEvent(player, Events.BLACKOUT_STARTED, player, until_ - os.time())
+    -- its own (potentially wrong/differently-configured) system clock. Also
+    -- sends the total duration this blackout was started with - needed by
+    -- the CEF ring so it can normalize progress against the ACTUAL
+    -- duration rather than a hardcoded guess, since durationSeconds here
+    -- can differ from BLACKOUT_DURATION_S (blackoutServiceStart's own
+    -- optional argument). See BlackoutState.lua's own comment on why.
+    triggerClientEvent(player, Events.BLACKOUT_STARTED, player, until_ - os.time(), duration)
+
+    if isPedInVehicle(player) then
+        removePedFromVehicle(player)
+    end
+
+	setTimer(setPedAnimation, 50, 1, player, "ped", "KO_shot_stom", -1, false, true, false, true)
+
     Logger.info("BlackoutService", "Player entered blackout", { player = getPlayerName(player), until_ = until_ })
 end
 
@@ -70,6 +83,7 @@ BlackoutService.finish = function(player)
     end
 
     removeElementData(player, ElementData.Player.BLACKOUT_UNTIL)
+    removeElementData(player, ElementData.Player.BLACKOUT_DURATION)
     setElementHealth(player, BLACKOUT_HP)
     triggerClientEvent(player, Events.BLACKOUT_ENDED, player)
     Logger.info("BlackoutService", "Player's blackout ended", { player = getPlayerName(player) })
@@ -163,7 +177,8 @@ end)
 addEventHandler("onResourceStart", resourceRoot, function()
     for _, player in ipairs(getElementsByType("player")) do
         if BlackoutService.isBlackedOut(player) then
-            triggerClientEvent(player, Events.BLACKOUT_STARTED, player, BlackoutService.secondsRemaining(player))
+            local duration = getElementData(player, ElementData.Player.BLACKOUT_DURATION)
+            triggerClientEvent(player, Events.BLACKOUT_STARTED, player, BlackoutService.secondsRemaining(player), type(duration) == "number" and duration or BLACKOUT_DURATION_S)
         end
     end
 end)

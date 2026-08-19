@@ -7,8 +7,6 @@ import styles from "./BlackoutOverlay.module.scss";
 const RING_SIZE = 44;
 const RING_STROKE = 3;
 const RING_INSET = RING_STROKE / 2;
-/** Countdown starts at this many seconds - only used to normalize the ring's fill, never to compute the label itself (the server owns the real value). */
-const RING_TOTAL_SECONDS = 60;
 
 function formatMMSS(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);
@@ -39,8 +37,9 @@ export const BlackoutOverlay: Component = () => {
 
   const ringOffset = createMemo(() => {
     const seconds = blackoutStore.secondsRemaining();
-    if (seconds === null) return 0;
-    const progress = Math.max(0, Math.min(1, seconds / RING_TOTAL_SECONDS));
+    const total = blackoutStore.totalDuration();
+    if (seconds === null || total === null || total <= 0) return 0;
+    const progress = Math.max(0, Math.min(1, seconds / total));
     return 100 - progress * 100;
   });
 

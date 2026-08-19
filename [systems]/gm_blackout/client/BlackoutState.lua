@@ -8,6 +8,11 @@ BlackoutState = BlackoutState or {}
 
 local active = false
 local tickTimer = nil
+-- Total seconds the current blackout was started with (server's
+-- BlackoutService.start durationSeconds) - pushed to the CEF ring so it
+-- can normalize progress against the actual duration instead of a
+-- hardcoded guess (BLACKOUT_DURATION_S can differ per call).
+local totalDuration = 0
 -- Local getTickCount() reference point for the countdown, NOT the
 -- player's system clock - getRealTime()'s client-side timestamp is
 -- explicitly documented as "time as set on client's computer", which
@@ -50,6 +55,7 @@ local function pushState()
     local remaining = secondsRemaining()
     exports.core_ui:uiPushEvent(Events.PUSH_BLACKOUT_UPDATED, {
         secondsRemaining = remaining or false,
+        totalDuration = totalDuration,
         canSelfRevive = remaining ~= nil and remaining <= 0,
     })
 end
@@ -68,8 +74,11 @@ end
 
 --- @param seconds number initial countdown value, from BLACKOUT_STARTED
 --        or a resource-restart clock estimate - see setReference above.
-local function startLocal(seconds)
+--- @param duration number total seconds this blackout was started with -
+--        see totalDuration above.
+local function startLocal(seconds, duration)
     setReference(seconds)
+    totalDuration = duration
 
     if active then
         return
@@ -106,15 +115,15 @@ local function endLocal()
     toggleAllControls(true)
     unbindKey("e", "down", requestSelfRevive)
 
-    exports.core_ui:uiPushEvent(Events.PUSH_BLACKOUT_UPDATED, { secondsRemaining = false, canSelfRevive = false })
+    exports.core_ui:uiPushEvent(Events.PUSH_BLACKOUT_UPDATED, { secondsRemaining = false, totalDuration = false, canSelfRevive = false })
 end
 
 addEvent(Events.BLACKOUT_STARTED, true)
-addEventHandler(Events.BLACKOUT_STARTED, root, function(secondsTotal)
+addEventHandler(Events.BLACKOUT_STARTED, root, function(secondsTotal, duration)
     if source ~= localPlayer then
         return
     end
-    startLocal(secondsTotal)
+    startLocal(secondsTotal, duration)
 end)
 
 addEvent(Events.BLACKOUT_ENDED, true)
@@ -138,6 +147,7 @@ end)
 addEventHandler("onClientResourceStart", resourceRoot, function()
     local until_ = getElementData(localPlayer, ElementData.Player.BLACKOUT_UNTIL)
     if type(until_) == "number" then
-        startLocal(math.max(0, until_ - getRealTime().timestamp))
+        local duration = getElementData(localPlayer, ElementData.Player.BLACKOUT_DURATION)
+        startLocal(math.max(0, until_ - getRealTime().timestamp), type(duration) == "number" and duration or 0)
     end
 end)

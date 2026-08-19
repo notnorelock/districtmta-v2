@@ -22,6 +22,13 @@ ElementData = {
         -- a gm_blackout restart without drifting - any reader computes
         -- (BLACKOUT_UNTIL - os.time()) itself, on demand.
         BLACKOUT_UNTIL = "player:blackoutUntil",
+
+        -- total seconds this blackout was started with (BlackoutService.
+        -- start's durationSeconds, defaulting to BLACKOUT_DURATION_S) -
+        -- needed alongside BLACKOUT_UNTIL so a gm_blackout restart can
+        -- re-derive the CEF countdown ring's progress normalization, not
+        -- just the raw seconds remaining.
+        BLACKOUT_DURATION = "player:blackoutDuration",
     },
     Account = {
         PREMIUM = "account:premium",
