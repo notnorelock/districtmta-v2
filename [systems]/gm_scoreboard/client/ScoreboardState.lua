@@ -50,14 +50,6 @@ local function openScoreboard()
     if scoreboardOpen then
         return
     end
-    -- Not usable before the local player has actually spawned (still on
-    -- the loading/auth/spawn-select screens - see App.tsx's own Switch on
-    -- windowState.activeWindow) - the CEF window is fully occupied by
-    -- those screens at that point anyway, and there is no gameplay to tab
-    -- out of yet.
-    if getElementData(localPlayer, ElementData.Player.SPAWNED) ~= true then
-        return
-    end
     scoreboardOpen = true
 
     exports.core_ui:uiShowOverlay("scoreboard")
@@ -88,6 +80,10 @@ local function closeScoreboard()
 end
 
 local function toggleScoreboard()
+    if getElementData(localPlayer, ElementData.Player.SPAWNED) ~= true then
+        return
+    end
+
     if scoreboardOpen then
         closeScoreboard()
     else
