@@ -27,6 +27,16 @@ local POP_SMOOTHING_MS = 800
 local MIN_PAN_DISTANCE = 5
 local PAN_LIMIT_MIN = 0.35
 local MAX_NEARBY_SPEAKERS = 5
+-- onClientPlayerVoiceStart/Stop fire far more often than "once per
+-- utterance" while someone is continuously talking (documented MTA
+-- behavior, "inconsistent triggering" - issue #1700) - a real Stop right
+-- after the last real Stop before it, over and over, for as long as
+-- someone keeps talking. This is harmless for talking/talkingOrder below
+-- (audio), but made the HUD's nearby-speaker list/wave flicker on/off
+-- rapidly instead of staying lit for the sentence. HUD_DEBOUNCE_MS is
+-- purely cosmetic delay-before-hide for the HUD-facing list ONLY (see
+-- hudTalking/hudTalkingOrder below) - audio never waits on this.
+local HUD_DEBOUNCE_MS = 1000
 
 --- @param speaker element
 -- @return string one of Enums.VoiceMode's values
@@ -42,18 +52,31 @@ end
 -- BEFORE VoiceState.isTalking below - Lua's `local` has no hoisting, so a
 -- function referencing `talking` while defined above this line would
 -- close over the global `talking` (always nil) instead of this table.
+-- RAW state, flips immediately on every real onClientPlayerVoiceStart/Stop
+-- - audio (onClientRender below) reads this directly, on purpose.
 local talking = {}
 local talkingOrder = {}
 
+-- Separate, DEBOUNCED copy of the same idea, HUD-facing only - a player
+-- only leaves this table (and the resulting CEF push) HUD_DEBOUNCE_MS
+-- after their last real onClientPlayerVoiceStop with no restart in
+-- between. Entirely independent of talking/talkingOrder above; never
+-- read by the audio loop.
+local hudTalking = {}
+local hudTalkingOrder = {}
+local hudStopTimers = {}
+
 --- Public read of whether `player` (any player, not just localPlayer) is
---- currently talking, per THIS client's own talkingOrder tracking - other
---- resources (ui_hud) should call this instead of reading
---- ElementData.Player.VOICE directly, so gm_voice can change how it tracks
---- talking state later without every caller needing to follow along.
+--- currently talking, per THIS client's own tracking - other resources
+--- (ui_hud) should call this instead of reading ElementData.Player.VOICE
+--- directly, so gm_voice can change how it tracks talking state later
+--- without every caller needing to follow along. Reads the debounced HUD
+--- state, not the raw one - ui_hud's own mic glow would otherwise flicker
+--- on the same rapid-fire stop/restart pairs the HUD list debounces.
 -- @param player element
 -- @return boolean
 VoiceState.isTalking = function(player)
-    return talking[player] == true
+    return hudTalking[player] == true
 end
 
 --- @param player element
@@ -74,12 +97,20 @@ local function removeFromOrder(player)
     end
 end
 
---- Pushes the current talkingOrder (name + mode, capped) to the CEF HUD.
---- Called on every talking-list change, not per-frame - the list only
---- changes on voice start/stop, unlike health/oxygen which tick constantly.
+local function removeFromHudOrder(player)
+    for index, value in ipairs(hudTalkingOrder) do
+        if value == player then
+            table.remove(hudTalkingOrder, index)
+            return
+        end
+    end
+end
+
+--- Pushes the current hudTalkingOrder (name + mode, capped) to the CEF
+--- HUD. Called on every HUD-visible talking-list change, not per-frame.
 local function pushNearbySpeakers()
     local speakers = {}
-    for _, speaker in ipairs(talkingOrder) do
+    for _, speaker in ipairs(hudTalkingOrder) do
         if #speakers >= MAX_NEARBY_SPEAKERS then
             break
         end
@@ -91,7 +122,48 @@ local function pushNearbySpeakers()
     exports.core_ui:uiPushEvent(Events.PUSH_VOICE_NEARBY_UPDATED, { speakers = speakers })
 end
 
+--- Cancels `player`'s pending "remove from the HUD" debounce timer, if any.
+-- @param player element
+local function cancelHudStopTimer(player)
+    local timer = hudStopTimers[player]
+    if timer and isTimer(timer) then
+        killTimer(timer)
+    end
+    hudStopTimers[player] = nil
+end
+
+--- Marks `player` as HUD-visibly talking right now - adds them if they
+--- weren't already, and cancels any pending debounce removal (the common
+--- case: a rapid-fire spurious restart mid-sentence).
+-- @param player element
+local function markHudTalking(player)
+    cancelHudStopTimer(player)
+
+    if hudTalking[player] then
+        return
+    end
+
+    hudTalking[player] = true
+    hudTalkingOrder[#hudTalkingOrder + 1] = player
+    pushNearbySpeakers()
+end
+
+--- Schedules `player`'s HUD-visible removal after HUD_DEBOUNCE_MS, unless
+--- cancelled by another markHudTalking call in the meantime.
+-- @param player element
+local function scheduleHudStop(player)
+    cancelHudStopTimer(player)
+    hudStopTimers[player] = setTimer(function()
+        hudStopTimers[player] = nil
+        hudTalking[player] = nil
+        removeFromHudOrder(player)
+        pushNearbySpeakers()
+    end, HUD_DEBOUNCE_MS, 1)
+end
+
 addEventHandler("onClientPlayerVoiceStart", root, function()
+    markHudTalking(source)
+
     if talking[source] then
         return
     end
@@ -101,7 +173,6 @@ addEventHandler("onClientPlayerVoiceStart", root, function()
     setElementData(source, ElementData.Player.VOICE, true, false)
     setElementData(source, ElementData.Player.VOICE_START, getTickCount(), false)
     setSoundVolume(source, 0)
-    pushNearbySpeakers()
 end)
 
 addEventHandler("onClientPlayerVoiceStop", root, function()
@@ -109,20 +180,27 @@ addEventHandler("onClientPlayerVoiceStop", root, function()
         return
     end
 
+    scheduleHudStop(source)
+
     talking[source] = nil
     removeFromOrder(source)
 
     if isElement(source) then
         setElementData(source, ElementData.Player.VOICE, false, false)
     end
-    pushNearbySpeakers()
 end)
 
 addEventHandler("onClientPlayerQuit", root, function()
+    cancelHudStopTimer(source)
+    if hudTalking[source] then
+        hudTalking[source] = nil
+        removeFromHudOrder(source)
+        pushNearbySpeakers()
+    end
+
     if talking[source] then
         talking[source] = nil
         removeFromOrder(source)
-        pushNearbySpeakers()
     end
 end)
 
