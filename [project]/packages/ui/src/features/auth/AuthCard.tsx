@@ -1,4 +1,6 @@
 import { createEffect, createSignal, on, onMount, Show, type Component } from "solid-js";
+import { SmokeBackground } from "@/features/auth/SmokeBackground";
+import { MarqueeGrid } from "@/features/auth/MarqueeGrid";
 import { Tabs, TabsList, TabsTrigger, TabsContent, TabsIndicator } from "@/components/ui/Tabs";
 import { Button } from "@/components/ui/Button";
 import { TextField, TextFieldInput, TextFieldLabel } from "@/components/ui/TextField";
@@ -51,8 +53,8 @@ export const AuthCard: Component = () => {
 
   return (
     <div class="auth-panel relative flex h-full w-full overflow-hidden bg-black font-display">
-      <div class="relative flex w-full max-w-md flex-col justify-center gap-10 bg-accent-indigo/10 px-12 py-10 md:w-2/5">
-        <div class="auth-panel__glow pointer-events-none absolute inset-0" aria-hidden="true" />
+      <div class="relative flex w-full max-w-md flex-col justify-center gap-10 bg-black px-12 py-10 md:w-2/5">
+        <SmokeBackground color="#ffffff" opacity={0.25} enableWind enableTurbulence />
 
         <div class="relative z-10 flex flex-col gap-10">
           <Tabs value={tab()} onChange={handleTabChange}>
@@ -88,7 +90,9 @@ export const AuthCard: Component = () => {
         </div>
       </div>
 
-      <div class="hidden flex-1 bg-surface md:block" />
+      <div class="relative hidden flex-1 overflow-hidden bg-black md:block">
+        <MarqueeGrid />
+      </div>
     </div>
   );
 };

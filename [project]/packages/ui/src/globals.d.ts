@@ -17,3 +17,9 @@ declare module "*.module.scss" {
   const classes: { readonly [className: string]: string };
   export default classes;
 }
+
+/** Image assets (webpack.config.js's asset/resource rule) - `import url from "*.png"` resolves to the built asset's URL string. */
+declare module "*.png" {
+  const url: string;
+  export default url;
+}

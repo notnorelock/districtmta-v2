@@ -97,22 +97,14 @@ export default (env, argv) => {
           // Font files referenced from styles/globals.css's @font-face
           // rules (Titillium Web) - emitted alongside the JS/CSS bundle,
           // not inlined, matching the previous Vite build's asset output.
-          // Lands in dist/assets/ via output.assetModuleFilename below.
-          // publicPath: "../" here is required because css-loader resolves
-          // this url() relative to output.publicPath ("./" = dist/), NOT
-          // relative to where index.css itself ends up (dist/assets/) -
-          // without this override the generated path was
-          // ./assets/TitilliumWeb-*.ttf, which from inside dist/assets/
-          // resolved to the nonexistent dist/assets/assets/*.ttf (browser
-          // reported this as "OTS parsing error: file less than 4 bytes",
-          // not a clearer 404). "../" cancels out the extra assets/ level
-          // css-loader would otherwise add on top of assetModuleFilename's
-          // own "assets/" prefix.
           test: /\.(ttf|woff2?|eot)$/,
           type: "asset/resource",
-          generator: {
-            publicPath: "../",
-          },
+        },
+        {
+          // Textures referenced via `new URL("...", import.meta.url)` (see
+          // features/auth/SmokeBackground.tsx's smoke.png load).
+          test: /\.(png|jpe?g|gif|webp)$/,
+          type: "asset/resource",
         },
       ],
     },
@@ -120,11 +112,6 @@ export default (env, argv) => {
     plugins: [
       new HtmlWebpackPlugin({
         template: path.join(rootDir, "index.html"),
-        // MTA serves resource files from a local scheme
-        // (http://mta/local/...) with no absolute-path routing, so every
-        // built asset reference must be relative to index.html - same
-        // constraint the previous Vite config's `base: "./"` addressed.
-        publicPath: "./",
         scriptLoading: "module",
       }),
       // Exposes the current commit to app code as __BUILD_COMMIT__ (see
@@ -157,7 +144,24 @@ export default (env, argv) => {
       filename: "assets/[name].js",
       chunkFilename: "assets/[name].js",
       assetModuleFilename: "assets/[name][ext]",
-      publicPath: "./",
+      // Absolute in production, not "./" - every asset reference (CSS
+      // url(), font-face, new URL(..., import.meta.url) for textures)
+      // resolves from this ONE fixed root regardless of which file
+      // references it or where that file itself ends up (e.g.
+      // assets/index.css referencing assets/smoke.png). A relative "./"
+      // instead resolves differently depending on the referencing file's
+      // own location - that mismatch is what caused fonts and then the
+      // smoke texture to 404 as assets/assets/*, needing a per-asset-type
+      // "../" compensation that was easy to get backwards and hard to
+      // keep straight. MTA serves this resource's client files under
+      // exactly this fixed local-scheme path (see meta.xml's <file>
+      // entries under core_ui/client/html/), so it's safe to hardcode -
+      // but only for the real MTA build. `pnpm dev` serves this same
+      // bundle from localhost:5173 in a plain browser tab (see
+      // lib/mta/environment.ts's isMtaEnvironment split), where that
+      // absolute mta:// URL would never resolve, so dev keeps "auto"
+      // (webpack infers it from the page's own origin).
+      publicPath: isProduction ? "http://mta/local/client/html/" : "auto",
       clean: true,
     },
 

@@ -153,19 +153,6 @@
 }
 
 /*
-  Auth panel glow - a soft radial wash behind the login/register form,
-  ported from the reference design's smoke/particle backdrop. That version
-  used an animated smoke shader; this is a static, much cheaper CSS
-  approximation (this panel renders inside MTA's CEF browser, not a full
-  desktop browser - keep it light).
-*/
-.auth-panel__glow {
-  background:
-    radial-gradient(circle at 20% 15%, rgba(99, 102, 241, 0.18), transparent 55%),
-    radial-gradient(circle at 80% 85%, rgba(139, 92, 246, 0.14), transparent 60%);
-}
-
-/*
   Login <-> register slide transition. Tabs.Content is rendered with
   forceMount so both panels stay mounted at once (Kobalte's default
   behavior fully unmounts the inactive panel, which makes a simultaneous
