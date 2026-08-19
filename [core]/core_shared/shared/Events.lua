@@ -37,6 +37,18 @@ Events = {
     SPAWN_SELECT_OPEN = "spawn:selectOpen",
     SPAWN_SELECT_CLOSE = "spawn:selectClose",
 
+    -- Server -> client: fired instead of AUTH_BEGIN_AUTHENTICATION/
+    -- SPAWN_SELECT_OPEN when LOADING_READY fires for a player who is
+    -- already logged in AND already spawned - i.e. a resource restart
+    -- mid-session (core_ui/core_loading/core_auth restarted, CEF
+    -- remounted from scratch) rather than a fresh join. Neither auth nor
+    -- spawn-select ever gets a ui.open push in this case, since there's
+    -- genuinely no window to open - without this, uiStore's
+    -- hasOpenedAnyWindow stays false forever and the frontend is stuck
+    -- showing ResourceCheckScreen despite the player already being in
+    -- the world. See AuthUiClient.lua/ui.store.ts.
+    AUTH_ALREADY_IN_WORLD = "auth:alreadyInWorld",
+
     -- Native dxGUI/dxDraw admin windows, NOT CEF - unrelated to PUSH_UI_OPEN/_CLOSE.
     ADMIN_PANEL_TOGGLE = "admin:panelToggle",
     REPORTS_OVERLAY_TOGGLE = "admin:reportsOverlayToggle",
@@ -73,6 +85,13 @@ Events = {
     PUSH_NOTIFICATION_CREATED = "notification.created",
     PUSH_UI_OPEN = "ui.open",
     PUSH_UI_CLOSE = "ui.close",
+
+    -- Pushed by AuthUiClient.lua on Events.AUTH_ALREADY_IN_WORLD - tells
+    -- the frontend directly "there is no window to open, stop showing the
+    -- loading screen" without having to fake a ui.open/ui.close pair for
+    -- a window that never actually opens. See ui.store.ts's
+    -- hasOpenedAnyWindow.
+    PUSH_UI_ALREADY_IN_WORLD = "ui.alreadyInWorld",
 
     -- Overlays (UI.showOverlay/hideOverlay in BrowserManager.lua) are a
     -- separate registry from openWindows - never affect showCursor/

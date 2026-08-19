@@ -9,6 +9,14 @@ addEventHandler(Events.AUTH_BEGIN_AUTHENTICATION, root, function()
     UI.open(Enums.UiWindow.AUTHENTICATION)
 end)
 
+-- See Events.AUTH_ALREADY_IN_WORLD's own comment - a plain CEF push
+-- (UI.pushEvent), not UI.open/close, since no window is actually opening
+-- or closing here.
+addEvent(Events.AUTH_ALREADY_IN_WORLD, true)
+addEventHandler(Events.AUTH_ALREADY_IN_WORLD, root, function()
+    exports.core_ui:uiPushEvent(Events.PUSH_UI_ALREADY_IN_WORLD, true)
+end)
+
 addEvent(Events.AUTH_SUCCESS_AUTHENTICATION, true)
 addEventHandler(Events.AUTH_SUCCESS_AUTHENTICATION, root, function()
     UI.close(Enums.UiWindow.AUTHENTICATION)

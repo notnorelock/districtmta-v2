@@ -40,6 +40,17 @@ addEventHandler(Events.LOADING_READY, root, function()
 
     if not logged or not authenticated then
         triggerClientEvent(player, Events.AUTH_BEGIN_AUTHENTICATION, player)
+        return
+    end
+
+    -- Logged in AND authenticated - if also already spawned, this is a
+    -- mid-session resource restart (CEF remounted, nothing to open):
+    -- reopenSpawnSelectForUnspawnedPlayers below already covers "logged
+    -- in but not yet spawned" by reopening spawn-select, so this is the
+    -- one remaining case neither branch handled - see Events.
+    -- AUTH_ALREADY_IN_WORLD's own comment.
+    if getElementData(player, ElementData.Player.SPAWNED) == true then
+        triggerClientEvent(player, Events.AUTH_ALREADY_IN_WORLD, player)
     end
 end)
 

@@ -30,3 +30,14 @@ mta.on("ui.close", (data) => {
   const closingWindow = typeof data === "string" ? data : null;
   setActiveWindow((current) => (closingWindow === null || current === closingWindow ? null : current));
 });
+
+// Fired instead of ui.open when LOADING_READY resolves for a player who's
+// already logged in AND already spawned - a mid-session resource restart
+// (CEF remounted from scratch), not a fresh join. No window is opening in
+// this case, so ui.open never fires - without this, hasOpenedAnyWindow
+// would stay false forever and App.tsx would show ResourceCheckScreen
+// indefinitely despite the player already being in the world. See
+// AuthUiController.lua/AuthUiClient.lua.
+mta.on("ui.alreadyInWorld", () => {
+  setHasOpenedAnyWindow(true);
+});
