@@ -1,26 +1,15 @@
-import { type Component, type JSX, For, Show } from "solid-js";
+import { type Component, For, Show } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
-import { Volume1, Mic, Megaphone } from "lucide-solid";
 import { voiceStore } from "@/stores/voice.store";
 import type { VoiceMode } from "@/types/voice";
 import styles from "./VoiceIndicator.module.scss";
 
-const ICON_SIZE = 14;
+const WAVE_BAR_COUNT = 4;
 
-// Distinct icon shape per mode (not just color) so it reads at a glance,
-// same reasoning as HudBar's per-stat icons - color-coded too (see
-// VoiceIndicator.module.scss's .icon variants) since the user asked for
-// nearby speakers' mode to be visible, not just that they're talking.
-const MODE_ICON: Record<VoiceMode, () => JSX.Element> = {
-  whisper: () => <Volume1 size={ICON_SIZE} />,
-  talk: () => <Mic size={ICON_SIZE} />,
-  shout: () => <Megaphone size={ICON_SIZE} />,
-};
-
-const MODE_ICON_CLASS: Record<VoiceMode, string> = {
-  whisper: styles.iconWhisper ?? "",
-  talk: styles.iconTalk ?? "",
-  shout: styles.iconShout ?? "",
+const MODE_WAVE_CLASS: Record<VoiceMode, string> = {
+  whisper: styles.waveWhisper ?? "",
+  talk: styles.waveTalk ?? "",
+  shout: styles.waveShout ?? "",
 };
 
 /**
@@ -30,6 +19,12 @@ const MODE_ICON_CLASS: Record<VoiceMode, string> = {
  * CEF HUD rather than a dxDraw overlay - dxGUI is reserved for small
  * one-off admin tools (see AdminGuiWindow.lua), the real always-on HUD is
  * this CEF surface.
+ *
+ * Each row shows an animated bar "waveform" (same cosmetic technique as
+ * RadioCard's visualizer - MTA's voice chat gives no real amplitude data
+ * per remote player, so this is a staggered CSS keyframe loop, not an
+ * actual audio analyzer) instead of a static mic icon, colored/scaled per
+ * talk mode so whisper/talk/shout still read apart at a glance.
  */
 export const VoiceIndicator: Component = () => {
   return (
@@ -45,7 +40,11 @@ export const VoiceIndicator: Component = () => {
           <For each={voiceStore.nearbySpeakers()}>
             {(speaker) => (
               <div class={styles.row}>
-                <span class={`${styles.icon} ${MODE_ICON_CLASS[speaker.mode]}`}>{MODE_ICON[speaker.mode]()}</span>
+                <div class={`${styles.wave} ${MODE_WAVE_CLASS[speaker.mode]}`} aria-hidden="true">
+                  {Array.from({ length: WAVE_BAR_COUNT }, (_, index) => (
+                    <span class={styles.waveBar} style={{ "animation-delay": `${index * 0.12}s` }} />
+                  ))}
+                </div>
                 <span class={styles.name}>{speaker.name}</span>
               </div>
             )}

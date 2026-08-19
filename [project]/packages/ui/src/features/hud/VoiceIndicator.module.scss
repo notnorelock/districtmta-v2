@@ -16,23 +16,44 @@
   @apply flex items-center gap-1.5 rounded-md bg-popover/80 px-2 py-1 font-display text-xs text-foreground;
 }
 
-.icon {
-  @apply flex items-center justify-center;
+// Animated bar "waveform" per speaker - cosmetic only, same technique as
+// RadioCard's visualizer (MTA gives no real per-player voice amplitude
+// data to drive this from). Peak height and color both scale with talk
+// mode (see the per-mode variants below) so whisper/talk/shout still read
+// apart at a glance, same as the old distinct-icon-shape approach did.
+.wave {
+  @apply flex h-3.5 w-6 shrink-0 items-end justify-center gap-0.5;
 }
 
-// Per-mode color, alongside MODE_ICON's distinct shape (VoiceIndicator.tsx)
-// - whisper dim/muted (quiet), talk the same green voice-active used
-// elsewhere in the HUD, shout hot/red (loud, draws the eye).
-.iconWhisper {
-  color: var(--color-muted-foreground);
+.waveBar {
+  @apply w-1 rounded-full;
+  height: 25%;
+  animation: wave-bounce 0.9s ease-in-out infinite;
 }
 
-.iconTalk {
-  color: var(--color-success);
+@keyframes wave-bounce {
+  0%,
+  100% {
+    height: 20%;
+  }
+  50% {
+    height: var(--wave-peak, 100%);
+  }
 }
 
-.iconShout {
-  color: var(--color-destructive);
+.waveWhisper .waveBar {
+  --wave-peak: 45%;
+  background: var(--color-muted-foreground);
+}
+
+.waveTalk .waveBar {
+  --wave-peak: 75%;
+  background: var(--color-success);
+}
+
+.waveShout .waveBar {
+  --wave-peak: 100%;
+  background: var(--color-destructive);
 }
 
 .name {
