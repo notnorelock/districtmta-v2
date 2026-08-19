@@ -11,6 +11,7 @@ import { HudBar } from "@/features/hud/HudBar";
 import { VoiceIndicator } from "@/features/hud/VoiceIndicator";
 import { RadioCard } from "@/features/hud/RadioCard";
 import { BlackoutOverlay } from "@/features/blackout/BlackoutOverlay";
+import { ScoreboardOverlay } from "@/features/scoreboard/ScoreboardOverlay";
 import { Watermark } from "@/components/common/Watermark";
 import { authStore } from "@/stores/auth.store";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -63,6 +64,10 @@ const AppContent: Component = () => {
           prop) - rendered unconditionally here so it can show up
           regardless of auth/HUD state, same reasoning as Watermark/RadioCard. */}
       <BlackoutOverlay />
+      {/* Uses its own "scoreboard" overlay key (Overlay name prop),
+          toggled by gm_scoreboard while TAB is held - see
+          ScoreboardOverlay.tsx's own comment. */}
+      <ScoreboardOverlay />
       <ToastStack />
     </div>
   );

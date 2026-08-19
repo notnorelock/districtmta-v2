@@ -68,4 +68,12 @@ export const en: Record<keyof typeof pl, string> = {
   "radio.subtitle": "Vehicle radio",
   "radio.footerLabel": "Music from phone",
   "radio.off": "Radio off",
+
+  "scoreboard.searchPlaceholder": "Type nick or ID",
+  "scoreboard.status.downloading": "Downloading",
+  "scoreboard.status.authenticating": "Logging in",
+  "scoreboard.status.selectingSpawn": "Selecting spawn",
+  "scoreboard.status.inGame": "In game",
+  "scoreboard.empty": "No players match your search",
+  "scoreboard.hint": "Press right mouse button to show cursor",
 };

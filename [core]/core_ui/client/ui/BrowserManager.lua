@@ -195,6 +195,34 @@ UI.getBrowser = function()
     return browser
 end
 
+--- Focuses/unfocuses the browser and toggles cursor+GUI input on demand,
+--- independent of UI.open/openWindows - for a caller that wants cursor
+--- input into the browser WITHOUT going through the open/blocking window
+--- flow (e.g. gm_scoreboard: TAB alone shows an overlay with no cursor,
+--- only a held right-click additionally wants pointer input). Does NOT
+--- touch toggleControl("fire"/etc.) or openWindows bookkeeping - callers
+--- needing to also block movement do that themselves (toggleAllControls),
+--- same as gm_blackout already does independently of this file.
+--- Must be balanced by the caller (focus(true) then eventually focus(false));
+--- does not intersect with a currently-open blocking window's own state -
+--- calling this while a blocking UI.open window is open, or leaving it
+--- engaged when one opens, can fight over focusBrowser/showCursor. Callers
+--- are expected to only use this when they know no blocking window is open.
+-- @param wantsFocus boolean
+UI.focusBrowser = function(wantsFocus)
+    if not browser or not isElement(browser) then
+        return
+    end
+
+    showCursor(wantsFocus)
+    guiSetInputEnabled(wantsFocus)
+
+    if wantsFocus ~= browserFocused then
+        browserFocused = wantsFocus
+        focusBrowser(wantsFocus and browser or nil)
+    end
+end
+
 addEventHandler("onClientResourceStart", resourceRoot, function()
     screenWidth, screenHeight = guiGetScreenSize()
     browser = createBrowser(screenWidth, screenHeight, true, true)
@@ -301,6 +329,7 @@ function uiIsOverlayVisible(overlayName) return UI.isOverlayVisible(overlayName)
 
 function uiExecuteInBrowser(script) UI.executeInBrowser(script) end
 function uiPushEvent(eventName, data) UI.pushEvent(eventName, data) end
+function uiFocusBrowser(wantsFocus) UI.focusBrowser(wantsFocus) end
 
 -- Exported so other client-side resources can obfuscate/deobfuscate payloads with the current session key.
 function uiObfuscateForBrowser(plaintext) return obfuscatePayload(plaintext, SessionKeyState.key) end

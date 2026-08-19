@@ -11,6 +11,13 @@ ElementData = {
         ID = "player:id",
         SKIN = "player:skin",
         SESSION_KEY = "player:sessionKey",
+        -- Set true once Events.LOADING_READY has fired for this player
+        -- (core_bootstrap's chain finished AND their CEF frontend reported
+        -- ready - see core_loading/server/LoadingGate.lua). Absent/false
+        -- means "still downloading resources", the one loading stage
+        -- LoadingGate itself never exposed anywhere else - added for
+        -- gm_scoreboard to tell "downloading" apart from "authenticating".
+        LOADING_READY = "player:loadingReady",
         VOICE = "player:voice",
         VOICE_START = "player:voiceStart",
         VOICE_MODE = "player:voiceMode",

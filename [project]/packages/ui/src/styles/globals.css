@@ -254,3 +254,19 @@
 .blackout-exit-to {
   opacity: 0;
 }
+
+/*
+  Scoreboard overlay (features/scoreboard/ScoreboardOverlay.tsx) - centered
+  panel shown while TAB is held, plain fade+scale (no directional slide,
+  same reasoning as blackout above - it's not anchored to a screen edge).
+*/
+.scoreboard-enter-active,
+.scoreboard-exit-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.scoreboard-enter-from,
+.scoreboard-exit-to {
+  opacity: 0;
+  transform: scale(0.98);
+}

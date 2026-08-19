@@ -1,0 +1,106 @@
+// CSS Modules + Sass, scoped to features/scoreboard/ only - see
+// webpack.config.js's *.module.scss rule comment for why.
+// @reference (not @import "tailwindcss"), relative path not the "@/"
+// alias - see HudIcon.module.scss's comment on the same directive for why.
+@reference "../../styles/globals.css";
+
+// pointer-events-none on root - clicks only reach .panel while the cursor
+// is active (gm_scoreboard's own uiFocusBrowser toggle via right-click).
+// Centered on screen, not docked to a corner.
+.root {
+  @apply pointer-events-none fixed inset-0 z-40 flex items-center justify-center;
+}
+
+.panel {
+  @apply pointer-events-auto flex max-h-[75vh] w-140 max-w-[90vw] flex-col overflow-hidden rounded-xl border border-border bg-popover/95 font-display shadow-lg;
+}
+
+.header {
+  @apply flex items-center gap-3 border-b border-border px-4 py-3;
+}
+
+// Text placeholder until a real logo asset is provided (see
+// ScoreboardOverlay.tsx's own module comment) - swap for an <img> then.
+.logo {
+  @apply flex shrink-0 items-center gap-1 text-sm font-semibold text-foreground;
+}
+
+.logoAccent {
+  color: var(--color-primary);
+}
+
+.search {
+  @apply flex-1;
+}
+
+.count {
+  @apply flex shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-sm font-semibold text-foreground;
+}
+
+.listWrap {
+  @apply flex-1 overflow-y-auto;
+}
+
+.row {
+  @apply flex items-center gap-3 border-b border-border/40 px-4 py-2.5 last:border-b-0 hover:bg-secondary/40;
+}
+
+.avatar {
+  @apply flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-muted-foreground;
+}
+
+.identity {
+  @apply flex min-w-0 flex-1 flex-col;
+}
+
+.playerName {
+  @apply truncate text-sm font-medium text-foreground;
+}
+
+.playerId {
+  @apply text-muted-foreground;
+}
+
+.playerStatus {
+  @apply flex items-center gap-1.5 truncate text-xs text-muted-foreground;
+}
+
+.dot {
+  @apply size-1.5 shrink-0 rounded-full;
+}
+
+.dotPending {
+  background: var(--color-warning);
+}
+
+.dotReady {
+  background: var(--color-success);
+}
+
+.factionBadge {
+  @apply shrink-0 text-xs font-medium text-accent-violet;
+}
+
+.pingCol {
+  @apply flex w-14 shrink-0 items-center justify-end gap-1.5 text-sm tabular-nums text-foreground;
+}
+
+.pingGood {
+  color: var(--color-success);
+}
+
+.pingOk {
+  color: var(--color-warning);
+}
+
+.pingBad {
+  color: var(--color-destructive);
+}
+
+.empty {
+  @apply px-4 py-8 text-center text-sm text-muted-foreground;
+}
+
+.footer {
+  @apply border-t border-border px-4 py-2 text-center text-xs text-muted-foreground;
+}

@@ -66,4 +66,12 @@ export const pl = {
   "radio.subtitle": "Radio pojazdu",
   "radio.footerLabel": "Muzyka z telefonu",
   "radio.off": "Radio wyłączone",
+
+  "scoreboard.searchPlaceholder": "Wpisz nick lub ID",
+  "scoreboard.status.downloading": "Pobiera zasoby",
+  "scoreboard.status.authenticating": "Loguje się",
+  "scoreboard.status.selectingSpawn": "Wybiera spawn",
+  "scoreboard.status.inGame": "W grze",
+  "scoreboard.empty": "Brak graczy spełniających kryteria",
+  "scoreboard.hint": "Naciśnij prawy przycisk myszy, aby pokazać kursor",
 } as const;

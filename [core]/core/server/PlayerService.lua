@@ -312,6 +312,15 @@ addEventHandler("onResourceStart", resourceRoot, scheduleMuteSweep)
 
 function playerServiceIsAuthenticated(player) return PlayerService.isAuthenticated(player) end
 
+--- @return string|nil the account login, or nil if not authenticated - a
+--- narrow accessor (not the full account context table, which also holds
+--- password_hash) for callers outside core that only need the login, e.g.
+--- gm_scoreboard's player list.
+function playerServiceGetLogin(player)
+    local account = PlayerService.getAccount(player)
+    return account and account.login or nil
+end
+
 -- @return number|nil one of Enums.AccountRole's values, or nil if not authenticated
 function playerServiceGetRole(player)
     local account = PlayerService.getAccount(player)

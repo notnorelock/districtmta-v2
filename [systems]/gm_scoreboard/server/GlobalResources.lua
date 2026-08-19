@@ -14,6 +14,7 @@ end
 
 local TABLE_RESOURCE_MAP = {
     Events = { resource = "core_shared", getter = "getEvents" },
+    Enums = { resource = "core_shared", getter = "getEnums" },
 }
 local cachedTables = {}
 

@@ -52,6 +52,7 @@
     <export function="uiIsOverlayVisible" type="client" />
     <export function="uiExecuteInBrowser" type="client" />
     <export function="uiPushEvent" type="client" />
+    <export function="uiFocusBrowser" type="client" />
     <export function="uiObfuscateForBrowser" type="client" />
     <export function="uiDeobfuscateFromBrowser" type="client" />
 </meta>

@@ -1,5 +1,5 @@
 -- Resolves Events/ElementData from core_shared via the lazy-metatable
--- pattern used across this project. Must be the first server script
+-- pattern used across this project. Must be the first client script
 -- loaded in meta.xml.
 
 local function isResourceAvailable(resourceName)

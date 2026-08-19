@@ -179,4 +179,21 @@ Events = {
     -- re-checks BlackoutService.secondsRemaining independently rather
     -- than trusting client timing at all).
     BLACKOUT_SELF_REVIVE = "blackout:selfRevive",
+
+    -- Client -> server: gm_scoreboard/client/ScoreboardState.lua asking to
+    -- be sent the current player list. Request/response (like
+    -- RADIO_REQUEST_STATIONS) rather than an unprompted server push, fired
+    -- once on resource start and again on every TAB-down - the list can go
+    -- stale between holds (players join/quit/change status), so each hold
+    -- re-requests rather than relying on a a stream of periodic pushes.
+    SCOREBOARD_REQUEST_PLAYERS = "scoreboard:requestPlayers",
+
+    -- Server -> requesting client only: response to SCOREBOARD_REQUEST_PLAYERS,
+    -- the full connected-player list as plain data (see ScoreboardService.lua's
+    -- toEntry for the exact shape). ScoreboardState.lua forwards it into the
+    -- CEF overlay via PUSH_SCOREBOARD_PLAYERS.
+    SCOREBOARD_PLAYERS_RECEIVED = "scoreboard:playersReceived",
+
+    -- Pushed into the CEF overlay once SCOREBOARD_PLAYERS_RECEIVED arrives.
+    PUSH_SCOREBOARD_PLAYERS = "scoreboard.players",
 }

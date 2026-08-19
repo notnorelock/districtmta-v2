@@ -53,6 +53,7 @@ local function startPolling(player)
         if browserReady and chainReady then
             stopPolling(player)
             readyFired[player] = true
+            setElementData(player, ElementData.Player.LOADING_READY, true)
             triggerEvent(Events.LOADING_READY, player)
             outputServerLog(string.format("[INFO] [core_loading] LOADING_READY fired (player=%s)", getPlayerName(player)))
         end
