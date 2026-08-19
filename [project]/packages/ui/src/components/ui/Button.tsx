@@ -22,8 +22,14 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         // hover:bg-transparent is deliberate: the gradient is the resting state, hover
         // only shifts bg-position/shadow, not a separate background color.
+        // shadow colors are the literal RGB of --color-accent-indigo
+        // (#ffab48) - arbitrary-value shadow-[...] utilities can't
+        // reference a CSS custom property's color directly the way
+        // bg-accent-indigo etc. can, so this has to be kept in sync by
+        // hand if that token's value ever changes again (see
+        // styles/globals.css's own token comment).
         gradient:
-          "border border-accent-indigo/40 bg-gradient-to-r from-accent-indigo via-accent-violet to-accent-indigo bg-size-[200%_100%] text-white shadow-[0_8px_30px_rgba(99,102,241,0.35)] transition-[background-position,box-shadow] hover:bg-transparent hover:bg-right hover:shadow-[0_12px_40px_rgba(99,102,241,0.5)] focus-visible:ring-accent-indigo/50",
+          "border border-accent-indigo/40 bg-gradient-to-r from-accent-indigo via-accent-violet to-accent-indigo bg-size-[200%_100%] text-white shadow-[0_8px_30px_rgba(255,171,72,0.35)] transition-[background-position,box-shadow] hover:bg-transparent hover:bg-right hover:shadow-[0_12px_40px_rgba(255,171,72,0.5)] focus-visible:ring-accent-indigo/50",
       },
       size: {
         default: "h-10 px-4 py-2",

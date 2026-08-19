@@ -26,15 +26,20 @@
   foreground, primary, secondary, muted, accent, destructive, border,
   input, ring, card, popover - each with a matching -foreground) so ported
   component class strings (bg-primary, text-muted-foreground, ...) work
-  unmodified. --color-primary/--color-ring are violet (matching
-  --color-accent-violet) rather than a separate brand color - the whole
-  UI intentionally shares the auth panel's indigo/violet register instead
-  of splitting into a "dashboard gold" identity plus a separately-themed
-  auth screen (an earlier gold palette caused exactly that mismatch:
-  focus rings/buttons defaulting to gold everywhere outside the auth
-  panel's own local overrides). --color-accent-indigo/--color-accent-violet
-  stay as the two source hues the gradient treatments (auth panel, Button
-  variant="gradient") blend between.
+  unmodified. --color-primary/--color-ring are a warm amber-to-coral
+  orange (matching --color-accent-violet, which despite the name is now
+  the coral end of that range - kept the token name to avoid renaming
+  every call site) rather than a separate brand color - the whole UI
+  intentionally shares the auth panel's warm register instead of
+  splitting into a separately-themed auth screen (an earlier mismatched
+  palette caused exactly that: focus rings/buttons defaulting to a
+  different hue everywhere outside the auth panel's own local overrides).
+  --color-accent-indigo/--color-accent-violet (names unchanged, values
+  aren't indigo/violet anymore) stay as the two source hues the gradient
+  treatments (auth panel, Button variant="gradient") blend between - a
+  4-stop reference gradient (FFAB48 -> FFB762 -> FC8C5B -> DC604F) was
+  simplified to these two endpoints plus --color-primary as the middle,
+  since every current gradient usage in this file is a 2-stop from/to.
 */
 @theme {
   /*
@@ -51,29 +56,29 @@
   --color-black: #000000;
   --color-white: #ffffff;
 
-  --color-background: #0b0d10;
-  --color-foreground: #e8ebef;
+  --color-background: #100d0b;
+  --color-foreground: #efebe8;
 
-  --color-card: #121018;
-  --color-card-foreground: #e8ebef;
+  --color-card: #1a1512;
+  --color-card-foreground: #efebe8;
 
-  --color-popover: #17141f;
-  --color-popover-foreground: #e8ebef;
+  --color-popover: #201a16;
+  --color-popover-foreground: #efebe8;
 
-  --color-surface: #121018;
-  --color-surface-elevated: #17141f;
-  --color-border: #241f2e;
-  --color-input: #241f2e;
-  --color-ring: #8b5cf6;
+  --color-surface: #1a1512;
+  --color-surface-elevated: #201a16;
+  --color-border: #2e2620;
+  --color-input: #2e2620;
+  --color-ring: #fc8c5b;
 
-  --color-primary: #8b5cf6;
-  --color-primary-foreground: #0f0a1a;
+  --color-primary: #fc8c5b;
+  --color-primary-foreground: #200f08;
 
-  --color-secondary: #262032;
-  --color-secondary-foreground: #e8ebef;
+  --color-secondary: #322820;
+  --color-secondary-foreground: #efebe8;
 
-  --color-accent: #262032;
-  --color-accent-foreground: #e8ebef;
+  --color-accent: #322820;
+  --color-accent-foreground: #efebe8;
 
   --color-destructive: #e5484d;
   --color-destructive-foreground: #ffffff;
@@ -87,11 +92,11 @@
   --color-warning: #f2b84b;
   --color-warning-foreground: #1a1206;
 
-  --color-muted: #7c8494;
-  --color-muted-foreground: #a6acb8;
+  --color-muted: #8c8078;
+  --color-muted-foreground: #b8aca2;
 
-  --color-accent-indigo: #6366f1;
-  --color-accent-violet: #8b5cf6;
+  --color-accent-indigo: #ffab48;
+  --color-accent-violet: #dc604f;
 
   --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
   --font-display: "Titillium Web", "Inter", "Segoe UI", system-ui, sans-serif;
