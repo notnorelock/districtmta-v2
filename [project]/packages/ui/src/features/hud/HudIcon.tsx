@@ -21,7 +21,7 @@ const SIZE = 44;
 const STROKE = 3;
 const RADIUS_CORNER = 12;
 const INSET = STROKE / 2;
-const DEFAULT_CRITICAL_THRESHOLD = 10;
+const DEFAULT_CRITICAL_THRESHOLD = 26;
 
 /**
  * A rounded-square icon whose own border doubles as a progress ring -

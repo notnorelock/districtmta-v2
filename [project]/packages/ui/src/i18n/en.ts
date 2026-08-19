@@ -58,4 +58,13 @@ export const en: Record<keyof typeof pl, string> = {
   "spawn.entering": "Entering the world...",
 
   "notification.dismiss": "Dismiss",
+
+  "blackout.title": "You are unconscious",
+  "blackout.waitingForHelp": "Wait for medical help.",
+  "blackout.selfReviveHint.before": "If no one comes, press",
+  "blackout.selfReviveHint.after": "to get back up.",
+
+  "radio.buffering": "Buffering...",
+  "radio.subtitle": "Vehicle radio",
+  "radio.footerLabel": "Music from phone",
 };

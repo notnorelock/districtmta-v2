@@ -10,6 +10,7 @@ import { ToastStack } from "@/features/notifications/ToastStack";
 import { HudBar } from "@/features/hud/HudBar";
 import { VoiceIndicator } from "@/features/hud/VoiceIndicator";
 import { RadioCard } from "@/features/hud/RadioCard";
+import { BlackoutOverlay } from "@/features/blackout/BlackoutOverlay";
 import { Watermark } from "@/components/common/Watermark";
 import { authStore } from "@/stores/auth.store";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -58,6 +59,10 @@ const AppContent: Component = () => {
           independent system (gm_radio, not ui_hud) and should show even
           if the HUD itself is hidden, same reasoning as Watermark. */}
       <RadioCard />
+      {/* Uses its own "blackout" overlay key internally (Overlay name
+          prop) - rendered unconditionally here so it can show up
+          regardless of auth/HUD state, same reasoning as Watermark/RadioCard. */}
+      <BlackoutOverlay />
       <ToastStack />
     </div>
   );

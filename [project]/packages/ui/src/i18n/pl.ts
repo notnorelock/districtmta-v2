@@ -56,4 +56,13 @@ export const pl = {
   "spawn.entering": "Wchodzenie do świata...",
 
   "notification.dismiss": "Zamknij",
+
+  "blackout.title": "Jesteś nieprzytomny",
+  "blackout.waitingForHelp": "Oczekuj na pomoc medyczną.",
+  "blackout.selfReviveHint.before": "W przypadku braku pomocy możesz nacisnąć",
+  "blackout.selfReviveHint.after": ", aby się ocucić.",
+
+  "radio.buffering": "Buforowanie...",
+  "radio.subtitle": "Radio pojazdu",
+  "radio.footerLabel": "Muzyka z telefonu",
 } as const;

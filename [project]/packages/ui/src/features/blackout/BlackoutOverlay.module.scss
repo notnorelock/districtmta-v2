@@ -1,0 +1,99 @@
+// CSS Modules + Sass, scoped to features/blackout/ only - see
+// webpack.config.js's *.module.scss rule comment for why.
+// @reference (not @import "tailwindcss"), relative path not the "@/"
+// alias - see HudIcon.module.scss's comment on the same directive for why.
+@reference "../../styles/globals.css";
+
+.root {
+  @apply pointer-events-none fixed inset-0 z-50 flex items-end justify-center pb-10 font-display;
+}
+
+// Classic low-health vignette - a radial gradient anchored past each
+// edge (not centered on-screen) so the clear area sits in the middle and
+// red only builds up toward the corners/sides.
+//
+// The gradient itself is a FIXED background, never animated directly -
+// interpolating between two different radial-gradient() values only
+// looked "smooth" in theory; in practice (this CEF/Chromium build) it
+// snapped between the two keyframe states instead of tweening, reading
+// as a jarring heartbeat-like flicker rather than a wave. opacity and
+// transform are the two properties every browser genuinely interpolates
+// frame-by-frame, so those are the only things animated - a slight scale
+// (sized past 100% so the edge never visibly clips inward) plus opacity
+// is what actually produces a smooth "breathing" pulse.
+.vignette {
+  @apply pointer-events-none absolute;
+  inset: -10%;
+  background: radial-gradient(ellipse at center, transparent 42%, color-mix(in srgb, var(--color-destructive) 65%, transparent) 100%);
+  animation: vignette-wave 3.2s ease-in-out infinite;
+}
+
+@keyframes vignette-wave {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+.card {
+  @apply relative flex items-center gap-3 rounded-xl border border-border bg-popover/95 px-4 py-3 shadow-lg;
+}
+
+// The outer <Overlay> (.root, transitionName="blackout" - see globals.css's
+// .blackout-enter-*/.blackout-exit-* classes) only fades the vignette in/out.
+// The card has its OWN <Transition> in BlackoutOverlay.tsx (same split
+// RadioCard.tsx uses for its dock+card) so it can slide up/down from the
+// bottom instead of just fading - these classes are that transition's
+// enter/exit states, passed in directly as enterActiveClass/etc. props
+// rather than through the shared Overlay component.
+.cardEnterActive,
+.cardExitActive {
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cardEnterFrom,
+.cardExitTo {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.ringWrap {
+  @apply relative flex size-11 shrink-0 items-center justify-center;
+}
+
+.ring {
+  @apply absolute inset-0 -rotate-90;
+}
+
+// stroke-linecap MUST stay "butt", not "round" - at/near 0% remaining the
+// arc's start and end land on the same point, and "round" draws a
+// visible overlapping cap blob right there (same reasoning as HudIcon's
+// own ring - see that file's comment).
+.ringProgress {
+  @apply transition-[stroke-dashoffset] duration-500 ease-linear;
+}
+
+.ringLabel {
+  @apply absolute text-[10px] font-semibold tabular-nums text-destructive;
+}
+
+.info {
+  @apply flex max-w-64 flex-col gap-0.5;
+}
+
+.title {
+  @apply text-sm font-semibold text-foreground;
+}
+
+.subtitle {
+  @apply text-xs leading-snug text-muted-foreground;
+}
+
+.key {
+  @apply rounded border border-border bg-secondary px-1 py-0.5 font-sans text-[10px] font-semibold text-foreground;
+}

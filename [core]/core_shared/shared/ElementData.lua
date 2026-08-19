@@ -14,6 +14,14 @@ ElementData = {
         VOICE = "player:voice",
         VOICE_START = "player:voiceStart",
         VOICE_MODE = "player:voiceMode",
+        -- Absolute os.time() (seconds) the player's current blackout
+        -- ends, or absent entirely while not blacked out - "key absent"
+        -- is the presence check (getElementData returns false for an
+        -- absent key), same convention as ElementData.Player.ADMIN. An
+        -- absolute end time, not a remaining-duration counter, survives
+        -- a gm_blackout restart without drifting - any reader computes
+        -- (BLACKOUT_UNTIL - os.time()) itself, on demand.
+        BLACKOUT_UNTIL = "player:blackoutUntil",
     },
     Account = {
         PREMIUM = "account:premium",

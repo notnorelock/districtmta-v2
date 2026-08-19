@@ -41,6 +41,11 @@ end
 -- doesn't automatically pick up a new group added to ElementData.lua (see
 -- the ElementData.Vehicle addition that initially went missing here).
 function getElementData()
+    -- Every top-level ElementData.* group is re-listed here by hand - see
+    -- this function's own module comment for why (MTA's exports strip
+    -- function fields from returned tables, so this can't just return
+    -- ElementData wholesale) and the docs/Architecture.md "Adding a new
+    -- system" gotcha this caused once already (ElementData.Vehicle).
     return {
         Player = ElementData.Player,
         Account = ElementData.Account,

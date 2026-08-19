@@ -136,4 +136,29 @@ Events = {
     -- on RADIO_CARD_HIDE (a few seconds later, or on vehicle exit).
     -- station is nil for "off" (hides the card immediately instead).
     PUSH_RADIO_STATION_CHANGED = "radio.stationChanged",
+
+    -- Server -> localPlayer only: fired when gm_blackout puts a player
+    -- into blackout (near-fatal damage intercepted before it would have
+    -- killed them, or a revive-in-place after an already-fatal hit that
+    -- bypassed onPlayerDamage entirely - see BlackoutService.lua's own
+    -- comment on why both paths exist) and again when it ends (early, via
+    -- the countdown reaching zero, or an admin/future medic action).
+    -- `until_` is the same absolute os.time() end value mirrored onto
+    -- ElementData.Player.BLACKOUT_UNTIL, nil on end.
+    BLACKOUT_STARTED = "blackout:started",
+    BLACKOUT_ENDED = "blackout:ended",
+
+    -- Pushed into the CEF HUD (gm_blackout/client/BlackoutState.lua) on
+    -- every UI-relevant tick while blacked out - see BlackoutOverlay.tsx.
+    -- secondsRemaining is nil once null/not blacked out (hides the overlay).
+    PUSH_BLACKOUT_UPDATED = "blackout.updated",
+
+    -- Client -> server: player pressed E while blacked out, requesting to
+    -- get back up on their own instead of waiting for a future medic
+    -- system. Server is authoritative - only actually ends blackout if
+    -- the countdown has genuinely reached zero (BlackoutState.lua only
+    -- binds E once its own local countdown hits zero, but the server
+    -- re-checks BlackoutService.secondsRemaining independently rather
+    -- than trusting client timing at all).
+    BLACKOUT_SELF_REVIVE = "blackout:selfRevive",
 }

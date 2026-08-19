@@ -238,3 +238,19 @@
   why HUD styling is split out from the rest of the app's plain Tailwind
   utility classes.
 */
+
+/*
+  Blackout overlay (features/blackout/BlackoutOverlay.tsx) - a plain fade,
+  not a directional slide like "hud" above: it's a full-screen cover, not
+  an element anchored to a screen edge, so there's no "direction it lives
+  in" for a slide to read as coming from.
+*/
+.blackout-enter-active,
+.blackout-exit-active {
+  transition: opacity 0.4s ease;
+}
+
+.blackout-enter-from,
+.blackout-exit-to {
+  opacity: 0;
+}

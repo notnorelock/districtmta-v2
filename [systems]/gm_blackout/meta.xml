@@ -1,0 +1,25 @@
+<meta>
+    <info
+        author="district"
+        name="gm_blackout"
+        description="Blackout: intercepts near-fatal damage (onPlayerDamage) and fatal damage that bypasses it entirely (onPlayerWasted - fall/drown/explosion, see BlackoutService.lua's own comment) and puts the player into a timed, controllable-but-locked-out low-health state instead of letting MTA's own death/respawn flow run. CEF full-screen overlay with a countdown (BlackoutOverlay.tsx)."
+        version="1.0.0"
+        type="script"
+    />
+    <!-- Same priority tier as gm_voice/gm_radio/ui_hud/core_admin - see core_shared/meta.xml's comment on the tag. -->
+    <download_priority_group>3</download_priority_group>
+
+    <include resource="core_shared" />
+    <include resource="core" />
+    <include resource="core_ui" />
+
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/BlackoutService.lua" type="server" cache="false" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/BlackoutState.lua" type="client" cache="false" />
+
+    <export function="blackoutServiceIsBlackedOut" type="server" />
+    <export function="blackoutServiceStart" type="server" />
+    <export function="blackoutServiceFinish" type="server" />
+</meta>

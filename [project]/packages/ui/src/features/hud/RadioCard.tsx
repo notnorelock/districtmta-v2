@@ -2,6 +2,7 @@ import { type Component, Show } from "solid-js";
 import { Transition } from "solid-transition-group";
 import { Radio, LoaderCircle, SkipBack, SkipForward } from "lucide-solid";
 import { radioStore } from "@/stores/radio.store";
+import { t } from "@/i18n";
 import styles from "./RadioCard.module.scss";
 
 const VISUALIZER_BAR_COUNT = 4;
@@ -44,7 +45,7 @@ export const RadioCard: Component = () => {
                 </div>
                 <div class={styles.info}>
                   <span class={styles.stationName}>{station().name}</span>
-                  <span class={styles.subtitle}>{radioStore.loading() ? "Buforowanie..." : "Radio pojazdu"}</span>
+                  <span class={styles.subtitle}>{radioStore.loading() ? t()("radio.buffering") : t()("radio.subtitle")}</span>
                 </div>
                 <Show when={!radioStore.loading()}>
                   <div class={styles.visualizer} aria-hidden="true">
@@ -56,7 +57,7 @@ export const RadioCard: Component = () => {
               </div>
               <div class={styles.footer}>
                 <SkipBack size={13} class={styles.footerIcon} />
-                <span class={styles.footerLabelLeft}>Muzyka z telefonu</span>
+                <span class={styles.footerLabelLeft}>{t()("radio.footerLabel")}</span>
                 <span class={styles.footerLabelRight}>{station().name}</span>
                 <SkipForward size={13} class={styles.footerIcon} />
               </div>
