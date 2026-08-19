@@ -51,4 +51,7 @@ export type MtaPushEventName =
   | "notification.created"
   | "ui.open"
   | "ui.close"
-  | "loading.progress";
+  | "loading.progress"
+  | "hud.updated"
+  | "overlay.show"
+  | "overlay.hide";

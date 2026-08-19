@@ -73,4 +73,17 @@ Events = {
     PUSH_NOTIFICATION_CREATED = "notification.created",
     PUSH_UI_OPEN = "ui.open",
     PUSH_UI_CLOSE = "ui.close",
+
+    -- Overlays (UI.showOverlay/hideOverlay in BrowserManager.lua) are a
+    -- separate registry from openWindows - never affect showCursor/
+    -- guiSetInputEnabled, and (unlike windows) are never toggled by the
+    -- browser itself, only by Lua script code. HUD is the first user.
+    PUSH_OVERLAY_SHOW = "overlay.show",
+    PUSH_OVERLAY_HIDE = "overlay.hide",
+
+    -- ui_hud/client's own local read of localPlayer's health, pushed into
+    -- the browser directly - never touches the server (see
+    -- ui_hud/client/HudState.lua). hunger/thirst/voice are placeholders,
+    -- no server-side system backs them yet.
+    PUSH_HUD_UPDATED = "hud.updated",
 }

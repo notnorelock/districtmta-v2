@@ -26,35 +26,53 @@
   foreground, primary, secondary, muted, accent, destructive, border,
   input, ring, card, popover - each with a matching -foreground) so ported
   component class strings (bg-primary, text-muted-foreground, ...) work
-  unmodified. --color-accent-indigo/--color-accent-violet remain as
-  additional, non-shadcn tokens backing the auth panel's indigo/violet
-  gradient treatment specifically (see features/auth/AuthCard.tsx) - kept
-  separate from --color-primary (gold) since the auth panel is deliberately
-  its own visual register from the rest of the UI chrome.
+  unmodified. --color-primary/--color-ring are violet (matching
+  --color-accent-violet) rather than a separate brand color - the whole
+  UI intentionally shares the auth panel's indigo/violet register instead
+  of splitting into a "dashboard gold" identity plus a separately-themed
+  auth screen (an earlier gold palette caused exactly that mismatch:
+  focus rings/buttons defaulting to gold everywhere outside the auth
+  panel's own local overrides). --color-accent-indigo/--color-accent-violet
+  stay as the two source hues the gradient treatments (auth panel, Button
+  variant="gradient") blend between.
 */
 @theme {
+  /*
+    Tailwind v4's @theme block REPLACES the default color palette rather
+    than extending it - black/white (and every other default-palette
+    color) stop existing as utility classes the moment this block defines
+    any --color-* token, unless redeclared here. bg-black/text-white were
+    used in several places (AuthCard.tsx, SpawnSelectView.tsx, HudIcon.tsx)
+    before this was caught - they silently generated no CSS rule at all,
+    leaving those elements with no background/text color instead of an
+    error, which is why they looked "transparent"/"see-through game" in
+    practice. Keep these declared so bg-black/text-white/etc. keep working.
+  */
+  --color-black: #000000;
+  --color-white: #ffffff;
+
   --color-background: #0b0d10;
   --color-foreground: #e8ebef;
 
-  --color-card: #14171c;
+  --color-card: #121018;
   --color-card-foreground: #e8ebef;
 
-  --color-popover: #1b1f26;
+  --color-popover: #17141f;
   --color-popover-foreground: #e8ebef;
 
-  --color-surface: #14171c;
-  --color-surface-elevated: #1b1f26;
-  --color-border: #262b33;
-  --color-input: #262b33;
-  --color-ring: #d4a441;
+  --color-surface: #121018;
+  --color-surface-elevated: #17141f;
+  --color-border: #241f2e;
+  --color-input: #241f2e;
+  --color-ring: #8b5cf6;
 
-  --color-primary: #d4a441;
-  --color-primary-foreground: #14100a;
+  --color-primary: #8b5cf6;
+  --color-primary-foreground: #0f0a1a;
 
-  --color-secondary: #2a2f38;
+  --color-secondary: #262032;
   --color-secondary-foreground: #e8ebef;
 
-  --color-accent: #2a2f38;
+  --color-accent: #262032;
   --color-accent-foreground: #e8ebef;
 
   --color-destructive: #e5484d;
@@ -192,4 +210,47 @@
 
 .auth-panel__slide-left .auth-panel__content:not([data-selected]) {
   transform: translateX(100%);
+}
+
+/*
+  Overlay enter/leave transitions (components/common/Overlay.tsx, driven by
+  solid-transition-group's <Transition mode="outin"> - the leave finishes
+  before the next enter starts, same as Vue's mode="out-in"). Named per
+  overlay so each can animate toward its own screen anchor - "hud" slides
+  in from the bottom-right corner, since that's where HudBar is anchored.
+*/
+.hud-enter-active,
+.hud-exit-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.hud-enter-from {
+  opacity: 0;
+  transform: translate(24px, 24px);
+}
+
+.hud-exit-to {
+  opacity: 0;
+  transform: translate(24px, 24px);
+}
+
+/*
+  Low-value pulsing glow for a HudIcon (features/hud/HudIcon.tsx) - the
+  color comes from --glow-color, set inline per icon (HP red, hunger
+  amber, ...) since this needs to react to whichever stat is critical,
+  not one fixed hue. Pure box-shadow (not a filter/background trick) so
+  it doesn't fight the icon's own bg-popover fill or SVG ring.
+*/
+@keyframes hud-icon-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px 1px var(--glow-color);
+  }
+  50% {
+    box-shadow: 0 0 14px 4px var(--glow-color);
+  }
+}
+
+.hud-icon--critical {
+  animation: hud-icon-glow-pulse 1.2s ease-in-out infinite;
 }

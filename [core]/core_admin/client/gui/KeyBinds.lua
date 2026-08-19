@@ -8,6 +8,10 @@ local keys = {
     {
         key = "F7",
         cmd = "reports"
+    },
+    {
+        key = "J",
+        cmd = "jetpack"
     }
 }
 

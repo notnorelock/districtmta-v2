@@ -17,9 +17,15 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      lucide-solid:
+        specifier: ^1.31.0
+        version: 1.31.0(solid-js@1.9.14)
       solid-js:
         specifier: ^1.9.3
         version: 1.9.14
+      solid-transition-group:
+        specifier: ^0.3.0
+        version: 0.3.0(solid-js@1.9.14)
       tailwind-merge:
         specifier: ^2.6.0
         version: 2.6.1
@@ -658,6 +664,11 @@ packages:
 
   '@solid-primitives/static-store@0.1.4':
     resolution: {integrity: sha512-LgtVaVBtB7EbmS4+M0b8xY5Iq6pUWXBsIC4VgtrFKDGDdyCaDt88sHk0fUlx1Enxm/XZnZyLXJABRoa39RjJqA==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
+  '@solid-primitives/transition-group@1.1.2':
+    resolution: {integrity: sha512-gnHS0OmcdjeoHN9n7Khu8KNrOlRc8a2weETDt2YT6o1zeW/XtUC6Db3Q9pkMU/9cCKdEmN4b0a/41MKAHRhzWA==}
     peerDependencies:
       solid-js: ^1.6.12
 
@@ -1716,6 +1727,11 @@ packages:
     resolution: {integrity: sha512-4pfM1Ff0x50o0tQwb5ucw/RzNyD0/YJME6IVcStalZuMWxdt3sR3huStTtxz4PUmvZfRguvDejasvQ2kifR11g==}
     engines: {node: 20 || >=22}
 
+  lucide-solid@1.31.0:
+    resolution: {integrity: sha512-yRJChFmaeWF8+hmm/9s2O0NrlQVr/t/p11Hd9+MON0biY0a7LLeCYZ/yH4s2G5df6vNP8hhmZsoi2v46v4rgKQ==}
+    peerDependencies:
+      solid-js: ^1.4.7
+
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -2344,6 +2360,12 @@ packages:
     resolution: {integrity: sha512-2PComVCDHaQN/5t7ogEqUYeHasritZKXZ8Sb/VLkl0Web8o9YhEwOo8LSujJEahvMlYCNyKt0zRJeHldOAeWZg==}
     peerDependencies:
       solid-js: ^1.8
+
+  solid-transition-group@0.3.0:
+    resolution: {integrity: sha512-gzFbtxkEnA8Hgi7UzmEjPPRl4rodoKLs+AGIXA7kJgjOr4j4qFRw39npu+WpdNSDV7aDKr+K0LFcoT9Kbm5PBA==}
+    engines: {node: '>=20.0.0', pnpm: '>=9.0.0'}
+    peerDependencies:
+      solid-js: ^1.6.12
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -3235,6 +3257,10 @@ snapshots:
   '@solid-primitives/static-store@0.1.4(solid-js@1.9.14)':
     dependencies:
       '@solid-primitives/utils': 6.4.1(solid-js@1.9.14)
+      solid-js: 1.9.14
+
+  '@solid-primitives/transition-group@1.1.2(solid-js@1.9.14)':
+    dependencies:
       solid-js: 1.9.14
 
   '@solid-primitives/trigger@1.2.4(solid-js@1.9.14)':
@@ -4316,6 +4342,10 @@ snapshots:
 
   lru-cache@11.5.2: {}
 
+  lucide-solid@1.31.0(solid-js@1.9.14):
+    dependencies:
+      solid-js: 1.9.14
+
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -4947,6 +4977,12 @@ snapshots:
   solid-prevent-scroll@0.1.11(solid-js@1.9.14):
     dependencies:
       '@corvu/utils': 0.4.2(solid-js@1.9.14)
+      solid-js: 1.9.14
+
+  solid-transition-group@0.3.0(solid-js@1.9.14):
+    dependencies:
+      '@solid-primitives/refs': 1.1.4(solid-js@1.9.14)
+      '@solid-primitives/transition-group': 1.1.2(solid-js@1.9.14)
       solid-js: 1.9.14
 
   source-map-js@1.2.1: {}

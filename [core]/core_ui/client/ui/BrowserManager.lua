@@ -8,6 +8,7 @@ UI = UI or {}
 
 local browser = nil
 local openWindows = {}
+local visibleOverlays = {}
 local browserReady = false
 local lastCursorPos = { 0, 0 }
 local queuedMessages = {}
@@ -131,6 +132,53 @@ UI.isOpen = function(windowName)
     return openWindows[windowName] ~= nil
 end
 
+-- Overlays are a separate registry from openWindows/UI.open - never touch
+-- showCursor/guiSetInputEnabled/focusBrowser, so any number of them can be
+-- visible at once alongside a blocking window without fighting over
+-- input focus. Unlike windows, the browser side has no matching "close
+-- yourself" affordance - only script (Lua) code shows/hides an overlay,
+-- by design (see Events.PUSH_OVERLAY_SHOW's module comment). HUD is the
+-- first overlay; anything gameplay-permanent (killfeed, interaction
+-- prompts, a minimap) should reuse this instead of a new one-off channel.
+
+--- Shows a named overlay in the browser. No-ops if already visible.
+-- @param overlayName string
+UI.showOverlay = function(overlayName)
+    if visibleOverlays[overlayName] then
+        return
+    end
+    visibleOverlays[overlayName] = true
+
+    local obfuscated = obfuscatePayload(toJsonValue(overlayName), SessionKeyState.key)
+    sendToBrowser(string.format(
+        "window.__mtaPushEvent && window.__mtaPushEvent(%s, %s)",
+        toJsonValue(Events.PUSH_OVERLAY_SHOW),
+        jsStringLiteral(obfuscated)
+    ))
+end
+
+--- Hides a named overlay in the browser. No-ops if not visible.
+-- @param overlayName string
+UI.hideOverlay = function(overlayName)
+    if not visibleOverlays[overlayName] then
+        return
+    end
+    visibleOverlays[overlayName] = nil
+
+    local obfuscated = obfuscatePayload(toJsonValue(overlayName), SessionKeyState.key)
+    sendToBrowser(string.format(
+        "window.__mtaPushEvent && window.__mtaPushEvent(%s, %s)",
+        toJsonValue(Events.PUSH_OVERLAY_HIDE),
+        jsStringLiteral(obfuscated)
+    ))
+end
+
+--- @param overlayName string
+-- @return boolean
+UI.isOverlayVisible = function(overlayName)
+    return visibleOverlays[overlayName] ~= nil
+end
+
 --- @return boolean whether the browser element exists and finished loading its document
 UI.isReady = function()
     return browserReady
@@ -227,6 +275,7 @@ addEventHandler("onClientResourceStop", resourceRoot, function()
     browserReady = false
     browserFocused = false
     openWindows = {}
+    visibleOverlays = {}
 end)
 
 -- CEF devtools for debugging the frontend in-game: /browserdebug
@@ -245,6 +294,10 @@ function uiOpen(windowName, blocking) UI.open(windowName, blocking) end
 function uiClose(windowName) UI.close(windowName) end
 function uiIsOpen(windowName) return UI.isOpen(windowName) end
 function uiIsReady() return UI.isReady() end
+
+function uiShowOverlay(overlayName) UI.showOverlay(overlayName) end
+function uiHideOverlay(overlayName) UI.hideOverlay(overlayName) end
+function uiIsOverlayVisible(overlayName) return UI.isOverlayVisible(overlayName) end
 
 function uiExecuteInBrowser(script) UI.executeInBrowser(script) end
 function uiPushEvent(eventName, data) UI.pushEvent(eventName, data) end

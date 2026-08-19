@@ -205,3 +205,21 @@ CommandRegistry.register("heal", Permissions.Bit.HEAL, function(player, target)
         CommandRegistry.reply(targetPlayer, "Zostałeś uleczony przez " .. getPlayerName(player) .. ".")
     end
 end)
+
+-- Self-toggle only (no target) - bound to J by core_admin's KeyBinds.lua
+-- while on duty, same as F6/F7.
+CommandRegistry.register("jetpack", Permissions.Bit.JETPACK, function(player)
+    if CommandRegistry.isConsole(player) then
+        CommandRegistry.reply(player, "/jetpack can only be used in-game")
+        return
+    end
+
+    local hasJetpack = not hasPedGotJetPack(player)
+    setPedHasJetPack(player, hasJetpack)
+
+    Logger.security("AdminCommands", "Jetpack toggled", {
+        player = getPlayerName(player),
+        hasJetpack = hasJetpack,
+    })
+    CommandRegistry.reply(player, hasJetpack and "Jetpack włączony." or "Jetpack wyłączony.")
+end)

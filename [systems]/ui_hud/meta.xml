@@ -1,0 +1,17 @@
+<meta>
+    <info
+        author="district"
+        name="ui_hud"
+        description="Always-on HUD overlay (health/hunger/thirst/voice) rendered inside core_ui's shared CEF browser - client-only, pushes localPlayer's own health via core_ui's PushService channel (see client/HudState.lua). hunger/thirst/voice are placeholders until a real system backs them."
+        version="0.1.0"
+        type="script"
+    />
+    <!-- Same priority tier as core_admin/core_auth - see core_shared/meta.xml's comment on the tag. -->
+    <download_priority_group>3</download_priority_group>
+
+    <include resource="core_shared" />
+    <include resource="core_ui" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/HudState.lua" type="client" cache="false" />
+</meta>

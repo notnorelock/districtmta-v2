@@ -47,6 +47,9 @@
     <export function="uiClose" type="client" />
     <export function="uiIsOpen" type="client" />
     <export function="uiIsReady" type="client" />
+    <export function="uiShowOverlay" type="client" />
+    <export function="uiHideOverlay" type="client" />
+    <export function="uiIsOverlayVisible" type="client" />
     <export function="uiExecuteInBrowser" type="client" />
     <export function="uiPushEvent" type="client" />
     <export function="uiObfuscateForBrowser" type="client" />

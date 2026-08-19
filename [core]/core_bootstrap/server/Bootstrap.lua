@@ -5,7 +5,7 @@
 -- starting the next, since a resource may read proxied globals from an
 -- earlier one at its own load time (see every GlobalResources.lua).
 
-local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "gm_roleplay" }
+local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "ui_hud", "gm_roleplay" }
 local START_TIMEOUT_MS = 15000
 
 --- Extra pause after a resource's SERVER-side start before starting the
