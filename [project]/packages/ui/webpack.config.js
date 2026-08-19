@@ -63,6 +63,37 @@ export default (env, argv) => {
           ],
         },
         {
+          // CSS Modules + Sass, scoped to features/hud/ only - class names
+          // are hashed at build time (e.g. .icon -> .icon_a3f9x2), unlike
+          // the rest of the app which uses plain Tailwind utility classes
+          // directly in JSX. postcss-loader still runs here (after
+          // sass-loader compiles Sass to plain CSS, loaders apply
+          // bottom-up) so @apply can pull in Tailwind utilities inside
+          // these modules too - Tailwind v4's plugin resolves @theme
+          // tokens project-wide regardless of which file @apply appears
+          // in, it doesn't need its own @import "tailwindcss" per file.
+          test: /\.module\.scss$/,
+          use: [
+            isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+            {
+              loader: "css-loader",
+              options: {
+                modules: {
+                  localIdentName: isProduction ? "[hash:base64:8]" : "[name]__[local]",
+                  // css-loader v7 defaults to named exports (import { root }
+                  // from "./X.module.scss") - namedExport: false switches
+                  // back to a single default export object instead
+                  // (import styles from "./X.module.scss"; styles.root),
+                  // matching the globals.d.ts ambient module declaration.
+                  namedExport: false,
+                },
+              },
+            },
+            "postcss-loader",
+            "sass-loader",
+          ],
+        },
+        {
           // Font files referenced from styles/globals.css's @font-face
           // rules (Titillium Web) - emitted alongside the JS/CSS bundle,
           // not inlined, matching the previous Vite build's asset output.

@@ -238,55 +238,11 @@
 }
 
 /*
-  Low-value pulsing glow for a HudIcon (features/hud/HudIcon.tsx) - the
-  color comes from --glow-color, set inline per icon (HP red, hunger
-  amber, ...) since this needs to react to whichever stat is critical,
-  not one fixed hue. Pulses color-mix'd opacity (0 -> 50%), not shadow
-  size/spread - animating spread at full color strength read as a harsh
-  block instead of a subtle glow.
+  HudIcon's own glow/slide animations (the pulsing critical-value glow,
+  the per-icon enter/leave/move inside HudBar's row) live in
+  features/hud/HudIcon.module.scss and HudBar.module.scss instead of here
+  - CSS Modules + Sass, scoped to features/hud/ only. See those files'
+  own comments, and webpack.config.js's *.module.scss rule comment for
+  why HUD styling is split out from the rest of the app's plain Tailwind
+  utility classes.
 */
-@keyframes hud-icon-glow-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 8px 2px color-mix(in srgb, var(--glow-color) 0%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 8px 2px color-mix(in srgb, var(--glow-color) 50%, transparent);
-  }
-}
-
-/*
-  Drowning (oxygen) icon enter/leave in HudBar.tsx, via
-  solid-transition-group's <TransitionGroup> - unlike the whole-HUD
-  <Transition> above, this animates ONE icon inside a row while its
-  siblings are still mounted, so moveClass (FLIP-based, auto-applied by
-  TransitionGroup to every sibling whose position shifts) is what makes
-  health/hunger/thirst/voice glide into the reclaimed slot instead of
-  snapping there the instant the icon unmounts.
-
-  Both enter and leave move purely along Y, from/to below the row - not a
-  diagonal - paired with moveClass so the icon it displaces/vacates glides
-  into place at the same time instead of enter-then-shift.
-*/
-.hud-icon-slide-move {
-  transition: transform 0.3s ease;
-}
-
-.hud-icon-slide-enter-active,
-.hud-icon-slide-exit-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.hud-icon-slide-enter-from {
-  opacity: 0;
-  transform: translateY(16px);
-}
-
-.hud-icon-slide-exit-to {
-  opacity: 0;
-  transform: translateY(16px);
-}
-
-.hud-icon--critical {
-  animation: hud-icon-glow-pulse 1.2s ease-in-out infinite;
-}

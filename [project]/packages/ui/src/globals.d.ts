@@ -11,3 +11,9 @@ declare const process: {
     NODE_ENV: "development" | "production";
   };
 };
+
+/** CSS Modules (webpack.config.js's *.module.scss rule) - scoped to features/hud/ only, see its module comment. */
+declare module "*.module.scss" {
+  const classes: { readonly [className: string]: string };
+  export default classes;
+}

@@ -1,0 +1,64 @@
+// CSS Modules + Sass, scoped to features/hud/ only - see
+// webpack.config.js's *.module.scss rule comment for why. Uses Tailwind's
+// @apply for anything that already has a plain utility-class equivalent
+// (matches the rest of the app's styling vocabulary instead of
+// reinventing it in raw CSS here), and plain CSS/Sass only for what
+// Tailwind has no utility for (the glow keyframe, the exact 44px/26px
+// icon dimensions, the SVG ring rotation).
+//
+// @reference (not @import "tailwindcss") - this makes @apply resolve
+// against globals.css's @theme tokens/utilities without re-emitting
+// Tailwind's base/utility layer into every single module file. A
+// relative path, not the "@/" webpack alias - Tailwind v4's own CSS
+// resolver for @reference doesn't go through webpack's resolve.alias.
+@reference "../../styles/globals.css";
+
+$size: 44px;
+$stroke: 3px;
+$radius-corner: 12px;
+$inset: calc($stroke / 2);
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px 2px color-mix(in srgb, var(--glow-color) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 8px 2px color-mix(in srgb, var(--glow-color) 50%, transparent);
+  }
+}
+
+.root {
+  @apply relative flex items-center justify-center rounded-xl;
+  width: $size;
+  height: $size;
+}
+
+.critical {
+  animation: glow-pulse 1.2s ease-in-out infinite;
+}
+
+.fill {
+  @apply absolute inset-0 rounded-xl bg-popover;
+}
+
+.ring {
+  @apply absolute inset-0 -rotate-90;
+}
+
+// stroke-linecap MUST stay "butt", not "round" (set inline in HudIcon.tsx)
+// - at/near 100% the arc's start and end land on the same point, and
+// "round" draws an overlapping cap blob right there.
+.ringProgress {
+  @apply transition-[stroke-dashoffset] duration-300 ease-out;
+}
+
+.glyph {
+  @apply relative flex items-center justify-center text-foreground;
+  width: 26px;
+  height: 26px;
+}
+
+.glyphStatic {
+  color: rgba(255, 255, 255, 0.4);
+}

@@ -1,5 +1,5 @@
 import { type Component, type JSX, Show, createMemo } from "solid-js";
-import { cn } from "@/lib/cn";
+import styles from "./HudIcon.module.scss";
 
 interface HudIconProps {
   /** 0-100 */
@@ -28,33 +28,27 @@ const DEFAULT_CRITICAL_THRESHOLD = 10;
  * icon itself is a rounded square, not a circle. `pathLength={100}` lets
  * stroke-dasharray/-dashoffset work directly in percent regardless of the
  * rect's real perimeter.
+ *
+ * Styled via HudIcon.module.scss (CSS Modules + Sass), not Tailwind
+ * utility classes like the rest of the app - see that file's own comment.
  */
 export const HudIcon: Component<HudIconProps> = (props) => {
   const clamped = () => Math.max(0, Math.min(100, props.value));
   const threshold = () => props.criticalThreshold ?? DEFAULT_CRITICAL_THRESHOLD;
   // createMemo (not a plain getter) so this only re-evaluates to a NEW
   // boolean when the critical state actually flips, not on every health
-  // tick - a plain () => ... getter re-runs class={cn(...)} on every
+  // tick - a plain () => ... getter re-runs the class list on every
   // single value change (health is pushed every frame), which reassigns
   // className every time and restarts the CSS animation from 0%, making
   // the glow flicker/reset instead of pulsing smoothly.
   const isCritical = createMemo(() => !props.static && threshold() > 0 && clamped() <= threshold());
 
+  const rootClass = () => [styles.root, isCritical() && styles.critical, props.class].filter(Boolean).join(" ");
+
   return (
-    <div
-      class={cn("relative flex items-center justify-center rounded-xl", isCritical() && "hud-icon--critical", props.class)}
-      style={{ width: `${SIZE}px`, height: `${SIZE}px`, "--glow-color": props.color }}
-    >
-      {/* Solid dark chip so the icon reads as UI instead of a hole showing
-          the game world through it - NOT .auth-panel__glow: that class's
-          `background: radial-gradient(...)` is a shorthand that fully
-          overrides background-color, making the middle transparent again
-          everywhere outside the two small gradient blobs (found live -
-          the icon looked exactly like a bare colored ring with nothing
-          behind it). Plain bg-popover keeps a solid fill and already
-          matches the app's dark/violet palette (see styles/globals.css). */}
-      <div class="absolute inset-0 rounded-xl bg-popover" />
-      <svg width={SIZE} height={SIZE} class="absolute inset-0 -rotate-90">
+    <div class={rootClass()} style={{ "--glow-color": props.color }}>
+      <div class={styles.fill} />
+      <svg width={SIZE} height={SIZE} class={styles.ring}>
         <rect
           x={INSET}
           y={INSET}
@@ -66,10 +60,6 @@ export const HudIcon: Component<HudIconProps> = (props) => {
           stroke-width={STROKE}
         />
         <Show when={!props.static}>
-          {/* stroke-linecap MUST stay "butt", not "round" - at/near 100%
-              the arc's start and end land on the same point, and "round"
-              draws an overlapping cap blob right there (looked like a
-              stray colored fragment in one corner at full health). */}
           <rect
             x={INSET}
             y={INSET}
@@ -83,13 +73,11 @@ export const HudIcon: Component<HudIconProps> = (props) => {
             pathLength={100}
             stroke-dasharray="100"
             stroke-dashoffset={100 - clamped()}
-            class="transition-[stroke-dashoffset] duration-300 ease-out"
+            class={styles.ringProgress}
           />
         </Show>
       </svg>
-      <div class="relative flex h-[26px] w-[26px] items-center justify-center text-foreground" style={{ color: props.static ? "rgba(255,255,255,0.4)" : undefined }}>
-        {props.icon}
-      </div>
+      <div class={props.static ? `${styles.glyph} ${styles.glyphStatic}` : styles.glyph}>{props.icon}</div>
     </div>
   );
 };
