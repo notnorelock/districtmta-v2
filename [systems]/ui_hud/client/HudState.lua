@@ -2,7 +2,7 @@ HUD = HUD or {}
 
 local HUD_OVERLAY = "hud"
 local GTA_COMPONENTS = { "radar", "area_name", "vehicle_name", "armour", "breath", "clock", "health", "money", "weapon", "wanted", "radio", "ammo" }
-local UPDATE_INTERVAL_MS = 1500
+local UPDATE_INTERVAL_MS = 2500
 local PLACEHOLDER_HUNGER = 100
 local PLACEHOLDER_THIRST = 100
 
