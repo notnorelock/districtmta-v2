@@ -73,71 +73,46 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   @apply absolute size-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/25;
 }
 
-.ring {
-  @apply absolute inset-0;
+// Fills the donut-shaped band the slices sit on (between .center's edge
+// and the ring track) with a soft panel background, so the button ring
+// reads as one grouped surface instead of icons floating over bare
+// backdrop - transparent again past the ring so it doesn't square off
+// against .ringWrap's box. .center is untouched: it's a later sibling
+// painted on top, and this gradient is fully transparent under it.
+.ringSurface {
+  @apply pointer-events-none absolute inset-0 rounded-full;
+  background: radial-gradient(
+    circle,
+    transparent 0%,
+    transparent 38%,
+    color-mix(in srgb, var(--color-popover) 55%, transparent) 44%,
+    color-mix(in srgb, var(--color-popover) 65%, transparent) 68%,
+    color-mix(in srgb, var(--color-popover) 55%, transparent) 84%,
+    transparent 92%,
+    transparent 100%
+  );
 }
 
-.ringTrack {
-  fill: none;
-  stroke: var(--color-border);
-  stroke-width: 3;
-  opacity: 0.4;
-}
-
-.ringIndicatorGroup {
+// Points toward the selected slice - see .pointer's own comment in the
+// .tsx for why this is a single rotated shape rather than a per-slice
+// arc. A simple CSS-triangle (border trick), transform-origin pinned to
+// the ring's center so `rotate()` sweeps it around that center rather
+// than spinning it in place.
+.pointer {
+  @apply pointer-events-none absolute left-1/2 top-1/2 z-10;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 9px solid var(--color-primary);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-primary) 80%, transparent));
   transition: transform 0.35s $spring;
 }
 
-// The moving highlight arc - a fixed-length segment (see pathLength/
-// stroke-dasharray in VehicleMenuOverlay.tsx) rotated to sit over
-// whichever slice is currently selected, with a soft SVG glow filter
-// (see #vehicleMenuGlow in the .tsx) instead of a flat stroke. Gradient
-// recolored to this project's own warm primary/accent-violet trio
-// instead of the reference screenshot's blue/pink - see this file's own
-// module comment.
-.ringIndicator {
-  fill: none;
-  stroke: url(#vehicleMenuGradient);
-  stroke-width: 5;
-  stroke-linecap: round;
-}
-
 .slice {
-  @apply absolute flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-border bg-popover text-muted-foreground shadow-lg;
+  @apply absolute flex size-16 items-center justify-center rounded-full border-2 border-border bg-popover text-muted-foreground shadow-lg;
   transition: transform 0.3s $spring, color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-// Text label next to each slice, always visible (not just on selection)
-// so every option's purpose is readable at a glance - see this file's
-// own module comment. Positioned further out along the same radius as
-// its slice (see LABEL_RADIUS in the .tsx) and anchored toward/away from
-// the ring depending on which side of the circle it falls on, so the
-// text always grows outward and never gets clipped under the ring itself.
-.sliceLabel {
-  @apply pointer-events-none absolute max-w-24 font-display text-xs font-medium text-muted-foreground transition-colors duration-200;
-}
-
-.labelLeft {
-  @apply text-left;
-  transform: translateY(-50%);
-}
-
-.labelRight {
-  @apply text-right;
-  transform: translate(-100%, -50%);
-}
-
-.labelCenter {
-  @apply text-center;
-  transform: translate(-50%, -50%);
-}
-
-.sliceLabelSelected {
-  @apply font-semibold text-foreground;
-}
-
-.sliceLabelDisabled {
-  @apply text-muted-foreground/50;
+  will-change: transform;
 }
 
 // Soft halo behind a slice, only visible once selected/on - a second,
@@ -149,7 +124,7 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .sliceSelected {
-  @apply z-10 -translate-x-1/2 -translate-y-1/2 scale-[1.35] border-primary text-primary;
+  @apply z-10 border-primary text-primary;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 40%, transparent), 0 4px 16px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
@@ -179,7 +154,7 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .sliceDisabled.sliceSelected {
-  @apply scale-110 border-muted text-muted-foreground opacity-60;
+  @apply border-muted text-muted-foreground opacity-60;
   box-shadow: none;
 }
 
@@ -246,4 +221,19 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
 .centerHint {
   @apply font-display text-xs leading-tight text-muted-foreground/70;
+}
+
+// Fixed bar under the ring, not inside .ringWrap - so it neither scales
+// with the ring's own enter animation nor reflows every time the
+// selected slice's text changes (see this file's own module comment).
+.controlsBar {
+  @apply pointer-events-none absolute bottom-[8%] left-1/2 flex -translate-x-1/2 items-center gap-6;
+}
+
+.controlHint {
+  @apply flex items-center gap-2 font-display text-sm text-muted-foreground;
+}
+
+.controlHint svg {
+  @apply text-primary;
 }

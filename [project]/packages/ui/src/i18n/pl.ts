@@ -86,5 +86,6 @@ export const pl = {
   "vehicleMenu.on": "Włączone",
   "vehicleMenu.off": "Wyłączone",
   "vehicleMenu.unavailable": "Niedostępne",
-  "vehicleMenu.activateHint": "Naciśnij spację, aby przełączyć",
+  "vehicleMenu.scrollHint": "Przewiń, aby wybrać",
+  "vehicleMenu.spaceHint": "Naciśnij, aby przełączyć",
 } as const;

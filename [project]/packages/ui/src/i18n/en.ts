@@ -88,5 +88,6 @@ export const en: Record<keyof typeof pl, string> = {
   "vehicleMenu.on": "On",
   "vehicleMenu.off": "Off",
   "vehicleMenu.unavailable": "Unavailable",
-  "vehicleMenu.activateHint": "Press space to toggle",
+  "vehicleMenu.scrollHint": "Scroll to select",
+  "vehicleMenu.spaceHint": "Press to toggle",
 };

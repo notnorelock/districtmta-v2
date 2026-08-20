@@ -11,6 +11,8 @@ import {
   IconSpeakerphone,
   IconVolume2,
   IconPackage,
+  IconMouse2,
+  IconSpace,
   type IconProps,
 } from "@tabler/icons-solidjs";
 import { Overlay } from "@/components/common/Overlay";
@@ -20,10 +22,15 @@ import { t } from "@/i18n";
 import styles from "./VehicleMenuOverlay.module.scss";
 
 const RING_SIZE = 460;
-const RING_RADIUS = 190;
 const DECOR_RADIUS = 216;
 const ICON_RADIUS = 162;
-const LABEL_RADIUS = 222;
+// Sits just outside .centerRing's own edge (.center is size-44 = 176px,
+// so an 88px radius) rather than out near the buttons - pointing right
+// at the center text/label instead of floating in the button ring.
+const POINTER_RADIUS = 96;
+
+const SLICE_SCALE_SELECTED = 1.35;
+const SLICE_SCALE_SELECTED_DISABLED = 1.1;
 
 type IconComponent = Component<IconProps>;
 
@@ -81,7 +88,12 @@ export const VehicleMenuOverlay: Component = () => {
   const selectedSlice = createMemo(() => vehicleInteractionStore.slices[vehicleInteractionStore.selectedIndex()]);
 
   const sliceAngle = (index: number) => (360 / vehicleInteractionStore.slices.length) * index - 90;
-  const ringOffset = createMemo(() => sliceAngle(vehicleInteractionStore.selectedIndex()));
+
+  // Rotates the pointer arrow (a fixed shape at 0deg/"up") around the
+  // ring's own center to sit over whichever slice is selected - since
+  // it rotates about the same center the slices are laid out on, it
+  // stays radius-accurate at every angle without per-slice position math.
+  const pointerAngle = createMemo(() => sliceAngle(vehicleInteractionStore.selectedIndex()) + 90);
 
   const isOn = (action: VehicleInteractionAction) => {
     const state = vehicleInteractionStore.vehicleState();
@@ -113,37 +125,16 @@ export const VehicleMenuOverlay: Component = () => {
             </For>
           </div>
 
-          <svg width={RING_SIZE} height={RING_SIZE} class={styles.ring} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
-            <defs>
-              <linearGradient id="vehicleMenuGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="var(--color-accent-indigo)" />
-                <stop offset="50%" stop-color="var(--color-primary)" />
-                <stop offset="100%" stop-color="var(--color-accent-violet)" />
-              </linearGradient>
-              <filter id="vehicleMenuGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="4" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-            <circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} class={styles.ringTrack} />
-            <g
-              class={styles.ringIndicatorGroup}
-              style={{ transform: `rotate(${ringOffset()}deg)`, "transform-origin": `${RING_SIZE / 2}px ${RING_SIZE / 2}px` }}
-            >
-              <circle
-                cx={RING_SIZE / 2}
-                cy={RING_SIZE / 2}
-                r={RING_RADIUS}
-                class={styles.ringIndicator}
-                pathLength={100}
-                stroke-dasharray={`${100 / vehicleInteractionStore.slices.length} 100`}
-                filter="url(#vehicleMenuGlow)"
-              />
-            </g>
-          </svg>
+          <div class={styles.ringSurface} />
+
+          {/* Points from the ring's center toward whichever slice is
+              selected - a single rotated shape instead of a per-slice arc,
+              so "which button am I on" stays readable independent of the
+              buttons' own (separately-animated) scale transition below. */}
+          <div
+            class={styles.pointer}
+            style={{ transform: `translate(-50%, -50%) rotate(${pointerAngle()}deg) translateY(-${POINTER_RADIUS}px)` }}
+          />
 
           <For each={vehicleInteractionStore.slices}>
             {(slice, index) => {
@@ -151,41 +142,31 @@ export const VehicleMenuOverlay: Component = () => {
               const angleRad = () => (angleDeg() * Math.PI) / 180;
               const x = () => RING_SIZE / 2 + Math.cos(angleRad()) * ICON_RADIUS;
               const y = () => RING_SIZE / 2 + Math.sin(angleRad()) * ICON_RADIUS;
-              // Label sits further out along the same radius, on the
-              // OUTSIDE of the ring - so it reads next to its icon
-              // without overlapping the ring stroke or neighboring
-              // slices. Anchored left/right/center depending on which
-              // side of the circle it's on, so text always grows away
-              // from the ring instead of getting clipped under it.
-              const labelX = () => RING_SIZE / 2 + Math.cos(angleRad()) * LABEL_RADIUS;
-              const labelY = () => RING_SIZE / 2 + Math.sin(angleRad()) * LABEL_RADIUS;
-              const labelAnchor = () => {
-                const cos = Math.cos(angleRad());
-                if (cos > 0.35) return styles.labelLeft;
-                if (cos < -0.35) return styles.labelRight;
-                return styles.labelCenter;
-              };
               const icons = SLICE_ICON[slice.action];
               const selected = () => vehicleInteractionStore.selectedIndex() === index();
 
+              // Full transform computed here (translate for centering +
+              // scale for the selected/disabled states) instead of split
+              // across .slice/.sliceSelected/.sliceDisabled classes -
+              // each of those was its own `transform:` shorthand rule, so
+              // whichever one's CSS came out last in the stylesheet fully
+              // overwrote the others instead of composing, which is why
+              // the scale never actually animated smoothly.
+              const scale = () => {
+                if (!selected()) return 1;
+                return slice.enabled ? SLICE_SCALE_SELECTED : SLICE_SCALE_SELECTED_DISABLED;
+              };
+
               return (
-                <>
-                  <div
-                    class={`${styles.slice} ${selected() ? styles.sliceSelected : ""} ${!slice.enabled ? styles.sliceDisabled : ""} ${isOn(slice.action) ? styles.sliceOn : ""}`}
-                    style={{ left: `${x()}px`, top: `${y()}px` }}
-                  >
-                    <span class={styles.sliceHalo} />
-                    <Show when={isOn(slice.action)} fallback={<icons.off size={30} stroke="1.7" />}>
-                      <icons.on size={30} stroke="1.7" />
-                    </Show>
-                  </div>
-                  <span
-                    class={`${styles.sliceLabel} ${labelAnchor()} ${selected() ? styles.sliceLabelSelected : ""} ${!slice.enabled ? styles.sliceLabelDisabled : ""}`}
-                    style={{ left: `${labelX()}px`, top: `${labelY()}px` }}
-                  >
-                    {t()(SLICE_LABEL_KEY[slice.action])}
-                  </span>
-                </>
+                <div
+                  class={`${styles.slice} ${selected() ? styles.sliceSelected : ""} ${!slice.enabled ? styles.sliceDisabled : ""} ${isOn(slice.action) ? styles.sliceOn : ""}`}
+                  style={{ left: `${x()}px`, top: `${y()}px`, transform: `translate(-50%, -50%) scale(${scale()})` }}
+                >
+                  <span class={styles.sliceHalo} />
+                  <Show when={isOn(slice.action)} fallback={<icons.off size={30} stroke="1.7" />}>
+                    <icons.on size={30} stroke="1.7" />
+                  </Show>
+                </div>
               );
             }}
           </For>
@@ -204,11 +185,27 @@ export const VehicleMenuOverlay: Component = () => {
                       <span class={styles.centerStateDot} />
                       {isOn(slice.action) ? t()("vehicleMenu.on") : t()("vehicleMenu.off")}
                     </p>
-                    <p class={styles.centerHint}>{t()("vehicleMenu.activateHint")}</p>
                   </Show>
                 </div>
               )}
             </Show>
+          </div>
+        </div>
+
+        {/* Control hints moved out of the per-slice center panel (see
+            this file's own module comment) - a fixed bar instead of text
+            that changed/reflowed under every slice selection, with an
+            icon for each input (scroll wheel to move the selection,
+            space bar to activate it) instead of describing them in
+            words alone. */}
+        <div class={styles.controlsBar}>
+          <div class={styles.controlHint}>
+            <IconMouse2 size={18} stroke="1.7" />
+            <span>{t()("vehicleMenu.scrollHint")}</span>
+          </div>
+          <div class={styles.controlHint}>
+            <IconSpace size={18} stroke="1.7" />
+            <span>{t()("vehicleMenu.spaceHint")}</span>
           </div>
         </div>
       </div>
