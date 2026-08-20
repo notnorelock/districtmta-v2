@@ -37,12 +37,16 @@
   @apply relative flex items-center;
 }
 
+// Overrides TextFieldInput's default h-10/text-sm (sized for form-style
+// inputs like the auth panel) down to match the header's other elements
+// (.count, .logo) - the default read as oversized/heavy next to a
+// single-line player-count badge.
 .searchInput {
-  @apply pr-8;
+  @apply h-7 pr-7 text-xs;
 }
 
 .searchClear {
-  @apply absolute right-2 flex items-center justify-center text-muted-foreground transition-colors hover:text-foreground;
+  @apply absolute right-1.5 flex items-center justify-center text-muted-foreground transition-colors hover:text-foreground;
 }
 
 .count {
