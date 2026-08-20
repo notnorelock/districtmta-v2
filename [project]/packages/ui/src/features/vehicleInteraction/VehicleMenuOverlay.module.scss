@@ -18,15 +18,28 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   @apply pointer-events-none fixed inset-0 z-40 flex items-center justify-center;
 }
 
+// Full-screen dim + blur behind the ring - matches the reference
+// screenshot's scale/immersion (the ring dominating the view, world
+// darkened behind it) rather than a small floating badge in the middle
+// of an untouched screen. Fades in/out with the same vehicleMenu-enter/
+// exit-* transition as the rest of the overlay (see globals.css) since
+// it's a sibling of .ringWrap, both direct children of the transitioned root.
+.backdrop {
+  @apply pointer-events-none absolute inset-0;
+  background: radial-gradient(ellipse at center, transparent 0%, color-mix(in srgb, var(--color-background) 55%, transparent) 55%, color-mix(in srgb, var(--color-background) 88%, transparent) 100%);
+  backdrop-filter: blur(2px);
+}
+
 .ringWrap {
   @apply relative flex items-center justify-center;
 }
 
-// Soft ambient bloom behind the whole ring - fixed gradient, only
-// opacity/scale animated (never the gradient stops themselves - see
-// BlackoutOverlay.module.scss's own comment on why that reads as a
-// smooth breathing pulse instead of a jarring snap in this project's CEF
-// build specifically).
+// Soft ambient bloom behind the whole ring - fixed gradient AND fixed
+// size, only opacity animated (no scale - a pulsing background must not
+// visibly grow/shrink, only breathe brighter/dimmer). Never animating the
+// gradient stops themselves either - see BlackoutOverlay.module.scss's
+// own comment on why that reads as a smooth breathing pulse instead of a
+// jarring snap in this project's CEF build specifically.
 .glow {
   @apply pointer-events-none absolute rounded-full;
   inset: -20%;
@@ -37,11 +50,9 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 @keyframes glow-pulse {
   0%, 100% {
     opacity: 0.55;
-    transform: scale(1);
   }
   50% {
     opacity: 0.9;
-    transform: scale(1.08);
   }
 }
 
@@ -92,8 +103,41 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .slice {
-  @apply absolute flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-popover/90 text-muted-foreground shadow-md;
+  @apply absolute flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-border bg-popover text-muted-foreground shadow-lg;
   transition: transform 0.3s $spring, color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+// Text label next to each slice, always visible (not just on selection)
+// so every option's purpose is readable at a glance - see this file's
+// own module comment. Positioned further out along the same radius as
+// its slice (see LABEL_RADIUS in the .tsx) and anchored toward/away from
+// the ring depending on which side of the circle it falls on, so the
+// text always grows outward and never gets clipped under the ring itself.
+.sliceLabel {
+  @apply pointer-events-none absolute max-w-24 text-xs font-medium text-muted-foreground transition-colors duration-200;
+}
+
+.labelLeft {
+  @apply text-left;
+  transform: translateY(-50%);
+}
+
+.labelRight {
+  @apply text-right;
+  transform: translate(-100%, -50%);
+}
+
+.labelCenter {
+  @apply text-center;
+  transform: translate(-50%, -50%);
+}
+
+.sliceLabelSelected {
+  @apply font-semibold text-foreground;
+}
+
+.sliceLabelDisabled {
+  @apply text-muted-foreground/50;
 }
 
 // Soft halo behind a slice, only visible once selected/on - a second,
@@ -114,16 +158,16 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .sliceOn {
-  @apply text-success;
+  @apply text-primary;
 }
 
 .sliceOn .sliceHalo {
-  background: radial-gradient(circle, var(--color-success) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--color-primary) 0%, transparent 70%);
 }
 
 .sliceSelected.sliceOn {
-  @apply border-success text-success;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-success) 40%, transparent), 0 4px 16px color-mix(in srgb, var(--color-success) 35%, transparent);
+  @apply border-primary text-primary;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 40%, transparent), 0 4px 16px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 .sliceSelected.sliceOn .sliceHalo {
@@ -144,7 +188,7 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .center {
-  @apply pointer-events-none relative flex size-24 flex-col items-center justify-center gap-0.5 text-center;
+  @apply pointer-events-none relative flex size-44 flex-col items-center justify-center gap-1 text-center;
 }
 
 // Faint static ring around the center text, purely decorative framing.
@@ -153,7 +197,7 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .centerContent {
-  @apply flex max-w-28 flex-col items-center gap-0.5;
+  @apply flex max-w-40 flex-col items-center gap-1;
   animation: center-in 0.25s $spring;
 }
 
@@ -169,11 +213,11 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .centerTitle {
-  @apply font-display text-sm font-semibold text-foreground;
+  @apply font-display text-lg font-semibold text-foreground;
 }
 
 .centerState {
-  @apply flex items-center gap-1.5 text-xs font-medium text-muted-foreground;
+  @apply flex items-center gap-1.5 text-sm font-medium text-muted-foreground;
 }
 
 .centerStateDot {
@@ -181,11 +225,11 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .centerStateOn {
-  @apply text-success;
+  @apply text-primary;
 }
 
 .centerStateOn .centerStateDot {
-  @apply bg-success;
+  @apply bg-primary;
   animation: dot-pulse 1.6s ease-in-out infinite;
 }
 
@@ -201,5 +245,5 @@ $spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .centerHint {
-  @apply text-[10px] leading-tight text-muted-foreground/70;
+  @apply text-xs leading-tight text-muted-foreground/70;
 }

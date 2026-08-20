@@ -19,10 +19,11 @@ import type { VehicleInteractionAction } from "@/types/vehicleInteraction";
 import { t } from "@/i18n";
 import styles from "./VehicleMenuOverlay.module.scss";
 
-const RING_SIZE = 240;
-const RING_RADIUS = 98;
-const DECOR_RADIUS = 112;
-const ICON_RADIUS = 84;
+const RING_SIZE = 460;
+const RING_RADIUS = 190;
+const DECOR_RADIUS = 216;
+const ICON_RADIUS = 162;
+const LABEL_RADIUS = 222;
 
 type IconComponent = Component<IconProps>;
 
@@ -95,6 +96,7 @@ export const VehicleMenuOverlay: Component = () => {
   return (
     <Overlay name="vehicleInteraction" transitionName="vehicleMenu">
       <div class={styles.root}>
+        <div class={styles.backdrop} />
         <div class={styles.ringWrap} style={{ width: `${RING_SIZE}px`, height: `${RING_SIZE}px` }}>
           <div class={styles.glow} />
 
@@ -145,22 +147,45 @@ export const VehicleMenuOverlay: Component = () => {
 
           <For each={vehicleInteractionStore.slices}>
             {(slice, index) => {
-              const angleRad = () => (sliceAngle(index()) * Math.PI) / 180;
+              const angleDeg = () => sliceAngle(index());
+              const angleRad = () => (angleDeg() * Math.PI) / 180;
               const x = () => RING_SIZE / 2 + Math.cos(angleRad()) * ICON_RADIUS;
               const y = () => RING_SIZE / 2 + Math.sin(angleRad()) * ICON_RADIUS;
+              // Label sits further out along the same radius, on the
+              // OUTSIDE of the ring - so it reads next to its icon
+              // without overlapping the ring stroke or neighboring
+              // slices. Anchored left/right/center depending on which
+              // side of the circle it's on, so text always grows away
+              // from the ring instead of getting clipped under it.
+              const labelX = () => RING_SIZE / 2 + Math.cos(angleRad()) * LABEL_RADIUS;
+              const labelY = () => RING_SIZE / 2 + Math.sin(angleRad()) * LABEL_RADIUS;
+              const labelAnchor = () => {
+                const cos = Math.cos(angleRad());
+                if (cos > 0.35) return styles.labelLeft;
+                if (cos < -0.35) return styles.labelRight;
+                return styles.labelCenter;
+              };
               const icons = SLICE_ICON[slice.action];
               const selected = () => vehicleInteractionStore.selectedIndex() === index();
 
               return (
-                <div
-                  class={`${styles.slice} ${selected() ? styles.sliceSelected : ""} ${!slice.enabled ? styles.sliceDisabled : ""} ${isOn(slice.action) ? styles.sliceOn : ""}`}
-                  style={{ left: `${x()}px`, top: `${y()}px` }}
-                >
-                  <span class={styles.sliceHalo} />
-                  <Show when={isOn(slice.action)} fallback={<icons.off size={20} stroke="1.8" />}>
-                    <icons.on size={20} stroke="1.8" />
-                  </Show>
-                </div>
+                <>
+                  <div
+                    class={`${styles.slice} ${selected() ? styles.sliceSelected : ""} ${!slice.enabled ? styles.sliceDisabled : ""} ${isOn(slice.action) ? styles.sliceOn : ""}`}
+                    style={{ left: `${x()}px`, top: `${y()}px` }}
+                  >
+                    <span class={styles.sliceHalo} />
+                    <Show when={isOn(slice.action)} fallback={<icons.off size={30} stroke="1.7" />}>
+                      <icons.on size={30} stroke="1.7" />
+                    </Show>
+                  </div>
+                  <span
+                    class={`${styles.sliceLabel} ${labelAnchor()} ${selected() ? styles.sliceLabelSelected : ""} ${!slice.enabled ? styles.sliceLabelDisabled : ""}`}
+                    style={{ left: `${labelX()}px`, top: `${labelY()}px` }}
+                  >
+                    {t()(SLICE_LABEL_KEY[slice.action])}
+                  </span>
+                </>
               );
             }}
           </For>
