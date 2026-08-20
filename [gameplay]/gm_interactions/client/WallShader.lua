@@ -108,24 +108,37 @@ local function _onClientPreRender()
 end
 
 function toggleWallShader(state, objects)
-    if state == enabled then return end
-    enabled = state
-    
-    if not enabled then
-        for k, v in pairs(shaders.objects) do
-            destroyObjectWallEffect(k)
-        end
-
-        ground[localPlayer] = nil
-    else
-        for i, o in pairs(objects) do
-            if not shaders.objects[o] then
-                createObjectWallEffect(o)
+    if not state then
+        if enabled then
+            for k, v in pairs(shaders.objects) do
+                destroyObjectWallEffect(k)
             end
+
+            ground[localPlayer] = nil
+            removeEventHandler("onClientPreRender", root, _onClientPreRender)
+        end
+        enabled = false
+        return
+    end
+
+    if not enabled then
+        enabled = true
+        addEventHandler("onClientPreRender", root, _onClientPreRender)
+    end
+
+    local wanted = {}
+    for _, o in pairs(objects) do
+        wanted[o] = true
+        if not shaders.objects[o] then
+            createObjectWallEffect(o)
         end
     end
 
-    _G[enabled and "addEventHandler" or "removeEventHandler"]("onClientPreRender", root, _onClientPreRender)
+    for o in pairs(shaders.objects) do
+        if not wanted[o] then
+            destroyObjectWallEffect(o)
+        end
+    end
 end
 
 function isWallShaderEnabled()
