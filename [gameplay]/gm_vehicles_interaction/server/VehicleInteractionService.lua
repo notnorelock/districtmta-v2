@@ -71,7 +71,7 @@ addEventHandler(Events.VEHICLE_INTERACTION_TOGGLE, root, function(action)
         setVehicleEngineState(vehicle, not getVehicleEngineState(vehicle))
     elseif action == "lights" then
         local wantsOn = getVehicleOverrideLights(vehicle) ~= 2
-        setVehicleOverrideLights(vehicle, wantsOn and 2 or 0)
+        setVehicleOverrideLights(vehicle, wantsOn and 2 or 1)
     elseif action == "lock" then
         setVehicleLocked(vehicle, not isVehicleLocked(vehicle))
     elseif action == "handbrake" then

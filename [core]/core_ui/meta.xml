@@ -2,15 +2,10 @@
     <info
         author="district"
         name="core_ui"
-        description="Generic CEF bridge: FetchBridge request router, push events, browser lifecycle manager. Domain-agnostic - knows nothing about accounts/auth."
         version="1.0.0"
         type="script"
     />
-    <!-- See core_shared/meta.xml's comment on this tag for the full
-         rationale. This one matters in practice - core_ui ships real
-         client files (the CEF html/assets, plus Transport.lua/
-         BrowserManager.lua, which read core_shared's Events at module
-         load time), so getting these to the client promptly matters. -->
+
     <download_priority_group>5</download_priority_group>
 
     <include resource="core_shared" />
@@ -24,6 +19,7 @@
     <script src="server/SessionKeyDelivery.lua" type="server" cache="false" />
 
     <script src="client/Blur.lua" type="client" cache="false" />
+    <script src="client/Fonts.lua" type="client" cache="false" />
     <script src="client/GlobalResources.lua" type="client" cache="false" />
     <script src="client/ui/Utils.lua" type="client" cache="false" />
     <script src="client/ui/SessionKeyState.lua" type="client" cache="false" />
@@ -34,11 +30,6 @@
     <file src="client/html/assets/*" />
     <file src="assets/*" />
 
-    <!-- Exports: plain data only, one hop, into this resource from any
-         endpoint-owning resource (core's AccountEndpoints.lua today,
-         future gameplay/system resources). Endpoint HANDLERS never cross
-         this boundary - only metadata registration and final responses
-         do, both pure data. See docs/UiBridge.md. -->
     <export function="fetchBridgeRegisterMeta" type="server" />
     <export function="fetchBridgeRespond" type="server" />
     <export function="pushServiceSend" type="server" />
@@ -57,4 +48,6 @@
     <export function="uiFocusBrowser" type="client" />
     <export function="uiObfuscateForBrowser" type="client" />
     <export function="uiDeobfuscateFromBrowser" type="client" />
+
+    <export function="getUIFont" type="client" />
 </meta>

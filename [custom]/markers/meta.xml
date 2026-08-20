@@ -1,0 +1,9 @@
+<meta>
+  <file src="assets/*" />
+  <file src="assets/icons/*" />
+
+  <script src="client/material.lua" type="client" cache="false" />
+  <script src="client/marker.lua" type="client" cache="false" />
+
+  <min_mta_version client="1.3.0-9.04431" />
+</meta>
