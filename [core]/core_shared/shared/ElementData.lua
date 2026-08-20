@@ -47,6 +47,24 @@ ElementData = {
         -- entering an already-playing vehicle mid-song can be caught up
         -- via a synchronous read instead of waiting on the next change.
         RADIO_STATION = "vehicle:radioStation",
+
+        -- gm_vehicles: the vehicles table row this world vehicle element
+        -- was spawned from - absent for a vehicle gm_vehicles didn't
+        -- create (e.g. gm_roleplay's /veh temporary spawns).
+        ID = "vehicle:id",
+        -- One of Enums.VehiclePurpose's values.
+        PURPOSE = "vehicle:purpose",
+        -- accounts.id of this vehicle's owner.
+        OWNER_ACCOUNT_ID = "vehicle:ownerAccountId",
+        -- Round-trip cache for the "upgrades" JSON column's non-parts
+        -- fields (neons/paintjob/engine) between load and save - no
+        -- in-game system reads/writes these yet (no tuning workshop),
+        -- kept here only so VehicleService.save doesn't silently drop
+        -- them on the next save. See VehicleService.lua's own comment.
+        UPGRADES_CACHE = "vehicle:upgradesCache",
+        -- Round-trip cache for "last_drivers" between load and save -
+        -- same reasoning as UPGRADES_CACHE above.
+        LAST_DRIVERS_CACHE = "vehicle:lastDriversCache",
     },
 }
 

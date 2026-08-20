@@ -51,11 +51,14 @@
     <script src="server/database/models/AccountPenalty.lua" type="server" cache="false" />
     <script src="server/database/models/Report.lua" type="server" cache="false" />
     <script src="server/database/models/AdminDutySession.lua" type="server" cache="false" />
+    <script src="server/database/models/Vehicle.lua" type="server" cache="false" />
     <script src="server/database/repositories/AccountRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/CharacterRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/AccountPenaltyRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/ReportRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/AdminDutySessionRepository.lua" type="server" cache="false" />
+    <script src="server/database/repositories/VehicleRepository.lua" type="server" cache="false" />
+    <script src="server/VehicleService.lua" type="server" cache="false" />
     <script src="server/database/adapters/MySqlAdapter.lua" type="server" cache="false" />
     <script src="server/database/adapters/MySqlAdapterBootstrap.lua" type="server" cache="false" />
 
@@ -93,6 +96,7 @@
     <export function="loggerSecurity" type="server" />
 
     <export function="playerServiceIsAuthenticated" type="server" />
+    <export function="playerServiceGetAccountId" type="server" />
     <export function="playerServiceGetRole" type="server" />
     <export function="playerServiceGetLogin" type="server" />
     <export function="playerServiceIsOnDuty" type="server" />
@@ -109,4 +113,6 @@
 
     <export function="notificationServiceSend" type="server" />
     <export function="notificationServiceBroadcast" type="server" />
+
+    <export function="schemaIsMigrated" type="server" />
 </meta>

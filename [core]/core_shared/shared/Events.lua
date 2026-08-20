@@ -196,4 +196,36 @@ Events = {
 
     -- Pushed into the CEF overlay once SCOREBOARD_PLAYERS_RECEIVED arrives.
     PUSH_SCOREBOARD_PLAYERS = "scoreboard.players",
+
+    -- Server-to-server bridge between gm_vehicles (owns the handler
+    -- closure/callback) and core (owns VehicleRepository/the database) -
+    -- the same requestId-correlated request/response shape FetchBridge
+    -- uses across the core/core_ui boundary (see Architecture.md's "The
+    -- one hard rule for extending the project": a callback can never
+    -- cross a resource boundary, only plain data can). gm_vehicles's
+    -- VehicleBridge.lua triggers VEHICLE_REPOSITORY_REQUEST with
+    -- { requestId, method, args }; core's VehicleService.lua runs the
+    -- matching VehicleRepository method and triggers
+    -- VEHICLE_REPOSITORY_RESPONSE back with { requestId, ok, result }.
+    -- Both fire via plain triggerEvent (not triggerServerEvent/
+    -- triggerClientEvent - this never touches a player/client, it's
+    -- server-side Lua talking to server-side Lua in a different resource).
+    VEHICLE_REPOSITORY_REQUEST = "core:vehicleRepositoryRequest",
+    VEHICLE_REPOSITORY_RESPONSE = "vehicles:vehicleRepositoryResponse",
+
+    -- Client -> server: driver requested toggling one vehicle system
+    -- (engine/lights/lock) from the radial interaction menu (see
+    -- gm_vehicles/client/VehicleInteractionState.lua). `action` is one of
+    -- "engine"/"lights"/"lock" - server re-validates the requester is
+    -- actually this vehicle's driver before touching anything (never
+    -- trusts the client's own menu-open gate).
+    VEHICLE_INTERACTION_TOGGLE = "vehicles:interactionToggle",
+
+    -- Server -> every occupant of the vehicle (not just the driver who
+    -- requested it) once a toggle actually happened - { action, state }
+    -- lets a passenger's own HUD (future work) or just the vehicle's real
+    -- synced state stay consistent without polling. Also sent to the
+    -- driver alone right when the interaction menu opens, to seed its
+    -- initial state.
+    PUSH_VEHICLE_INTERACTION_STATE = "vehicles.interactionState",
 }

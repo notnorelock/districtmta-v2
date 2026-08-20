@@ -8,7 +8,7 @@
 -- gm_voice before ui_hud: ui_hud's client (HudState.lua) calls gm_voice's
 -- exports (voiceStateIsTalking/voiceStateGetMode) for the local player's
 -- voice-mode HUD ring, so gm_voice must exist first.
-local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "gm_voice", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "gm_roleplay" }
+local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "gm_voice", "gm_radio", "gm_blackout", "gm_scoreboard", "gm_vehicles", "ui_hud", "gm_roleplay" }
 local START_TIMEOUT_MS = 15000
 
 --- Extra pause after a resource's SERVER-side start before starting the

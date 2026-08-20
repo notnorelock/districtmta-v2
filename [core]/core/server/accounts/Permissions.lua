@@ -18,6 +18,7 @@ Permissions.Bit = {
     TELEPORT = 4096,
     HEAL = 8192,
     JETPACK = 16384,
+    SPAWN_VEHICLE = 32768,
 }
 
 local function bitOr(...)
@@ -39,7 +40,8 @@ local MODERATOR_PERMISSIONS = bitOr(
     Permissions.Bit.RESOLVE_REPORTS,
     Permissions.Bit.TELEPORT,
     Permissions.Bit.HEAL,
-    Permissions.Bit.JETPACK
+    Permissions.Bit.JETPACK,
+    Permissions.Bit.SPAWN_VEHICLE
 )
 local ADMINISTRATOR_PERMISSIONS = bitOr(MODERATOR_PERMISSIONS, Permissions.Bit.BAN, Permissions.Bit.REVOKE_PENALTY)
 -- VIEW_STATS is RCON+/BOARD-only, deliberately not in ADMINISTRATOR_PERMISSIONS.

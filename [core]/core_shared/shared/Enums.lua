@@ -46,4 +46,19 @@ Enums = {
         RCON = 5,
         BOARD = 6, -- "Zarząd"
     },
+
+    -- gm_vehicles's Vehicle.purpose column (an "enum"-type Schema column,
+    -- see Vehicle.lua) - only PRIVATE is persisted to the database today;
+    -- PUBLIC vehicles are a purely scripted/runtime concept (a fixed list
+    -- of spawn points in code, never written to the vehicles table - see
+    -- PublicVehicles.lua). GROUP/EVENT/EXCHANGE/SHOP/RENT don't exist in
+    -- this project yet (no faction/group, workshop, exchange, or shop
+    -- system to back them - same reasoning as gm_blackout's medic TODO)
+    -- and are deliberately NOT included here; add them only once the
+    -- system they depend on actually exists, per docs/Architecture.md's
+    -- "Adding a new system" section.
+    VehiclePurpose = {
+        PRIVATE = "private",
+        PUBLIC = "public",
+    },
 }

@@ -71,10 +71,13 @@ local PushService = {
 -- "endpoint:*" is excluded on purpose: FetchBridge (core_ui) triggerEvents
 -- these from ITS OWN resourceRoot, not core's, by design (see
 -- AccountEndpoints.lua/FetchBridge.lua) - source == resourceRoot would
--- never hold here even for the legitimate call.
+-- never hold here even for the legitimate call. Events.VEHICLE_REPOSITORY_REQUEST
+-- ("core:vehicleRepositoryRequest") is excluded for the identical reason:
+-- gm_vehicles/server/VehicleBridge.lua triggers it from ITS OWN
+-- resourceRoot, not core's - see VehicleService.lua.
 local _addEventHandler = addEventHandler
 addEventHandler = function(event, attachedTo, handlerFunction, ...)
-    if type(event) ~= "string" or event:sub(1, 2) == "on" or event:sub(1, 9) == "endpoint:" then
+    if type(event) ~= "string" or event:sub(1, 2) == "on" or event:sub(1, 9) == "endpoint:" or event == "core:vehicleRepositoryRequest" then
         return _addEventHandler(event, attachedTo, handlerFunction, ...)
     end
 

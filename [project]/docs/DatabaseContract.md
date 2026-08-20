@@ -18,12 +18,15 @@ core/server/
 │   │   ├── Account.lua                  Active Record model (accounts table)
 │   │   ├── Character.lua                Active Record model (characters table)
 │   │   ├── AccountPenalty.lua           Active Record model (account_penalties table)
-│   │   └── Report.lua                   Active Record model (reports table)
+│   │   ├── Report.lua                   Active Record model (reports table)
+│   │   └── Vehicle.lua                  Active Record model (vehicles table)
 │   ├── repositories/
 │   │   ├── AccountRepository.lua        thin facade over Account
 │   │   ├── CharacterRepository.lua      thin facade over Character
 │   │   ├── AccountPenaltyRepository.lua thin facade over AccountPenalty
-│   │   └── ReportRepository.lua         thin facade over Report
+│   │   ├── ReportRepository.lua         thin facade over Report
+│   │   └── VehicleRepository.lua        thin facade over Vehicle (+ JSON column encode/decode)
+│   ├── VehicleService.lua               event bridge exposing VehicleRepository to gm_vehicles - see "Vehicles table" below
 │   └── adapters/
 │       ├── MySqlAdapter.lua                  real MySQL adapter
 │       └── MySqlAdapterBootstrap.lua         connects + registers MySqlAdapter + runs Schema.migrate()
@@ -323,6 +326,64 @@ Only `CharacterRepository.findByAccountId` and the `Account:hasMany("characters"
 `Character:belongsTo("account", ...)` relation exist today, to prove the
 account/character split at the data layer without building the character
 system itself.
+
+### Vehicles table
+
+```
+vehicles
+  id                 BIGINT AUTO_INCREMENT primary key
+  purpose            ENUM('private') not null   -- only PRIVATE is ever written here, see below
+  model              INT not null
+  position           TEXT not null              -- toJSON({x,y,z})
+  rotation           TEXT not null              -- toJSON({rx,ry,rz})
+  health             INT not null default 1000
+  mileage            INT not null default 0
+  fuel               INT not null default 100
+  max_fuel           INT not null default 100
+  owner_account_id   BIGINT not null references accounts(id)
+  locked             TINYINT(1) not null default 1
+  upgrades           TEXT nullable   -- toJSON({parts, neons, paintjob, engine})
+  doors              TEXT nullable   -- toJSON({[0..5] -> state})
+  lights             TEXT nullable   -- toJSON({state={[0..3]->state}, color={r,g,b}})
+  panels             TEXT nullable   -- toJSON({[0..6] -> state})
+  wheels             TEXT nullable   -- toJSON({fl,fr,rl,rr})
+  color              TEXT nullable   -- toJSON({r1,g1,b1, r2,g2,b2, r3,g3,b3, r4,g4,b4}), matches getVehicleColor(v, true)
+  plate              VARCHAR(8) nullable
+  interior           INT not null default 0
+  dimension          INT not null default 0
+  last_drivers       TEXT nullable   -- toJSON({ {name=...}, ... }), most recent last, capped
+  created_at         TIMESTAMP default CURRENT_TIMESTAMP
+  updated_at         TIMESTAMP default CURRENT_TIMESTAMP
+```
+
+Owned by `gm_vehicles` (a `[gameplay]/` resource), NOT `core` - `core` only
+holds the model/repository (`Vehicle.lua`/`VehicleRepository.lua`, same
+"every model lives in `core`" convention as `Account`/`Character`), since a
+callback can never cross a resource boundary (see `Architecture.md`'s "The
+one hard rule for extending the project"). `gm_vehicles` reaches
+`VehicleRepository` through `core/server/database/VehicleService.lua`, a
+requestId-correlated event bridge mirroring `FetchBridge`'s own pattern
+across the `core`/`core_ui` boundary - see `Architecture.md`'s "FetchBridge
+across the core/core_ui boundary" for the shape this copies
+(`gm_vehicles/server/VehicleBridge.lua` is the calling side).
+
+`purpose` only ever has one real value today: `Enums.VehiclePurpose.PRIVATE`
+(owner = an `accounts.id`, persisted, spawned back into the world on every
+`gm_vehicles` start). `Enums.VehiclePurpose.PUBLIC` vehicles are a
+deliberately separate, purely scripted concept (a fixed list of spawn
+points in `gm_vehicles/server/PublicVehicles.lua`) and are never written to
+this table at all - see that file and `Enums.lua`'s own module comment.
+`GROUP`/`EVENT`/`EXCHANGE`/`SHOP`/`RENT` purposes, vehicle tuning
+workshops, the vehicle exchange, and vehicle sharing all existed in the
+reference implementation this was ported from but have no backing system
+in this project yet and were deliberately not carried over - add them only
+once the system each depends on actually exists (a faction/group system,
+a workshop, a shop/economy system), per `Architecture.md`'s "Adding a new
+system" section.
+
+`owner_account_id` points at `accounts.id`, not a character - this project
+has no working character-select system yet (`characters` above is a
+placeholder only), so vehicle ownership is account-wide for now.
 
 ## What a new adapter must NOT do (if the backend ever changes again)
 

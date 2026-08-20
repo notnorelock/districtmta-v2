@@ -311,6 +311,7 @@ end
 addEventHandler("onResourceStart", resourceRoot, scheduleMuteSweep)
 
 function playerServiceIsAuthenticated(player) return PlayerService.isAuthenticated(player) end
+function playerServiceGetAccountId(player) return PlayerService.getAccountId(player) end
 
 --- @return string|nil the account login, or nil if not authenticated - a
 --- narrow accessor (not the full account context table, which also holds
