@@ -2,7 +2,6 @@
     <info
         author="district"
         name="gm_vehicles"
-        description="Persistent PRIVATE vehicles (database-backed, owner = account) and scripted PUBLIC vehicles (fixed spawn points, no persistence). GROUP/EVENT/EXCHANGE/SHOP/RENT purposes, tuning workshops, sharing, and the vehicle exchange don't exist in this project yet - see VehicleService.lua's own module comment."
         version="1.0.0"
         type="script"
     />

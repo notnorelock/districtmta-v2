@@ -77,4 +77,16 @@ export const en: Record<keyof typeof pl, string> = {
   "scoreboard.status.inGame": "In game",
   "scoreboard.empty": "No players match your search",
   "scoreboard.hint": "Press right mouse button to show cursor",
+
+  "vehicleMenu.engine": "Engine",
+  "vehicleMenu.lights": "Lights",
+  "vehicleMenu.lock": "Lock",
+  "vehicleMenu.handbrake": "Handbrake",
+  "vehicleMenu.siren": "Siren",
+  "vehicleMenu.horn": "Horn",
+  "vehicleMenu.trunk": "Trunk",
+  "vehicleMenu.on": "On",
+  "vehicleMenu.off": "Off",
+  "vehicleMenu.unavailable": "Unavailable",
+  "vehicleMenu.activateHint": "Press space to toggle",
 };

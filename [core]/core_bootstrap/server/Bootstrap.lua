@@ -7,8 +7,14 @@
 
 -- gm_voice before ui_hud: ui_hud's client (HudState.lua) calls gm_voice's
 -- exports (voiceStateIsTalking/voiceStateGetMode) for the local player's
--- voice-mode HUD ring, so gm_voice must exist first.
-local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "gm_voice", "gm_radio", "gm_blackout", "gm_scoreboard", "gm_vehicles", "ui_hud", "gm_roleplay" }
+-- voice-mode HUD ring, so gm_voice must exist first. gm_vehicles_interaction
+-- before gm_radio: gm_radio's client (RadioState.lua) calls
+-- gm_vehicles_interaction's export (vehicleInteractionIsMenuOpen) to skip
+-- its own scroll-to-change-station handling while the vehicle interaction
+-- radial menu is open, so gm_vehicles_interaction must exist first.
+-- gm_vehicles itself has no such dependency from gm_radio (or anything
+-- else) and can start anywhere in this tier.
+local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "gm_roleplay" }
 local START_TIMEOUT_MS = 15000
 
 --- Extra pause after a resource's SERVER-side start before starting the

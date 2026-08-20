@@ -32,6 +32,18 @@ local function requestChangeStation(next)
         return
     end
 
+    -- gm_vehicles_interaction's radial interaction menu (left Shift,
+    -- held, while driving) also uses scroll to move its own selection -
+    -- without this check, scrolling to pick a menu option also cycled
+    -- the radio station underneath it. pcall guards against
+    -- gm_vehicles_interaction not being up yet/restarted independently -
+    -- "not open" is the safe default, same as every other
+    -- exports.X:fn() call in this project.
+    local menuOk, menuOpen = pcall(function() return exports.gm_vehicles_interaction:vehicleInteractionIsMenuOpen() end)
+    if menuOk and menuOpen then
+        return
+    end
+
     lastScrollTick = getTickCount()
     triggerServerEvent(Events.RADIO_CHANGE_STATION, resourceRoot, next)
 end

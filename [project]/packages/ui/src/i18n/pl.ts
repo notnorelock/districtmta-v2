@@ -75,4 +75,16 @@ export const pl = {
   "scoreboard.status.inGame": "W grze",
   "scoreboard.empty": "Brak graczy spełniających kryteria",
   "scoreboard.hint": "Naciśnij prawy przycisk myszy, aby pokazać kursor",
+
+  "vehicleMenu.engine": "Silnik",
+  "vehicleMenu.lights": "Światła",
+  "vehicleMenu.lock": "Zamek",
+  "vehicleMenu.handbrake": "Hamulec ręczny",
+  "vehicleMenu.siren": "Syrena",
+  "vehicleMenu.horn": "Klakson",
+  "vehicleMenu.trunk": "Bagażnik",
+  "vehicleMenu.on": "Włączone",
+  "vehicleMenu.off": "Wyłączone",
+  "vehicleMenu.unavailable": "Niedostępne",
+  "vehicleMenu.activateHint": "Naciśnij spację, aby przełączyć",
 } as const;

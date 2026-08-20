@@ -270,3 +270,33 @@
   opacity: 0;
   transform: scale(0.98);
 }
+
+/*
+  Vehicle interaction radial menu (features/vehicleInteraction/
+  VehicleMenuOverlay.tsx) - shown while holding left Shift. A spring-
+  eased scale+rotate+blur entrance (overshoots slightly past 1 before
+  settling, same cubic-bezier as the ring/slice animations in
+  VehicleMenuOverlay.module.scss) rather than a flat fade+scale, but the
+  exit stays a quick plain fade - a snappy flourish reads as intentional
+  on the way IN, but the same flourish reversed on the way OUT (whole
+  menu spinning/blurring away) would just look like a glitch on a
+  hold-to-show overlay that closes the instant the key is released.
+*/
+.vehicleMenu-enter-active {
+  transition: opacity 0.28s ease, transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.28s ease;
+}
+
+.vehicleMenu-exit-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.vehicleMenu-enter-from {
+  opacity: 0;
+  transform: scale(0.5) rotate(-25deg);
+  filter: blur(6px);
+}
+
+.vehicleMenu-exit-to {
+  opacity: 0;
+  transform: scale(0.92);
+}

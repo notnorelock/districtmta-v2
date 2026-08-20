@@ -221,11 +221,42 @@ Events = {
     -- trusts the client's own menu-open gate).
     VEHICLE_INTERACTION_TOGGLE = "vehicles:interactionToggle",
 
+    -- Client -> server: fired once when the radial menu first opens, to
+    -- learn the vehicle's current engine/lights/lock state without
+    -- toggling anything - see VEHICLE_INTERACTION_TOGGLE's own handler,
+    -- kept as a separate event rather than a bare-string suffix hack so
+    -- every event name in this registry stays a real, grep-able constant.
+    VEHICLE_INTERACTION_QUERY = "vehicles:interactionQuery",
+
     -- Server -> every occupant of the vehicle (not just the driver who
     -- requested it) once a toggle actually happened - { action, state }
     -- lets a passenger's own HUD (future work) or just the vehicle's real
     -- synced state stay consistent without polling. Also sent to the
     -- driver alone right when the interaction menu opens, to seed its
-    -- initial state.
+    -- initial state. Re-used as BOTH the client<->client Lua event name
+    -- (VehicleInteractionState.lua re-triggers it locally, source-checked
+    -- against localPlayer) AND the CEF push event name it forwards into -
+    -- same string serves both hops, no separate constant needed since
+    -- neither hop's payload shape differs.
     PUSH_VEHICLE_INTERACTION_STATE = "vehicles.interactionState",
+
+    -- Client Lua -> CEF only (uiPushEvent, never triggerEvent) - scroll
+    -- wheel direction while the radial menu is open, forwarded so the
+    -- frontend can move its own current-selection without Lua needing to
+    -- track which of the (client-side-only, cosmetic) menu slices is
+    -- highlighted. true = wheel up, false = wheel down.
+    PUSH_VEHICLE_INTERACTION_SCROLL = "vehicles.interactionScroll",
+
+    -- Client Lua -> CEF only (uiPushEvent) - space bar pressed while the
+    -- radial menu is open, telling the frontend to activate whichever
+    -- option it currently has selected.
+    PUSH_VEHICLE_INTERACTION_ACTIVATE = "vehicles.interactionActivate",
+
+    -- CEF -> client Lua (via MtaBridge.notify, not uiPushEvent - this is
+    -- the browser telling Lua something, the reverse direction of the two
+    -- push events above) - the frontend's own currently-selected option
+    -- was activated (space bar), naming which action ("engine"/"lights"/
+    -- "lock") to actually request from the server. See
+    -- VehicleInteractionState.lua's addEventHandler for this.
+    VEHICLE_INTERACTION_ACTIVATED = "vehicles:interactionActivated",
 }

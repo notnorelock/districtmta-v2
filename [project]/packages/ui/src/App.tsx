@@ -12,6 +12,7 @@ import { VoiceIndicator } from "@/features/hud/VoiceIndicator";
 import { RadioCard } from "@/features/hud/RadioCard";
 import { BlackoutOverlay } from "@/features/blackout/BlackoutOverlay";
 import { ScoreboardOverlay } from "@/features/scoreboard/ScoreboardOverlay";
+import { VehicleMenuOverlay } from "@/features/vehicleInteraction/VehicleMenuOverlay";
 import { Watermark } from "@/components/common/Watermark";
 import { authStore } from "@/stores/auth.store";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -68,6 +69,10 @@ const AppContent: Component = () => {
           toggled by gm_scoreboard while TAB is held - see
           ScoreboardOverlay.tsx's own comment. */}
       <ScoreboardOverlay />
+      {/* Uses its own "vehicleInteraction" overlay key (Overlay name
+          prop), shown by gm_vehicles while left Shift is held and driving
+          - see VehicleMenuOverlay.tsx's own comment. */}
+      <VehicleMenuOverlay />
       <ToastStack />
     </div>
   );

@@ -1,0 +1,26 @@
+<meta>
+    <info
+        author="district"
+        name="gm_vehicles_interaction"
+        description="Radial vehicle interaction menu (left Shift, held, while driving; scroll to select, space to activate) - engine/lights/lock/handbrake toggles. Works on any vehicle the local player is driving, not just gm_vehicles's own persistent ones - see VehicleInteractionService.lua's own module comment on why this is a separate resource."
+        version="1.0.0"
+        type="script"
+    />
+    <!-- Same priority tier as gm_voice/gm_radio/gm_blackout/gm_scoreboard/gm_vehicles - see core_shared/meta.xml's comment on the tag. -->
+    <download_priority_group>3</download_priority_group>
+
+    <include resource="core_shared" />
+    <include resource="core_ui" />
+
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/VehicleInteractionService.lua" type="server" cache="false" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/VehicleInteractionState.lua" type="client" cache="false" />
+
+    <!-- gm_radio (a separate resource) checks this before its own
+         scroll-to-change-station handling - see
+         VehicleInteractionState.lua's own module comment on
+         vehicleInteractionIsMenuOpen. -->
+    <export function="vehicleInteractionIsMenuOpen" type="client" />
+</meta>
