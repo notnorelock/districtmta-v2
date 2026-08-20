@@ -1,4 +1,6 @@
 <meta>
+  <include resource="core_ui" />
+
   <file src="assets/*" />
   <file src="assets/icons/*" />
 

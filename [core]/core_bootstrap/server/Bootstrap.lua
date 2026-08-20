@@ -14,7 +14,15 @@
 -- radial menu is open, so gm_vehicles_interaction must exist first.
 -- gm_vehicles itself has no such dependency from gm_radio (or anything
 -- else) and can start anywhere in this tier.
-local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "gm_roleplay" }
+
+-- markers after core_ui: [custom]/markers' client (marker.lua) calls
+-- core_ui's export (getUIFont) to draw its text labels, so core_ui must
+-- exist first. models and gm_3dtext have no cross-resource dependency of
+-- their own and just need to exist somewhere in the chain so
+-- core_bootstrap actually starts them (see the "does not exist" abort
+-- check in startNext below) rather than relying on mtaserver.conf's own
+-- resource list/order.
+local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "markers", "models", "gm_3dtext", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "gm_roleplay" }
 local START_TIMEOUT_MS = 15000
 
 --- Extra pause after a resource's SERVER-side start before starting the
