@@ -47,13 +47,11 @@
 
     <script src="server/database/DatabaseAdapter.lua" type="server" cache="false" />
     <script src="server/database/models/Account.lua" type="server" cache="false" />
-    <script src="server/database/models/Character.lua" type="server" cache="false" />
     <script src="server/database/models/AccountPenalty.lua" type="server" cache="false" />
     <script src="server/database/models/Report.lua" type="server" cache="false" />
     <script src="server/database/models/AdminDutySession.lua" type="server" cache="false" />
     <script src="server/database/models/Vehicle.lua" type="server" cache="false" />
     <script src="server/database/repositories/AccountRepository.lua" type="server" cache="false" />
-    <script src="server/database/repositories/CharacterRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/AccountPenaltyRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/ReportRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/AdminDutySessionRepository.lua" type="server" cache="false" />
