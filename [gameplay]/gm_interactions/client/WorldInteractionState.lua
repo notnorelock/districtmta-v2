@@ -21,7 +21,26 @@ WorldInteractionState = WorldInteractionState or {}
 
 local SCAN_INTERVAL_MS = 150
 local RANGE = 10 -- world-space candidate radius; InteractionService.lua re-validates the real per-type range server-side regardless
+-- WallShader's own outline uses this wider cone (everything the player
+-- could plausibly be about to turn onto) - MAX_TARGET_ANGLE_DEG (the
+-- narrower cone the actual ACTIVE target is picked from) stays tighter
+-- so the target doesn't flicker between two outlined candidates sitting
+-- side by side.
+local OUTLINE_ANGLE_DEG = 70
 local MAX_TARGET_ANGLE_DEG = 45 -- ignore candidates more than this many degrees off the player's facing direction
+
+-- Hysteresis margin for the outline set: an already-outlined candidate
+-- only drops out once it's past RANGE/OUTLINE_ANGLE_DEG by this much, not
+-- the instant it crosses the exact threshold. Without this, a candidate
+-- sitting right at the edge of either threshold flickered on/off every
+-- scan tick as the player's own position/facing wobbled slightly while
+-- walking (the walk animation's own subtle sway, footstep-to-footstep
+-- position drift) - each tiny wobble flipped it in and out of range/cone
+-- and WallShader's outline toggled with it. A NEW candidate (not already
+-- outlined) still has to clear the tighter, non-relaxed threshold first -
+-- only candidates already showing get the wider one to leave by.
+local OUTLINE_RANGE_HYSTERESIS = 1.5
+local OUTLINE_ANGLE_HYSTERESIS = 12
 
 -- MTA can fire mouse_wheel_up/down more than once per physical wheel
 -- click - same lesson gm_radio/client/RadioState.lua's own
@@ -34,6 +53,7 @@ local lastScrollTick = 0
 
 local lookingForInteractions = false
 local activeTarget = nil -- element the CEF list is currently showing for, nil if none in view
+local outlinedElements = {} -- element -> true, currently outlined by WallShader (see OUTLINE_*_HYSTERESIS above)
 
 --- @return element[] every player/vehicle/object worth considering as a candidate
 local function nearbyElements()
@@ -61,21 +81,71 @@ local function sameZone(element)
         and getElementInterior(localPlayer) == getElementInterior(element)
 end
 
---- @return element[] nearby, same-zone, in-range candidates - outlined by
---         WallShader regardless of which one ends up being the actual target
+--- @return number, number the player's own horizontal facing vector
+--         (normalized) - MTA's own GetPositionInFrontOfElement wiki
+--         reference formula: objX = x - distance*sin(rad), objY =
+--         y + distance*cos(rad), i.e. the facing vector is
+--         (-sin(rad), cos(rad)), NOT (sin(rad), cos(rad)).
+local function playerFacingVector()
+    local _, _, facingDeg = getElementRotation(localPlayer)
+    local facingRad = math.rad(facingDeg)
+    return -math.sin(facingRad), math.cos(facingRad)
+end
+
+--- @param px number player X
+-- @param py number player Y
+-- @param facingX number player's facing vector X (see playerFacingVector)
+-- @param facingY number player's facing vector Y
+-- @param x number candidate X
+-- @param y number candidate Y
+-- @return number|nil degrees off the player's facing direction (0 =
+--         directly ahead, 180 = directly behind), nil if the candidate
+--         sits essentially on top of the player (no meaningful direction)
+local function angleFromFacing(px, py, facingX, facingY, x, y)
+    local dx, dy = x - px, y - py
+    local dist = math.sqrt(dx * dx + dy * dy)
+    if dist <= 0.01 then
+        return nil
+    end
+
+    -- Dot product of two normalized vectors = cos(angle between them).
+    local dot = (facingX * dx + facingY * dy) / dist
+    return math.deg(math.acos(math.max(-1, math.min(1, dot))))
+end
+
+--- @return element[] nearby, same-zone, in-range, roughly-in-front-of-
+--         the-player candidates - outlined by WallShader (see
+--         OUTLINE_ANGLE_DEG's own comment on why this cone is wider than
+--         MAX_TARGET_ANGLE_DEG's own, tighter one). Elements already in
+--         outlinedElements get the relaxed OUTLINE_*_HYSTERESIS
+--         thresholds to leave by (see its own comment) - updates
+--         outlinedElements itself before returning.
 local function rangeFilteredCandidates()
     local px, py, pz = getElementPosition(localPlayer)
+    local facingX, facingY = playerFacingVector()
     local list = {}
+    local nextOutlined = {}
 
     for _, element in ipairs(nearbyElements()) do
         if sameZone(element) then
             local x, y, z = getElementPosition(element)
-            if getDistanceBetweenPoints3D(px, py, pz, x, y, z) <= RANGE then
+            local dist = getDistanceBetweenPoints3D(px, py, pz, x, y, z)
+            local angle = angleFromFacing(px, py, facingX, facingY, x, y)
+
+            local rangeLimit, angleLimit = RANGE, OUTLINE_ANGLE_DEG
+            if outlinedElements[element] then
+                rangeLimit = RANGE + OUTLINE_RANGE_HYSTERESIS
+                angleLimit = OUTLINE_ANGLE_DEG + OUTLINE_ANGLE_HYSTERESIS
+            end
+
+            if dist <= rangeLimit and (angle == nil or angle <= angleLimit) then
                 list[#list + 1] = element
+                nextOutlined[element] = true
             end
         end
     end
 
+    outlinedElements = nextOutlined
     return list
 end
 
@@ -100,34 +170,21 @@ local LOS_CHECK_MIN_DISTANCE = 6
 -- @return element|nil
 local function mostInFrontOfPlayer(candidates)
     local px, py, pz = getElementPosition(localPlayer)
-    local _, _, facingDeg = getElementRotation(localPlayer)
-    -- MTA's own GetPositionInFrontOfElement wiki reference formula:
-    -- objX = x - distance*sin(rad), objY = y + distance*cos(rad) - i.e.
-    -- the facing vector is (-sin(rad), cos(rad)), NOT (sin(rad), cos(rad)).
-    local facingRad = math.rad(facingDeg)
-    local facingX, facingY = -math.sin(facingRad), math.cos(facingRad)
+    local facingX, facingY = playerFacingVector()
 
     local best, bestAngle = nil, MAX_TARGET_ANGLE_DEG
 
     for _, element in ipairs(candidates) do
         local x, y, z = getElementPosition(element)
-        local dx, dy = x - px, y - py
-        local dist = math.sqrt(dx * dx + dy * dy)
+        local angle = angleFromFacing(px, py, facingX, facingY, x, y)
 
-        if dist > 0.01 then
-            -- Angle between the facing vector and the to-candidate vector via
-            -- the dot product (both normalized) - acos gives 0deg for
-            -- "directly ahead", 180deg for "directly behind".
-            local dot = (facingX * dx + facingY * dy) / dist
-            local angle = math.deg(math.acos(math.max(-1, math.min(1, dot))))
+        if angle ~= nil and angle < bestAngle then
+            local dist = getDistanceBetweenPoints3D(px, py, pz, x, y, z)
+            local sightClear = dist <= LOS_CHECK_MIN_DISTANCE
+                or isLineOfSightClear(px, py, pz + 0.6, x, y, z, true, true, false, true, true, true)
 
-            if angle < bestAngle then
-                local sightClear = dist <= LOS_CHECK_MIN_DISTANCE
-                    or isLineOfSightClear(px, py, pz + 0.6, x, y, z, true, true, false, true, true, true)
-
-                if sightClear then
-                    best, bestAngle = element, angle
-                end
+            if sightClear then
+                best, bestAngle = element, angle
             end
         end
     end
@@ -203,6 +260,7 @@ local function closeInteractionMode()
     toggleWallShader(false, {})
     activeTarget = nil
     lastListRequestTarget = nil
+    outlinedElements = {}
 
     exports.core_ui:uiHideOverlay("worldInteraction")
 end
