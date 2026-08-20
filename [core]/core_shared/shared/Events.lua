@@ -259,4 +259,61 @@ Events = {
     -- "lock") to actually request from the server. See
     -- VehicleInteractionState.lua's addEventHandler for this.
     VEHICLE_INTERACTION_ACTIVATED = "vehicles:interactionActivated",
+
+    -- World interaction (gm_interactions) - hold E near a player/vehicle/
+    -- object to see its available interactions, mirrors the vehicle
+    -- interaction ring's own client-owns-the-menu-UI split: WorldState.lua
+    -- (client) decides which element is targeted and asks the server for
+    -- ITS interaction list (never trusts a client-built list), the
+    -- frontend only renders + tracks the scroll/keyboard selection.
+
+    -- Client -> server: E pressed near `element` (closest-to-screen-center
+    -- candidate the client found, see WorldInteractionState.lua) - asking
+    -- which interactions (if any) are available on it right now. Server
+    -- re-derives the list itself (role/rank/condition checks all run
+    -- server-side, see InteractionRegistry.lua) rather than trusting
+    -- anything the client claims about itself.
+    INTERACTION_REQUEST_LIST = "interactions:requestList",
+
+    -- Server -> requesting client only: response to INTERACTION_REQUEST_LIST -
+    -- { items: { key, label, icon }[] }, empty/absent items means "nothing
+    -- to show here", not an error - see InteractionRegistry.lua's toEntries.
+    INTERACTION_LIST_RECEIVED = "interactions:listReceived",
+
+    -- Pushed into the CEF overlay once INTERACTION_LIST_RECEIVED arrives,
+    -- and again (empty) when the target is lost/E released - see
+    -- WorldInteractionOverlay.tsx.
+    PUSH_INTERACTION_LIST = "interactions.list",
+
+    -- Client Lua -> CEF only (uiPushEvent) - the target element's current
+    -- screen position, refreshed every render frame while E is held so the
+    -- pointer diamond/line tracks it - see WorldInteractionState.lua's own
+    -- module comment on why this is a separate high-frequency push from
+    -- the low-frequency interaction list above.
+    PUSH_INTERACTION_TARGET = "interactions.target",
+
+    -- Client Lua -> CEF only (uiPushEvent) - scroll wheel / arrow key
+    -- direction while the overlay is open, same pattern as
+    -- PUSH_VEHICLE_INTERACTION_SCROLL.
+    PUSH_INTERACTION_NAVIGATE = "interactions.navigate",
+
+    -- Client Lua -> CEF only (uiPushEvent) - space bar pressed while a
+    -- target is active, telling the frontend to activate whichever item
+    -- it currently has selected. Separate from PUSH_INTERACTION_NAVIGATE
+    -- (which only moves the selection) - same split
+    -- PUSH_VEHICLE_INTERACTION_SCROLL/PUSH_VEHICLE_INTERACTION_ACTIVATE use.
+    PUSH_INTERACTION_ACTIVATE = "interactions.activate",
+
+    -- CEF -> client Lua (via MtaBridge.notify) - the frontend's own
+    -- currently-selected item was activated (space/enter/click), naming
+    -- which item `key` to actually request from the server.
+    INTERACTION_ACTIVATED = "interactions:activated",
+
+    -- Client -> server: relays INTERACTION_ACTIVATED's key together with
+    -- the target element that was current when the overlay opened - server
+    -- re-validates both the element is still valid/in range AND the
+    -- interaction is still allowed before running its handler (never
+    -- trusts the client's own "it's allowed" belief from the list it was
+    -- shown a moment earlier).
+    INTERACTION_CALL = "interactions:call",
 }

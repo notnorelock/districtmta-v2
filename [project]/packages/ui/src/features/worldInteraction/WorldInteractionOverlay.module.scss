@@ -1,0 +1,117 @@
+// CSS Modules + Sass, scoped to features/worldInteraction/ only - see
+// webpack.config.js's *.module.scss rule comment for why.
+// @reference (not @import "tailwindcss"), relative path not the "@/"
+// alias - see HudIcon.module.scss's comment on the same directive for why.
+@reference "../../styles/globals.css";
+
+// pointer-events-none throughout - E-held/scroll/space-driven only, same
+// reasoning as VehicleMenuOverlay.module.scss's own root comment.
+.root {
+  @apply pointer-events-none fixed inset-0 z-40;
+}
+
+// Full-screen darkening behind the target/list, ported from the
+// reference's own vignette - recolored from plain black to this
+// project's --color-background so it tints toward the same warm dark
+// register the rest of the UI uses instead of a neutral gray-black.
+.vignette {
+  @apply pointer-events-none absolute inset-0;
+  background: radial-gradient(
+    circle at center,
+    transparent 0%,
+    color-mix(in srgb, var(--color-background) 35%, transparent) 50%,
+    color-mix(in srgb, var(--color-background) 65%, transparent) 100%
+  );
+}
+
+.pointerLine {
+  @apply pointer-events-none absolute inset-0;
+}
+
+.pointerLineStroke {
+  stroke: var(--color-primary);
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+  opacity: 0.8;
+}
+
+// Rotating diamond marking the current target's screen position - a
+// plain rotated square (border trick) rather than the reference's own
+// SVG diamond asset, recolored to --color-primary.
+.pointerDiamond {
+  @apply pointer-events-none absolute size-4 -translate-x-1/2 -translate-y-1/2 border-2;
+  border-color: var(--color-primary);
+  transform: translate(-50%, -50%) rotate(45deg);
+  animation: diamond-spin 2s linear infinite;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-primary) 70%, transparent));
+}
+
+@keyframes diamond-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(405deg);
+  }
+}
+
+// Vertical option list, anchored to the right-center of the screen - the
+// active item slides to the vertical center via --selected-index (set
+// inline from selectedIndex()), same mechanism as the reference's own
+// translateY(calc(-2.5rem * var(--selected-index))). pointer-events-none
+// like the rest of this overlay - no cursor exists in this mode
+// (scroll/space-driven only, see WorldInteractionState.lua's own module comment).
+.list {
+  @apply pointer-events-none absolute right-[8%] top-1/2 flex flex-col items-start gap-1.5;
+  transform: translate(0, calc(-1 * 2.75rem * var(--selected-index, 0)));
+  transition: transform 0.15s ease-out;
+}
+
+// Fixed width regardless of active state - an earlier version widened
+// the active item (w-60 -> w-64), but with transition-all that width
+// change rippled through the flex column's layout on every scroll tick
+// (fast scrolling = rapid selectedIndex changes = overlapping in-flight
+// width transitions on different items at once), reading as the whole
+// list visibly shaking. Only color/border/shadow animate now - none of
+// those affect layout, so nothing shifts the other items around.
+.item {
+  @apply flex w-64 items-center gap-2 rounded-md border border-border bg-popover/90 px-3 py-2 font-display text-sm font-medium text-muted-foreground shadow-lg transition-colors duration-150;
+}
+
+.itemActive {
+  @apply border-primary bg-popover text-foreground;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 40%, transparent), 0 4px 16px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.itemIcon {
+  @apply flex size-6 shrink-0 items-center justify-center rounded bg-secondary/60 text-primary;
+}
+
+.itemActive .itemIcon {
+  @apply bg-primary/15;
+}
+
+// Bottom-center title/instructions, always visible while E is held
+// (regardless of whether a target/list is currently showing) so the
+// player always knows what the key does.
+.hint {
+  @apply pointer-events-none absolute bottom-[6%] left-1/2 flex -translate-x-1/2 flex-col items-center gap-2;
+}
+
+.hint h3 {
+  @apply font-display text-lg font-semibold text-foreground;
+}
+
+// Icons instead of describing scroll/space in words alone - same pattern
+// VehicleMenuOverlay's own controlsBar uses.
+.controlsBar {
+  @apply flex items-center gap-6;
+}
+
+.controlHint {
+  @apply flex items-center gap-2 font-display text-sm text-muted-foreground;
+}
+
+.controlHint svg {
+  @apply text-primary;
+}

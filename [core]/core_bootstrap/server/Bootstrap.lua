@@ -22,7 +22,15 @@
 -- core_bootstrap actually starts them (see the "does not exist" abort
 -- check in startNext below) rather than relying on mtaserver.conf's own
 -- resource list/order.
-local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "markers", "models", "gm_3dtext", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "gm_roleplay" }
+
+-- gm_interactions after core (its GlobalResources.lua proxies
+-- Permissions/PlayerService/Logger from it, same as gm_vehicles) and
+-- core_ui (its CEF overlay push events go through uiShowOverlay/
+-- uiPushEvent) - no dependency on gm_vehicles/gm_vehicles_interaction
+-- despite its admin vehicle interactions, since those touch the live
+-- vehicle element directly via plain MTA natives rather than calling into
+-- either resource.
+local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "markers", "models", "gm_3dtext", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_interactions", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "gm_roleplay" }
 local START_TIMEOUT_MS = 15000
 
 --- Extra pause after a resource's SERVER-side start before starting the

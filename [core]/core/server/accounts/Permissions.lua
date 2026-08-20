@@ -19,6 +19,12 @@ Permissions.Bit = {
     HEAL = 8192,
     JETPACK = 16384,
     SPAWN_VEHICLE = 32768,
+    -- Admin-only vehicle interactions (gm_interactions' fix/flip/move to
+    -- self on ANY vehicle, not just one's own) - separate from
+    -- SPAWN_VEHICLE (spawning a new private vehicle) since a moderator
+    -- fixing a stuck player's car is a different, lower-stakes action than
+    -- granting them a vehicle.
+    VEHICLE_ADMIN = 65536,
 }
 
 local function bitOr(...)
@@ -41,7 +47,8 @@ local MODERATOR_PERMISSIONS = bitOr(
     Permissions.Bit.TELEPORT,
     Permissions.Bit.HEAL,
     Permissions.Bit.JETPACK,
-    Permissions.Bit.SPAWN_VEHICLE
+    Permissions.Bit.SPAWN_VEHICLE,
+    Permissions.Bit.VEHICLE_ADMIN
 )
 local ADMINISTRATOR_PERMISSIONS = bitOr(MODERATOR_PERMISSIONS, Permissions.Bit.BAN, Permissions.Bit.REVOKE_PENALTY)
 -- VIEW_STATS is RCON+/BOARD-only, deliberately not in ADMINISTRATOR_PERMISSIONS.

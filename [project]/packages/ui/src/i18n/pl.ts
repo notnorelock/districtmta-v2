@@ -88,4 +88,8 @@ export const pl = {
   "vehicleMenu.unavailable": "Niedostępne",
   "vehicleMenu.scrollHint": "Przewiń, aby wybrać",
   "vehicleMenu.spaceHint": "Naciśnij, aby przełączyć",
+
+  "worldInteraction.title": "Interakcja",
+  "worldInteraction.scrollHint": "Przewiń, aby wybrać",
+  "worldInteraction.spaceHint": "Naciśnij, aby aktywować",
 } as const;

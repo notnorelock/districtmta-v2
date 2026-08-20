@@ -298,3 +298,20 @@
 .vehicleMenu-exit-to {
   opacity: 0;
 }
+
+/*
+  World interaction overlay (features/worldInteraction/
+  WorldInteractionOverlay.tsx) - shown while holding E. Plain fade, same
+  reasoning as "blackout"/"scoreboard" above: a full-screen vignette +
+  list anchored to a screen edge, not a single element with a "direction
+  it lives in" for a slide/spring flourish to read as coming from.
+*/
+.worldInteraction-enter-active,
+.worldInteraction-exit-active {
+  transition: opacity 0.2s ease;
+}
+
+.worldInteraction-enter-from,
+.worldInteraction-exit-to {
+  opacity: 0;
+}

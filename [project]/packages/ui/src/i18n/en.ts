@@ -90,4 +90,8 @@ export const en: Record<keyof typeof pl, string> = {
   "vehicleMenu.unavailable": "Unavailable",
   "vehicleMenu.scrollHint": "Scroll to select",
   "vehicleMenu.spaceHint": "Press to toggle",
+
+  "worldInteraction.title": "Interaction",
+  "worldInteraction.scrollHint": "Scroll to select",
+  "worldInteraction.spaceHint": "Press to activate",
 };

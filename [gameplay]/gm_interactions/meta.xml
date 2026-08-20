@@ -1,0 +1,30 @@
+<meta>
+    <info
+        author="district"
+        name="gm_interactions"
+        description="World interaction: E toggles a WallShader outline on nearby interactable players/vehicles/objects - no cursor, whichever outlined element is closest to screen center becomes the active target automatically, showing its available interactions in a CEF list (scroll to select, space to activate). Generic registry (InteractionRegistry.lua) + the admin vehicle fix/flip/move-to-self interactions today - see InteractionRegistry.lua's own module comment on scope."
+        version="1.0.0"
+        type="script"
+    />
+    <!-- Same priority tier as gm_vehicles_interaction/gm_scoreboard/gm_radio - see core_shared/meta.xml's comment on the tag. -->
+    <download_priority_group>3</download_priority_group>
+
+    <include resource="core_shared" />
+    <include resource="core" />
+    <include resource="core_ui" />
+
+    <file src="assets/*" />
+
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/InteractionRegistry.lua" type="server" cache="false" />
+    <script src="server/InteractionService.lua" type="server" cache="false" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/WallShader.lua" type="client" />
+    <script src="client/WorldInteractionState.lua" type="client" cache="false" />
+
+    <!-- WallShader.lua's engineApplyShaderToWorldTexture(..., "all") 5th
+         argument needs at least this client build - same requirement
+         [custom]/markers' meta.xml already declares for its own shader use. -->
+    <min_mta_version client="1.3.0-9.04431" />
+</meta>

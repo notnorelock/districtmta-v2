@@ -13,6 +13,7 @@ import { RadioCard } from "@/features/hud/RadioCard";
 import { BlackoutOverlay } from "@/features/blackout/BlackoutOverlay";
 import { ScoreboardOverlay } from "@/features/scoreboard/ScoreboardOverlay";
 import { VehicleMenuOverlay } from "@/features/vehicleInteraction/VehicleMenuOverlay";
+import { WorldInteractionOverlay } from "@/features/worldInteraction/WorldInteractionOverlay";
 import { Watermark } from "@/components/common/Watermark";
 import { authStore } from "@/stores/auth.store";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -73,6 +74,10 @@ const AppContent: Component = () => {
           prop), shown by gm_vehicles while left Shift is held and driving
           - see VehicleMenuOverlay.tsx's own comment. */}
       <VehicleMenuOverlay />
+      {/* Uses its own "worldInteraction" overlay key (Overlay name prop),
+          shown by gm_interactions while E is held near an interactable
+          element - see WorldInteractionOverlay.tsx's own comment. */}
+      <WorldInteractionOverlay />
       <ToastStack />
     </div>
   );
