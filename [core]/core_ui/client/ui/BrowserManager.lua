@@ -226,6 +226,8 @@ end
 addEventHandler("onClientResourceStart", resourceRoot, function()
     screenWidth, screenHeight = guiGetScreenSize()
     browser = createBrowser(screenWidth, screenHeight, true, true)
+
+    setBlurShaderEnabled(true, browser)
 end)
 
 addEventHandler("onClientBrowserCreated", root, function()
@@ -297,6 +299,7 @@ end)
 
 addEventHandler("onClientResourceStop", resourceRoot, function()
     if browser and isElement(browser) then
+        setBlurShaderEnabled(false, nil)
         destroyElement(browser)
     end
     browser = nil
