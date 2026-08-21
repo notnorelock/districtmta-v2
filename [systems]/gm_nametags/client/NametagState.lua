@@ -47,6 +47,64 @@ local function drawLeftText(text, x, y, scale, textFont, color, alpha)
     dxDrawText(text, x, y, x, y, tocolor(color[1], color[2], color[3], alpha), scale, textFont, "left", "center", false, false, false, true)
 end
 
+local function drawNametag(data, sx, sy, alpha, textScale)
+    local dutyColor = (data.onDuty and data.color or data.premium and PREMIUM_COLOR or data.color) or DEFAULT_COLOR
+    local roleName = data.onDuty and ROLE_DISPLAY_NAME[data.role] or nil
+
+    local statusIcons = {}
+    if data.afk then
+        statusIcons[#statusIcons + 1] = { key = "afk", color = AFK_COLOR }
+    end
+    if data.onDuty then
+        statusIcons[#statusIcons + 1] = { key = "rank", color = dutyColor }
+    end
+    if data.muted then
+        statusIcons[#statusIcons + 1] = { key = "mute", color = MUTE_COLOR }
+    end
+    if data.premium then
+        statusIcons[#statusIcons + 1] = { key = "premium", color = PREMIUM_COLOR }
+    end
+
+    local idIconSize = 44 * textScale
+    local textGap = 4 * textScale
+    local nameScale = roleName and textScale or textScale * 1.35
+    local nameText = data.name
+    local nameWidth = dxGetTextWidth(nameText, nameScale, roleName and font or fontBold)
+    local blockWidth = idIconSize + textGap + nameWidth
+    local leftX = sx - blockWidth / 2
+
+    if #statusIcons > 0 then
+        local iconSize = 36 * textScale
+        local iconGap = -4 * textScale
+        local iconY = sy - 62 * textScale
+        local iconX = leftX + 2
+
+        for _, icon in ipairs(statusIcons) do
+            dxDrawImage(iconX, iconY, iconSize, iconSize, iconsTextures[icon.key], 0, 0, 0, tocolor(icon.color[1], icon.color[2], icon.color[3], alpha))
+            iconX = iconX + iconSize + iconGap
+        end
+    end
+
+    local blockCenterY = sy - 6 * textScale
+    local idIconY = blockCenterY - idIconSize / 2
+    dxDrawImage(leftX, idIconY, idIconSize, idIconSize, iconsTextures.id, 0, 0, 0, tocolor(dutyColor[1], dutyColor[2], dutyColor[3], alpha))
+
+    local idText = tostring(data.id)
+    dxDrawText(idText, leftX + 1, idIconY + 1, leftX + idIconSize + 1, idIconY + idIconSize + 1, tocolor(0, 0, 0, alpha), textScale, fontBold, "center", "center")
+    dxDrawText(idText, leftX, idIconY, leftX + idIconSize, idIconY + idIconSize, tocolor(255, 255, 255, alpha), textScale, fontBold, "center", "center")
+
+    local textX = leftX + idIconSize + textGap
+
+    if roleName then
+        local nameY = blockCenterY - 8 * textScale
+        local roleY = blockCenterY + 8 * textScale
+        drawLeftText(nameText, textX, nameY, nameScale, fontBold, DEFAULT_COLOR, alpha)
+        drawLeftText(roleName, textX, roleY, textScale - 0.08, fontBold, data.color, alpha)
+    else
+        drawLeftText(nameText, textX, blockCenterY, nameScale - 0.18, fontBold, DEFAULT_COLOR, alpha)
+    end
+end
+
 local function renderNametags()
     local cx, cy, cz = getCameraMatrix()
 
@@ -63,61 +121,7 @@ local function renderNametags()
                     local alpha = math.max(0, math.min(BASE_ALPHA - (BASE_ALPHA * progress), BASE_ALPHA)) * (getElementAlpha(player) / 255)
                     local textScale = math.max(0.45, 0.75 - (distance * 0.02))
 
-                    local dutyColor = (data.onDuty and data.color or data.premium and PREMIUM_COLOR or data.color) or DEFAULT_COLOR
-                    local roleName = data.onDuty and ROLE_DISPLAY_NAME[data.role] or nil
-
-                    local statusIcons = {}
-                    if data.afk then
-                        statusIcons[#statusIcons + 1] = { key = "afk", color = AFK_COLOR }
-                    end
-                    if data.onDuty then
-                        statusIcons[#statusIcons + 1] = { key = "rank", color = dutyColor }
-                    end
-                    if data.muted then
-                        statusIcons[#statusIcons + 1] = { key = "mute", color = MUTE_COLOR }
-                    end
-                    if data.premium then
-                        statusIcons[#statusIcons + 1] = { key = "premium", color = PREMIUM_COLOR }
-                    end
-
-                    local idIconSize = 44 * textScale
-                    local textGap = 4 * textScale
-                    local nameScale = roleName and textScale or textScale * 1.35
-                    local nameText = data.name
-                    local nameWidth = dxGetTextWidth(nameText, nameScale, roleName and font or fontBold)
-                    local blockWidth = idIconSize + textGap + nameWidth
-                    local leftX = sx - blockWidth / 2
-
-                    if #statusIcons > 0 then
-                        local iconSize = 36 * textScale
-                        local iconGap = -4 * textScale
-                        local iconY = sy - 62 * textScale
-                        local iconX = leftX + 2
-
-                        for _, icon in ipairs(statusIcons) do
-                            dxDrawImage(iconX, iconY, iconSize, iconSize, iconsTextures[icon.key], 0, 0, 0, tocolor(icon.color[1], icon.color[2], icon.color[3], alpha))
-                            iconX = iconX + iconSize + iconGap
-                        end
-                    end
-
-                    local blockCenterY = sy - 6 * textScale
-                    local idIconY = blockCenterY - idIconSize / 2
-                    dxDrawImage(leftX, idIconY, idIconSize, idIconSize, iconsTextures.id, 0, 0, 0, tocolor(dutyColor[1], dutyColor[2], dutyColor[3], alpha))
-
-                    local idText = tostring(data.id)
-                    dxDrawText(idText, leftX + 1, idIconY + 1, leftX + idIconSize + 1, idIconY + idIconSize + 1, tocolor(0, 0, 0, alpha), textScale, fontBold, "center", "center")
-                    dxDrawText(idText, leftX, idIconY, leftX + idIconSize, idIconY + idIconSize, tocolor(255, 255, 255, alpha), textScale, fontBold, "center", "center")
-
-                    local textX = leftX + idIconSize + textGap
-
-                    if roleName then
-                        local nameY = blockCenterY - 8 * textScale
-                        local roleY = blockCenterY + 8 * textScale
-                        drawLeftText(nameText, textX, nameY, nameScale, fontBold, DEFAULT_COLOR, alpha)
-                        drawLeftText(roleName, textX, roleY, textScale - 0.08, fontBold, data.color, alpha)
-                    else
-                        drawLeftText(nameText, textX, blockCenterY, nameScale - 0.18, fontBold, DEFAULT_COLOR, alpha)
-                    end
+                    drawNametag(data, sx, sy, alpha, textScale)
                 end
             end
         end
