@@ -111,6 +111,7 @@ local function spawnFromRow(row)
     setVehicleRespawnPosition(vehicle, position[1], position[2], position[3], rotation[1], rotation[2], rotation[3])
 
     setVehicleEngineState(vehicle, false)
+    setVehicleOverrideLights(vehicle, 1)
     setElementFrozen(vehicle, true)
 
     return vehicle
