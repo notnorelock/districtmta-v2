@@ -19,7 +19,7 @@
     <script src="server/SessionKeyDelivery.lua" type="server" cache="false" />
 
     <script src="client/Blur.lua" type="client" cache="false" />
-    <script src="client/Fonts.lua" type="client" cache="false" />
+    <script src="client/Fonts.lua" type="client" />
     <script src="client/GlobalResources.lua" type="client" cache="false" />
     <script src="client/ui/Utils.lua" type="client" cache="false" />
     <script src="client/ui/SessionKeyState.lua" type="client" cache="false" />
