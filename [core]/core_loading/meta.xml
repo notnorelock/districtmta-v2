@@ -1,21 +1,9 @@
 <meta>
     <info
-        author="district"
-        name="core_loading"
-        description="Gates Events.LOADING_READY per player until both core_bootstrap's server-side resource chain has finished AND that player's CEF frontend has reported ready - core_auth's AuthUiController.lua waits for this instead of opening the auth window too early. Also, client-side only, tracks THIS client's own resource download progress (onClientTransferBoxProgressChange/onClientTransferBoxVisibilityChange) and pushes it into the CEF browser for ResourceCheckScreen.tsx - entirely local, no server round trip."
+        author="norelock"
         version="1.0.0"
         type="script"
     />
-    <!-- See core_shared/meta.xml's comment on this tag for the full
-         rationale. Highest priority of any project resource that ships
-         client files - DownloadTracker.lua needs to be running as early
-         as possible so it can observe as much of the OTHER resources'
-         download progress as possible (MTA docs: a resource "cannot use
-         [IsTransferBoxActive] to detect if its own files are downloaded",
-         only other resources' still-in-progress ones). core_loading
-         itself still starts where docs/Architecture.md's START_ORDER says
-         (after core_ui) on the SERVER side - this tag only affects the
-         CLIENT-side download queue order, which is independent of that. -->
     <download_priority_group>5</download_priority_group>
 
     <include resource="core_shared" />

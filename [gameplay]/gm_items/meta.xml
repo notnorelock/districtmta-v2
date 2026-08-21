@@ -1,27 +1,15 @@
 <meta>
     <info
-        author="district"
-        name="gm_items"
-        description="Item schemes, player inventory (I panel), and world-dropped item pickups (via gm_interactions). Enums.ItemType.PLAIN (plain stackables) and VEHICLE_KEY (integrates with gm_vehicles) only - see ItemSchemes.lua's own module comment on scope."
+        author="norelock"
         version="1.0.0"
         type="script"
     />
-    <!-- Same priority tier as gm_vehicles/gm_scoreboard/gm_interactions - see core_shared/meta.xml's comment on the tag. -->
     <download_priority_group>3</download_priority_group>
 
     <include resource="core_shared" />
     <include resource="core" />
     <include resource="core_ui" />
 
-    <!-- shared/ItemSchemes.lua is loaded separately per side below (once
-    as type="server", once as type="client"), each placed right after that
-    side's own GlobalResources.lua - it reads Enums at module load time
-    (top-level ItemSchemes.definitions), and Enums only exists once
-    GlobalResources.lua's lazy-metatable proxy has run. A single
-    type="shared" entry can't satisfy both sides at once, since MTA loads
-    server and client script lists independently in meta.xml order, and
-    server/GlobalResources.lua and client/GlobalResources.lua sit at
-    different positions in that combined list. -->
 
     <script src="server/GlobalResources.lua" type="server" cache="false" />
     <script src="shared/ItemSchemes.lua" type="server" cache="false" />
@@ -37,9 +25,5 @@
     <script src="shared/ItemSchemes.lua" type="client" cache="false" />
     <script src="client/InventoryState.lua" type="client" cache="false" />
 
-    <!-- Read-only query, not a callback - safe across the resource
-    boundary (see docs/Architecture.md's "the one hard rule"). Used by
-    gm_interactions' "vehicle:toggleLock" entry to gate lock/unlock access
-    to whoever is carrying that vehicle's key. -->
     <export function="itemServiceHasVehicleKey" type="server" />
 </meta>

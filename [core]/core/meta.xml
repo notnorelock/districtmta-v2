@@ -1,27 +1,12 @@
 <meta>
     <info
-        author="district"
+        author="norelock"
         name="core"
-        description="Core services: database abstraction, logging, player/account runtime context, account domain, notifications. CEF bridge lives in core_ui - see docs/Architecture.md."
         version="1.0.0"
         type="script"
     />
-    <!-- No <download_priority_group> here - it only affects what a
-         connecting client downloads, and this resource has zero
-         type="client"/"shared" files (see core_shared/meta.xml's comment
-         on the same tag for the full rationale used where it DOES
-         matter). -->
 
     <include resource="core_shared" />
-    <!-- Deliberately NOT including core_ui here even though
-         AccountEndpoints.lua calls into it: core_ui itself includes
-         core (it needs Logger/PlayerService/SecurityService), and a
-         mutual <include> is undocumented/unverified MTA behavior. Every
-         cross-resource call in this resource is resolved lazily at call
-         time (see GlobalResources.lua's injector pattern and
-         exports.core_ui:... call sites), not at load time, so core_ui
-         only needs to be running by the time a browser request actually
-         arrives - not before core itself starts. -->
 
     <settings>
         <setting name="MYSQL_HOST" value="127.0.0.1" />
@@ -32,11 +17,6 @@
         <setting name="MYSQL_CHARSET" value="utf8mb4" />
     </settings>
 
-    <!-- Server: order matters - GlobalResources first, then the ORM
-         (Model/QueryBuilder/Schema depend on each other and must load
-         before any model definition), then adapters (which depend on the
-         ORM's Schema.migrate), then leaf modules before the modules that
-         depend on them. -->
     <script src="server/GlobalResources.lua" type="server" cache="false" />
     <script src="server/Logger.lua" type="server" cache="false" />
 
@@ -85,11 +65,6 @@
 
     <script src="server/Bootstrap.lua" type="server" cache="false" />
 
-    <!-- Exports: only plain-data calls, one hop, into this resource from
-         gameplay/system resources or core_ui. Deep async chains
-         (Database.*, AccountService.*, FetchBridge.register with a
-         handler closure) are intentionally NOT exported - see
-         docs/Architecture.md. -->
     <export function="loggerDebug" type="server" />
     <export function="loggerInfo" type="server" />
     <export function="loggerWarn" type="server" />

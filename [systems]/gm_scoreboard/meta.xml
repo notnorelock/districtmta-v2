@@ -1,12 +1,9 @@
 <meta>
     <info
-        author="district"
-        name="gm_scoreboard"
-        description="TAB scoreboard: connected-player list (id, login, status, ping) as a non-blocking CEF overlay - movement keeps working while held, right-click additionally locks controls and grabs cursor focus to interact with the list."
+        author="norelock"
         version="1.0.0"
         type="script"
     />
-    <!-- Same priority tier as gm_voice/gm_radio/ui_hud/core_admin - see core_shared/meta.xml's comment on the tag. -->
     <download_priority_group>3</download_priority_group>
 
     <include resource="core_shared" />

@@ -1,12 +1,9 @@
 <meta>
     <info
-        author="district"
-        name="gm_voice"
-        description="Proximity voice chat: whisper/talk/shout modes (B to cycle) driving broadcast distance, distance/fade volume, stereo panning toward the speaker, admin-mute enforcement (reuses core's account mute penalty, not a separate voice-only mute), nearby-speaker HUD indicator."
+        author="norelock"
         version="1.0.0"
         type="script"
     />
-    <!-- Same priority tier as ui_hud/core_admin - see core_shared/meta.xml's comment on the tag. -->
     <download_priority_group>3</download_priority_group>
 
     <include resource="core_shared" />
@@ -20,11 +17,7 @@
     <script src="client/MathHelpers.lua" type="client" cache="false" />
     <script src="client/VoiceModeState.lua" type="client" cache="false" />
     <script src="client/VoiceState.lua" type="client" cache="false" />
-
-    <!-- Read by ui_hud (client/HudState.lua) so the HUD's mic icon fill
-         tracks the local player's live talk state/mode without ui_hud
-         reading ElementData.Player.VOICE/VOICE_MODE directly - see
-         VoiceState.lua's own comment on VoiceState.isTalking/getMode. -->
+    
     <export function="voiceStateIsTalking" type="client" />
     <export function="voiceStateGetMode" type="client" />
 </meta>

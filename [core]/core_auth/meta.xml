@@ -1,28 +1,12 @@
 <meta>
     <info
-        author="district"
-        name="core_auth"
-        description="Post-login UI orchestration and extras that don't belong in core_ui's generic CEF bridge or gm_roleplay's gameplay logic: 'remember me' local credential persistence (CredentialStore.lua), auth UI open/close orchestration (AuthUiController.lua/AuthUiClient.lua), and spawn selection (SpawnLocations.lua/SpawnEndpoints.lua/SpawnUiController.lua/SpawnUiClient.lua)."
+        author="norelock"
         version="1.0.0"
         type="script"
     />
-    <!-- See core_shared/meta.xml's comment on this tag. core_auth ships
-         client files too (AuthUiClient.lua/CredentialTransport.lua, which
-         read core_shared's Events at module load time) - priority below
-         core_shared/core_ui (which it depends on) but above gm_roleplay
-         (which has none). -->
+
     <download_priority_group>3</download_priority_group>
 
-    <!-- Deliberately does NOT <include resource="gm_roleplay"> even though
-         SpawnEndpoints.lua calls exports.gm_roleplay:gameplayEnterWorld -
-         same reasoning as core/AccountEndpoints.lua not including core_ui
-         (see docs/Architecture.md's start-order section): every
-         cross-resource call here resolves lazily at call time, so
-         gm_roleplay only needs to be running by the time a player actually
-         confirms a spawn choice, not before core_auth itself starts. A
-         core (or core_auth) resource including a gameplay resource would
-         also invert this project's core -> systems -> gameplay dependency
-         direction. -->
     <include resource="core_shared" />
     <include resource="core" />
     <include resource="core_ui" />

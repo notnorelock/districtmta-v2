@@ -1,35 +1,17 @@
 <meta>
     <info
-        author="district"
-        name="core_admin"
-        description="Native dxGUI admin panel + reports overlay (client-only) - the report/penalty/duty business logic lives entirely in core (see core/server/accounts/AdminGuiEndpoints.lua, core/server/commands/AdminCommands.lua, PlayerService.lua's duty methods) for the same reason core_auth doesn't own AccountService: a Lua closure can't cross a resource boundary, so anything that needs to call back into core's services directly has to live there. This resource owns only client-side dxGUI/dxDraw rendering, driven by plain triggerServerEvent/triggerClientEvent request/response pairs (no CEF, no FetchBridge)."
+        author="norelock"
         version="1.0.0"
         type="script"
     />
-    <!-- Same priority tier as core_auth - ships client files that read
-         core_shared's Events at module load time. See
-         core_shared/meta.xml's comment on this tag. -->
+
     <download_priority_group>3</download_priority_group>
 
-    <!-- Only core_shared - this resource is client-only (no server/
-         scripts at all) and never calls into core or core_ui, unlike
-         core_auth/other UI feature resources: the dxGUI panel talks to
-         core directly over plain custom events (see AdminGuiEndpoints.lua)
-         rather than through core_ui's CEF-bound FetchBridge/PushService,
-         so there is nothing here to proxy from either. -->
     <include resource="core_shared" />
 
     <script src="client/GlobalResources.lua" type="client" cache="false" />
     <script src="client/Logger.lua" type="client" cache="false" />
 
-    <!-- gui/: the dxGUI admin panel, split per tab. AdminGuiWindow.lua
-         first - it creates the shared window/tabPanel and calls each
-         tab's Build*Tab() on onClientResourceStart, so it must load (and
-         therefore declare its globals) before the tab files reference
-         them. PenaltyDialog.lua last since PlayersTab.lua's buttons call
-         into it, but only from a click handler (runs long after
-         onClientResourceStart), so strict ordering there isn't required -
-         kept last anyway for readability (it's the "detail" screen). -->
     <script src="client/gui/AdminGuiWindow.lua" type="client" cache="false" />
     <script src="client/gui/PlayersTab.lua" type="client" cache="false" />
     <script src="client/gui/ReportsTab.lua" type="client" cache="false" />

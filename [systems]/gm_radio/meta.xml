@@ -1,20 +1,13 @@
 <meta>
     <info
-        author="district"
-        name="gm_radio"
-        description="Vehicle radio: fixed station list (no per-account saved stations/YouTube proxy yet - see RadioService.lua's own comment), driver-only scroll/R controls, broadcast to every occupant, CEF HUD station card (top-center)."
+        author="norelock"
         version="1.0.0"
         type="script"
     />
-    <!-- Same priority tier as gm_voice/ui_hud/core_admin - see core_shared/meta.xml's comment on the tag. -->
     <download_priority_group>3</download_priority_group>
 
     <include resource="core_shared" />
     <include resource="core_ui" />
-    <!-- Only for vehicleInteractionIsMenuOpen - see RadioState.lua's own
-         requestChangeStation comment. gm_vehicles_interaction must start
-         before gm_radio in core_bootstrap's START_ORDER for this export
-         to exist by the time RadioState.lua's own onClientResourceStart runs. -->
     <include resource="gm_vehicles_interaction" />
 
     <script src="server/GlobalResources.lua" type="server" cache="false" />
