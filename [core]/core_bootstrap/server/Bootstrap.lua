@@ -39,7 +39,13 @@
 -- plausibly interact with a dropped item. Also after gm_vehicles: its
 -- vehicle-key item type reads ElementData.Vehicle.ID, which gm_vehicles
 -- sets on spawn.
-local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "markers", "models", "gm_3dtext", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_interactions", "gm_items", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "gm_roleplay" }
+
+-- gm_nametags after core_ui (its client calls getUIFont, same dependency
+-- markers has) and after core (its GlobalResources.lua proxies
+-- PlayerService/Permissions from it, same as gm_interactions/gm_vehicles) -
+-- no gameplay-tier dependency of its own, so it's placed right alongside
+-- markers/models/gm_3dtext rather than waiting for the whole gameplay chain.
+local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "markers", "models", "gm_3dtext", "gm_nametags", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_interactions", "gm_items", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "gm_roleplay" }
 local START_TIMEOUT_MS = 15000
 
 --- Extra pause after a resource's SERVER-side start before starting the

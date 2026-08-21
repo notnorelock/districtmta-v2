@@ -1,0 +1,21 @@
+<meta>
+    <info
+        author="district"
+        name="gm_nametags"
+        description="Custom dx-drawn player nametags (name/id, on-duty rank name+color, level placeholder) replacing MTA's own default nametag."
+        version="1.0.0"
+        type="script"
+    />
+
+    <include resource="core_shared" />
+    <include resource="core" />
+    <include resource="core_ui" />
+
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/NametagService.lua" type="server" cache="false" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/NametagState.lua" type="client" cache="false" />
+
+    <file src="assets/*" />
+</meta>

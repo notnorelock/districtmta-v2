@@ -36,6 +36,14 @@ ElementData = {
         -- re-derive the CEF countdown ring's progress normalization, not
         -- just the raw seconds remaining.
         BLACKOUT_DURATION = "player:blackoutDuration",
+
+        -- Reserved ahead of an actual AFK-detection system (none exists
+        -- in this project yet) - gm_nametags/client/NametagState.lua
+        -- already reads this key for its AFK status icon (absent/false =
+        -- not AFK, same "getElementData returns false for an unset key"
+        -- convention as ADMIN), so whatever future system sets it doesn't
+        -- need to also touch the nametag code.
+        AFK = "player:afk",
     },
     Account = {
         PREMIUM = "account:premium",

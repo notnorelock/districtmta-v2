@@ -396,4 +396,18 @@ Events = {
     -- generically before calling the handler; this only carries the
     -- specific item row id through to gm_items).
     ITEM_PICKUP = "items:pickup",
+
+    -- Client -> server: a nametag just came into view (onClientElementStreamIn)
+    -- and needs role/duty/level data no ElementData key exposes client-side
+    -- (role/duty are server-only concepts - see PlayerService.lua/
+    -- Permissions.lua, both server modules with no client export chain).
+    -- gm_nametags/server/NametagService.lua responds for exactly that one
+    -- player, not a full roster push - a streamed-in nametag only needs
+    -- data for the player that just appeared.
+    NAMETAG_REQUEST_DATA = "nametags:requestData",
+    -- Server -> client: response to NAMETAG_REQUEST_DATA, `player` echoed
+    -- back so the client can match it to the right streamablePlayers entry
+    -- (requests can race - a player might stream out before the response
+    -- for their stream-in arrives).
+    NAMETAG_DATA_RECEIVED = "nametags:dataReceived",
 }
