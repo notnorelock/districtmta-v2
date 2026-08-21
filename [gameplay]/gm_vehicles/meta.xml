@@ -12,6 +12,14 @@
     <script src="server/GlobalResources.lua" type="server" cache="false" />
     <script src="server/VehicleBridge.lua" type="server" cache="false" />
     <script src="server/VehicleService.lua" type="server" cache="false" />
+    <script src="server/VehicleLockService.lua" type="server" cache="false" />
     <script src="server/PublicVehicles.lua" type="server" cache="false" />
     <script src="server/VehicleCommands.lua" type="server" cache="false" />
+
+    <!-- Plain data in/data out (a boolean vehicle, a boolean back) - safe
+    across the resource boundary per docs/Architecture.md's "the one hard
+    rule". Toggles lock + flashes headlights (1x unlock, 2x lock). Used by
+    gm_interactions' "vehicle:toggleLock" world interaction and gm_items'
+    ItemUseHandlers.lua's VEHICLE_KEY "use" handler. -->
+    <export function="toggleVehicleLock" type="server" />
 </meta>

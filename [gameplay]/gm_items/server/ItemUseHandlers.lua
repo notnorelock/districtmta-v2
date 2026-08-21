@@ -6,16 +6,16 @@
 -- return true` no-op branch).
 ITEM_USE_HANDLERS = {}
 
--- Vehicle key: toggles the target vehicle's lock, same as gm_vehicles_
--- interaction's own lock toggle - reuses setVehicleLocked/isVehicleLocked
--- directly (a plain MTA native, not a call into gm_vehicles/
--- gm_vehicles_interaction) rather than reaching into either resource,
--- since neither exposes a lock-toggle export today and this is a single
--- native call, not something worth adding a cross-resource bridge for.
--- item.itemValues = { vehicleId } - vehicleId is a gm_vehicles database
--- row id (see VehicleService.lua's spawnFromRow / ElementData.Vehicle.ID),
--- resolved to the live world vehicle element by scanning getElementsByType
--- (gm_vehicles doesn't export an id->element lookup either).
+-- Vehicle key: toggles the target vehicle's lock via gm_vehicles' own
+-- toggleVehicleLock export (plain data in/out - safe across the resource
+-- boundary per docs/Architecture.md's "the one hard rule") instead of
+-- calling setVehicleLocked directly, so the headlight-flash signal
+-- (gm_vehicles/server/VehicleLockService.lua) fires here too, not just
+-- from gm_vehicles' own callers. item.itemValues = { vehicleId } -
+-- vehicleId is a gm_vehicles database row id (see VehicleService.lua's
+-- spawnFromRow / ElementData.Vehicle.ID), resolved to the live world
+-- vehicle element by scanning getElementsByType (gm_vehicles doesn't
+-- export an id->element lookup today).
 ITEM_USE_HANDLERS[Enums.ItemType.VEHICLE_KEY] = function(player, item, scheme)
     local vehicleId = item.itemValues[1]
     if not vehicleId then
@@ -40,5 +40,5 @@ ITEM_USE_HANDLERS[Enums.ItemType.VEHICLE_KEY] = function(player, item, scheme)
         return
     end
 
-    setVehicleLocked(target, not isVehicleLocked(target))
+    exports.gm_vehicles:toggleVehicleLock(target)
 end

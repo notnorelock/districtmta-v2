@@ -163,14 +163,16 @@ InteractionRegistry.register("object:itemPickup", {
 })
 
 -- Lock/unlock toggle, gated on carrying that specific vehicle's key -
--- same effect as ItemUseHandlers.lua's own VEHICLE_KEY "use" handler
--- (setVehicleLocked/isVehicleLocked, a plain MTA native), just reachable
--- from the world interaction menu directly instead of opening the
--- inventory panel to click "Użyj". itemServiceHasVehicleKey is a
--- read-only query export (not a callback - safe across the resource
--- boundary per docs/Architecture.md's "the one hard rule"), pcall'd since
--- gm_items could in principle be stopped/restarting independently of
--- gm_interactions.
+-- same effect as ItemUseHandlers.lua's own VEHICLE_KEY "use" handler, just
+-- reachable from the world interaction menu directly instead of opening
+-- the inventory panel to click "Użyj". Both go through gm_vehicles'
+-- toggleVehicleLock export (plain data in/out, safe across the resource
+-- boundary per docs/Architecture.md's "the one hard rule") rather than
+-- calling setVehicleLocked directly, so the headlight-flash signal
+-- (VehicleLockService.lua) fires from this too, not just gm_vehicles' own
+-- callers. itemServiceHasVehicleKey/toggleVehicleLock are both pcall'd
+-- since gm_items/gm_vehicles could in principle be stopped/restarting
+-- independently of gm_interactions.
 InteractionRegistry.register("vehicle:toggleLock", {
     label = "Otwórz/zamknij pojazd",
     icon = "IconLock",
@@ -186,7 +188,7 @@ InteractionRegistry.register("vehicle:toggleLock", {
         return ok and hasKey == true
     end,
     handler = function(player, vehicle)
-        setVehicleLocked(vehicle, not isVehicleLocked(vehicle))
+        exports.gm_vehicles:toggleVehicleLock(vehicle)
     end,
 })
 

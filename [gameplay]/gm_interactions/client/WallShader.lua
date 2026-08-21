@@ -47,6 +47,12 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
 
         shaders = {}
     end)
+
+    addEventHandler("onClientElementDestroy", root, function()
+        if shaders.objects and shaders.objects[source] then
+            destroyObjectWallEffect(source)
+        end
+    end)
 end)
 
 local function createObjectWallEffect(object, optimized)
@@ -67,7 +73,9 @@ end
 local function destroyObjectWallEffect(object)
     if not shaders.objects[object] then return end
 
-    engineRemoveShaderFromWorldTexture(shaders.objects[object], "*", object)
+    if isElement(object) then
+        engineRemoveShaderFromWorldTexture(shaders.objects[object], "*", object)
+    end
     destroyElement(shaders.objects[object])
     shaders.objects[object] = nil
 end
