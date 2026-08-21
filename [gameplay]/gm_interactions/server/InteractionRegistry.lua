@@ -96,19 +96,24 @@ InteractionRegistry.availableFor = function(player, element)
     return keys
 end
 
--- Admin vehicle interactions - gated on Permissions.Bit.VEHICLE_ADMIN
--- (on-duty staff only, see Permissions.lua). Effects touch the live
--- vehicle element directly via plain MTA natives (setElementHealth,
--- setElementRotation, ...) rather than going through gm_vehicles at all -
--- gm_vehicles' own periodic autosave/onVehicleExit save picks up the
--- resulting state on its own, no cross-resource call needed (see
--- docs/Architecture.md's "the one hard rule" - this deliberately avoids
--- needing one).
+-- Admin vehicle interactions - gated on PlayerService.isOnDuty (currently
+-- on-duty staff only), not permissionBit/Permissions.Bit.VEHICLE_ADMIN -
+-- a permission bit only says a role is ALLOWED to go on duty, not that
+-- the player actually has right now (an off-duty admin shouldn't see
+-- these in the interaction menu at all, same as they don't get the admin
+-- GUI). Effects touch the live vehicle element directly via plain MTA
+-- natives (setElementHealth, setElementRotation, ...) rather than going
+-- through gm_vehicles at all - gm_vehicles' own periodic autosave/
+-- onVehicleExit save picks up the resulting state on its own, no
+-- cross-resource call needed (see docs/Architecture.md's "the one hard
+-- rule" - this deliberately avoids needing one).
 InteractionRegistry.register("vehicle:adminFix", {
     label = "Napraw pojazd",
     icon = "IconTool",
     elementType = "vehicle",
-    permissionBit = Permissions.Bit.VEHICLE_ADMIN,
+    condition = function(player)
+        return PlayerService.isOnDuty(player) == true
+    end,
     handler = function(player, vehicle)
         fixVehicle(vehicle)
         outputChatBox("Naprawiono pojazd.", player, 100, 220, 120)
@@ -123,8 +128,10 @@ InteractionRegistry.register("vehicle:adminFlip", {
     label = "Obróć pojazd",
     icon = "IconRotate",
     elementType = "vehicle",
-    permissionBit = Permissions.Bit.VEHICLE_ADMIN,
-    condition = function(_, vehicle)
+    condition = function(player, vehicle)
+        if not PlayerService.isOnDuty(player) then
+            return false
+        end
         local rx = getElementRotation(vehicle)
         return rx > 60 and rx < 250
     end,
@@ -196,7 +203,9 @@ InteractionRegistry.register("vehicle:adminMoveToSelf", {
     label = "Przenieś pojazd do siebie",
     icon = "IconArrowBackUp",
     elementType = "vehicle",
-    permissionBit = Permissions.Bit.VEHICLE_ADMIN,
+    condition = function(player)
+        return PlayerService.isOnDuty(player) == true
+    end,
     handler = function(player, vehicle)
         local x, y, z = getElementPosition(player)
         local rx, ry, rz = getElementRotation(player)

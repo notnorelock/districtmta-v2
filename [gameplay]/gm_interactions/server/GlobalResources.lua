@@ -22,6 +22,7 @@ local PlayerService = {
     isAuthenticated = function(player) return exports.core:playerServiceIsAuthenticated(player) end,
     getAccountId = function(player) return exports.core:playerServiceGetAccountId(player) end,
     getRole = function(player) return exports.core:playerServiceGetRole(player) end,
+    isOnDuty = function(player) return exports.core:playerServiceIsOnDuty(player) end,
 }
 
 local Permissions = {
