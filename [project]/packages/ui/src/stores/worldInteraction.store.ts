@@ -44,5 +44,8 @@ mta.on("interactions.activate", () => {
 });
 
 mta.on("interactions.target", (data) => {
-  setTarget(data as WorldInteractionTarget);
+  // `false` (not a position) means the target was lost - see
+  // WorldInteractionState.lua's own refreshCandidates comment on why
+  // this needs to explicitly clear rather than just stop being pushed.
+  setTarget(data === false ? null : (data as WorldInteractionTarget));
 });
