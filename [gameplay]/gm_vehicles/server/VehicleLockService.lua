@@ -65,14 +65,42 @@ local function flashLights(vehicle, times)
     flashOnce(times)
 end
 
+-- Door indices 2-5 are the actual entry doors (front-left/front-right/
+-- rear-left/rear-right) - see https://wiki.multitheftauto.com/wiki/SetVehicleDoorState.
+-- 0 (hood) and 1 (trunk) are deliberately excluded: setVehicleLocked
+-- alone doesn't stop a player walking through a door that's already
+-- open, but a hood/trunk being open doesn't let anyone INTO the vehicle,
+-- so forcing those shut too would just be a cosmetic side effect with no
+-- actual security purpose.
+local ENTRY_DOOR_INDICES = { 2, 3, 4, 5 }
+-- getVehicleDoorState's own value 0 - fully closed. 1/2/3/4 are ajar
+-- through fully-open swing positions, anything not 0 needs closing.
+local DOOR_STATE_CLOSED = 0
+
+--- Forces every open entry door shut - setVehicleLocked alone leaves an
+--- already-open door open, letting anyone still walk straight in despite
+--- the vehicle now being locked.
+-- @param vehicle vehicle
+local function closeOpenDoors(vehicle)
+    for _, doorIndex in ipairs(ENTRY_DOOR_INDICES) do
+        if getVehicleDoorState(vehicle, doorIndex) ~= DOOR_STATE_CLOSED then
+            setVehicleDoorState(vehicle, doorIndex, DOOR_STATE_CLOSED)
+        end
+    end
+end
+
 --- Toggles `vehicle`'s lock state and flashes its headlights to signal
 --- the new state (1x = now unlocked, 2x = now locked) - same convention
---- real vehicle key fobs use.
+--- real vehicle key fobs use. Locking also force-closes any open entry
+--- door (see closeOpenDoors's own comment).
 -- @param vehicle vehicle
 -- @return boolean the new locked state
 VehicleLockService.toggle = function(vehicle)
     local nowLocked = not isVehicleLocked(vehicle)
     setVehicleLocked(vehicle, nowLocked)
+    if nowLocked then
+        closeOpenDoors(vehicle)
+    end
     flashLights(vehicle, nowLocked and 2 or 1)
     return nowLocked
 end

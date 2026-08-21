@@ -17,8 +17,15 @@ local hideCardTimer = nil
 --- @param player element
 -- @return boolean true if `player` is in the driver seat of a vehicle
 local function isDriving(player)
+    -- getPedOccupiedVehicle returns false (not nil) when the ped isn't in
+    -- any vehicle - `vehicle ~= nil` is true even for false, so
+    -- getVehicleController(false) was still being called ("Bad argument @
+    -- 'getVehicleController' [Expected vehicle at argument 1, got
+    -- boolean]") every time this ran while on foot. isElement() is the
+    -- correct truthiness check for a value that might be false, an
+    -- element, or (in principle) nil.
     local vehicle = getPedOccupiedVehicle(player)
-    return vehicle ~= nil and getVehicleController(vehicle) == player
+    return isElement(vehicle) and getVehicleController(vehicle) == player
 end
 
 local function requestChangeStation(next)
