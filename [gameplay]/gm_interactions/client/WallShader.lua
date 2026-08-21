@@ -19,42 +19,6 @@ local groundTexture
 local GROUND_SIZE = distance / 1.25
 local GROUND_COUNT = 2
 
-addEventHandler("onClientResourceStart", resourceRoot, function()
-    target = dxCreateRenderTarget(sx, sy, true)
-    groundTexture = dxCreateTexture("assets/ground.png")
-
-    shaders.objects = {}
-    shaders.post_edge = dxCreateShader("assets/post_edge.fx")
-    dxSetShaderValue(shaders.post_edge, "sTex0", target)
-    dxSetShaderValue(shaders.post_edge, "sRes", sx, sy)
-
-    addEventHandler("onClientResourceStop", resourceRoot, function()
-        destroyElement(target)
-        target = nil
-
-        destroyElement(groundTexture)
-        groundTexture = nil
-
-        destroyElement(shaders.post_edge)
-        shaders.post_edge = nil
-
-        if #shaders.objects > 0 then
-            for k, v in pairs(shaders.objects) do
-                destroyElement(v)
-                shaders.objects[k] = nil
-            end
-        end
-
-        shaders = {}
-    end)
-
-    addEventHandler("onClientElementDestroy", root, function()
-        if shaders.objects and shaders.objects[source] then
-            destroyObjectWallEffect(source)
-        end
-    end)
-end)
-
 local function createObjectWallEffect(object, optimized)
     if not shaders.objects[object] then
         if not optimized then
@@ -114,6 +78,42 @@ local function _onClientPreRender()
         end
     end
 end
+
+addEventHandler("onClientResourceStart", resourceRoot, function()
+    target = dxCreateRenderTarget(sx, sy, true)
+    groundTexture = dxCreateTexture("assets/ground.png")
+
+    shaders.objects = {}
+    shaders.post_edge = dxCreateShader("assets/post_edge.fx")
+    dxSetShaderValue(shaders.post_edge, "sTex0", target)
+    dxSetShaderValue(shaders.post_edge, "sRes", sx, sy)
+
+    addEventHandler("onClientResourceStop", resourceRoot, function()
+        destroyElement(target)
+        target = nil
+
+        destroyElement(groundTexture)
+        groundTexture = nil
+
+        destroyElement(shaders.post_edge)
+        shaders.post_edge = nil
+
+        if #shaders.objects > 0 then
+            for k, v in pairs(shaders.objects) do
+                destroyElement(v)
+                shaders.objects[k] = nil
+            end
+        end
+
+        shaders = {}
+    end)
+
+    addEventHandler("onClientElementDestroy", root, function()
+        if shaders.objects and shaders.objects[source] then
+            destroyObjectWallEffect(source)
+        end
+    end)
+end)
 
 function toggleWallShader(state, objects)
     if not state then
