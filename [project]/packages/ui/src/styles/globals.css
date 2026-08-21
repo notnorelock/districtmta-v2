@@ -315,3 +315,19 @@
 .worldInteraction-exit-to {
   opacity: 0;
 }
+
+/*
+  Inventory overlay (features/inventory/InventoryOverlay.tsx) - centered
+  panel toggled by I, same plain fade+scale as "scoreboard" above (not
+  anchored to a screen edge, so no directional slide reads as intentional).
+*/
+.inventory-enter-active,
+.inventory-exit-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.inventory-enter-from,
+.inventory-exit-to {
+  opacity: 0;
+  transform: scale(0.98);
+}

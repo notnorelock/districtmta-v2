@@ -94,4 +94,16 @@ export const en: Record<keyof typeof pl, string> = {
   "worldInteraction.title": "Interaction",
   "worldInteraction.scrollHint": "Scroll to select",
   "worldInteraction.spaceHint": "Press to activate",
+
+  "inventory.category.favorites": "Favorites",
+  "inventory.category.all": "All",
+  "inventory.category.food": "Food",
+  "inventory.category.keys": "Keys",
+  "inventory.category.other": "Other",
+  "inventory.empty": "No items in this category",
+  "inventory.hint": "Click an item to see options",
+  "inventory.action.use": "Use",
+  "inventory.action.favorite": "Add to favorites",
+  "inventory.action.unfavorite": "Remove from favorites",
+  "inventory.action.drop": "Drop",
 };

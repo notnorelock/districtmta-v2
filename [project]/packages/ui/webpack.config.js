@@ -25,6 +25,17 @@ function getBuildCommit() {
  */
 export default (env, argv) => {
   const isProduction = argv.mode === "production";
+  // Independent of --mode on purpose: --mode only ever flips between
+  // "production" (real MTA deploy - fixed mta:// publicPath, CSS
+  // extraction, hashed CSS-module class names) and "development" (pnpm
+  // dev's own localhost server - publicPath: "auto", style-loader instead
+  // of extraction). Debugging an in-game build via /browserdebug still
+  // needs the production output shape (publicPath must stay mta://, or
+  // every asset 404s) but WITHOUT Terser's drop_console/drop_debugger and
+  // WITHOUT scripts/build-ui.mjs's js-confuser pass - hence a separate
+  // flag, set via `webpack --mode production --env debug` (see
+  // build-ui.mjs's --dev flag), instead of overloading --mode for this.
+  const keepDebugOutput = env?.debug === true || env?.debug === "true";
 
   return {
     mode: isProduction ? "production" : "development",
@@ -198,8 +209,11 @@ export default (env, argv) => {
                     // - including any string that might leak internal
                     // detail - survives into the shipped bundle).
                     // debugger statements are dropped for the same reason.
-                    drop_console: true,
-                    drop_debugger: true,
+                    // Both skipped for a --env debug build (see
+                    // keepDebugOutput above) so /browserdebug's console
+                    // still shows this app's own console.log/error calls.
+                    drop_console: !keepDebugOutput,
+                    drop_debugger: !keepDebugOutput,
                   },
                   format: {
                     comments: false,

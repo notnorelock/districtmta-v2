@@ -64,8 +64,26 @@ export class MtaTransport implements MtaTransportLike {
       return;
     }
 
+    // Routed through the single "ui.notify" channel (see Events.lua's own
+    // UI_NOTIFY comment) instead of window.mta.triggerEvent(eventName, ...args)
+    // directly - that crossing stringifies every argument regardless of
+    // its real JS type (confirmed live: a JS number arrived as a Lua
+    // STRING), which silently broke every consumer expecting a real
+    // number/table. core_ui/client/ui/Transport.lua's UI_NOTIFY handler
+    // JSON-decodes argsJson and re-fires the real eventName with real
+    // typed args for whichever resource actually owns it.
+    //
+    // Wrapped as { args } rather than JSON.stringify(args) directly -
+    // MTA's own fromJSON (confirmed live) auto-UNWRAPS a top-level
+    // single-element JSON array back down to the bare value instead of a
+    // one-element table (e.g. fromJSON("[1]") returns the number 1, not
+    // {1}), which is also why toJsonValue() in Utils.lua strips the outer
+    // brackets toJSON always adds - it's compensating for the same
+    // behavior in the other direction. Wrapping in an object with a named
+    // "args" key sidesteps that unwrap entirely, so the receiving side
+    // always gets a real table back, whether args has 0, 1, or N entries.
     console.log("[MtaTransport] window.mta.triggerEvent (notify)", eventName, args);
-    window.mta.triggerEvent(eventName, ...args);
+    window.mta.triggerEvent("ui.notify", eventName, JSON.stringify({ args }));
   }
 
   saveCredentials(login: string, password: string): void {

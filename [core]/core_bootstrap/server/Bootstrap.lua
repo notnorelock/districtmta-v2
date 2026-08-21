@@ -30,7 +30,16 @@
 -- despite its admin vehicle interactions, since those touch the live
 -- vehicle element directly via plain MTA natives rather than calling into
 -- either resource.
-local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "markers", "models", "gm_3dtext", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_interactions", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "gm_roleplay" }
+
+-- gm_items after gm_interactions: its world-item pickup goes through
+-- gm_interactions' generic "object:itemPickup" InteractionRegistry entry
+-- (see InteractionRegistry.lua's own module comment on why gm_items can't
+-- register that entry itself - a handler function can't cross the
+-- resource boundary) - that entry needs to exist before a player could
+-- plausibly interact with a dropped item. Also after gm_vehicles: its
+-- vehicle-key item type reads ElementData.Vehicle.ID, which gm_vehicles
+-- sets on spawn.
+local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "markers", "models", "gm_3dtext", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_interactions", "gm_items", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "gm_roleplay" }
 local START_TIMEOUT_MS = 15000
 
 --- Extra pause after a resource's SERVER-side start before starting the

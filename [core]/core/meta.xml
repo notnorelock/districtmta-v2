@@ -51,17 +51,20 @@
     <script src="server/database/models/Report.lua" type="server" cache="false" />
     <script src="server/database/models/AdminDutySession.lua" type="server" cache="false" />
     <script src="server/database/models/Vehicle.lua" type="server" cache="false" />
+    <script src="server/database/models/Item.lua" type="server" cache="false" />
     <script src="server/database/repositories/AccountRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/AccountPenaltyRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/ReportRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/AdminDutySessionRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/VehicleRepository.lua" type="server" cache="false" />
+    <script src="server/database/repositories/ItemRepository.lua" type="server" cache="false" />
     <script src="server/database/adapters/MySqlAdapter.lua" type="server" cache="false" />
     <script src="server/database/adapters/MySqlAdapterBootstrap.lua" type="server" cache="false" />
 
     <script src="server/PlayerId.lua" type="server" cache="false" />
     <script src="server/PlayerService.lua" type="server" cache="false" />
     <script src="server/VehicleService.lua" type="server" cache="false" />
+    <script src="server/ItemService.lua" type="server" cache="false" />
     <script src="server/SecurityService.lua" type="server" cache="false" />
     <script src="server/SessionKeyService.lua" type="server" cache="false" />
 

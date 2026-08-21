@@ -61,4 +61,29 @@ Enums = {
         PRIVATE = "private",
         PUBLIC = "public",
     },
+
+    -- gm_items' item schemes (ItemSchemes.lua) each declare one of these -
+    -- what special server-side behavior an item has beyond being a plain
+    -- stackable/droppable thing. Ported from an older, unrelated
+    -- project's own item "type" field (0/1/2 = plain/vehicle key/fishing
+    -- rod); only PLAIN and VEHICLE_KEY exist here today - a fishing-rod-
+    -- style USABLE type was deliberately NOT ported since it depended on
+    -- a job/fishing system this project doesn't have, per
+    -- docs/Architecture.md's "Adding a new system" section (add a type
+    -- only once the system it depends on actually exists).
+    ItemType = {
+        PLAIN = "plain",
+        VEHICLE_KEY = "vehicleKey",
+    },
+
+    -- Inventory panel category tabs (InventoryOverlay.tsx) - each
+    -- ItemSchemes.lua entry declares one, "Ulubione"/"Wszystko" are
+    -- derived client-side (favorite flag / no filter) rather than real
+    -- categories here.
+    ItemCategory = {
+        FOOD = "food",
+        KEYS = "keys",
+        WEAPON = "weapon",
+        OTHER = "other",
+    },
 }

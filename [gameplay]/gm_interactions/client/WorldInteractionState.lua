@@ -241,6 +241,8 @@ addEventHandler(Events.INTERACTION_LIST_RECEIVED, root, function(items)
     exports.core_ui:uiPushEvent(Events.PUSH_INTERACTION_LIST, items)
 end)
 
+-- Relayed through core_ui's ui:notify channel (see Transport.lua's module
+-- comment) - `key` arrives already JSON-decoded back into a real string.
 addEvent(Events.INTERACTION_ACTIVATED, true)
 addEventHandler(Events.INTERACTION_ACTIVATED, root, function(key)
     if not activeTarget or not isElement(activeTarget) then

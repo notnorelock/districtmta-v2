@@ -13,6 +13,21 @@ import { existsSync, mkdirSync, rmSync, cpSync, readdirSync, readFileSync, write
 import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
+// --dev keeps webpack's own "production" --mode (still required - it's
+// what makes publicPath the fixed "http://mta/local/client/html/" every
+// asset reference needs to actually resolve once this ships into
+// core_ui/client/html; webpack's "development" mode's publicPath: "auto"
+// is only correct for pnpm dev's own localhost server, and would 404
+// every font/texture/CSS reference here - see webpack.config.js's own
+// publicPath comment), but passes --env debug so TerserPlugin skips
+// drop_console/drop_debugger (see keepDebugOutput in webpack.config.js),
+// and skips the js-confuser obfuscation pass below - use this while
+// chasing a bug through /browserdebug's console, where a normal
+// production build's stripped console.* calls and concealed/mangled
+// output make the actual failure unreadable. Never pass --dev for a
+// build meant to ship.
+const isDevBuild = process.argv.includes("--dev");
+
 // This file lives at mods/deathmatch/resources/[project]/scripts/build-ui.mjs.
 // projectDir is "[project]/" itself (packages/ui lives directly under it);
 // resourcesDir is "mods/deathmatch/resources/" (one level up - "[project]"
@@ -26,9 +41,13 @@ const uiDir = path.join(projectDir, "packages", "ui");
 const distDir = path.join(uiDir, "dist");
 const targetDir = path.join(resourcesDir, "[core]", "core_ui", "client", "html");
 
-console.log("[build-ui] Building packages/ui...");
+console.log(`[build-ui] Building packages/ui${isDevBuild ? " (--env debug: console.* kept)" : ""}...`);
 const webpackBin = path.join(uiDir, "node_modules", "webpack-cli", "bin", "cli.js");
-const build = spawnSync(process.execPath, [webpackBin, "--mode", "production"], { cwd: uiDir, stdio: "inherit" });
+const webpackArgs = ["--mode", "production"];
+if (isDevBuild) {
+  webpackArgs.push("--env", "debug");
+}
+const build = spawnSync(process.execPath, [webpackBin, ...webpackArgs], { cwd: uiDir, stdio: "inherit" });
 
 if (build.status !== 0) {
   console.error("[build-ui] webpack build failed.");
@@ -67,33 +86,37 @@ const JS_CONFUSER_OPTIONS = {
   }
 };
 
-console.log("[build-ui] Obfuscating built JS with js-confuser...");
-// [project] has no package.json of its own (see CLAUDE.md) - js-confuser
-// is only installed under packages/ui's own node_modules, so it's
-// imported from there explicitly by path rather than as a bare specifier.
-const { default: JsConfuser } = await import(
-  pathToFileURL(path.join(uiDir, "node_modules", "js-confuser", "dist", "index.js"))
-);
-const jsAssetsDir = path.join(distDir, "assets");
-// vendor.js (node_modules: solid-js, @kobalte/core, lucide-solid, ...) is
-// deliberately skipped - nothing project-specific worth hiding lives
-// there, and obfuscating it roughly tripled its size (103KB -> 293KB)
-// for no real benefit, on a bundle that runs inside CEF rendering the
-// HUD every frame. Only index.js (this project's own source) is worth
-// the size/runtime cost.
-const jsFiles = existsSync(jsAssetsDir) ? readdirSync(jsAssetsDir).filter((name) => name === "index.js") : [];
+if (isDevBuild) {
+  console.log("[build-ui] --dev: skipping js-confuser obfuscation.");
+} else {
+  console.log("[build-ui] Obfuscating built JS with js-confuser...");
+  // [project] has no package.json of its own (see CLAUDE.md) - js-confuser
+  // is only installed under packages/ui's own node_modules, so it's
+  // imported from there explicitly by path rather than as a bare specifier.
+  const { default: JsConfuser } = await import(
+    pathToFileURL(path.join(uiDir, "node_modules", "js-confuser", "dist", "index.js"))
+  );
+  const jsAssetsDir = path.join(distDir, "assets");
+  // vendor.js (node_modules: solid-js, @kobalte/core, lucide-solid, ...) is
+  // deliberately skipped - nothing project-specific worth hiding lives
+  // there, and obfuscating it roughly tripled its size (103KB -> 293KB)
+  // for no real benefit, on a bundle that runs inside CEF rendering the
+  // HUD every frame. Only index.js (this project's own source) is worth
+  // the size/runtime cost.
+  const jsFiles = existsSync(jsAssetsDir) ? readdirSync(jsAssetsDir).filter((name) => name === "index.js") : [];
 
-for (const fileName of jsFiles) {
-  const filePath = path.join(jsAssetsDir, fileName);
-  const source = readFileSync(filePath, "utf-8");
+  for (const fileName of jsFiles) {
+    const filePath = path.join(jsAssetsDir, fileName);
+    const source = readFileSync(filePath, "utf-8");
 
-  try {
-    const { code } = await JsConfuser.obfuscate(source, JS_CONFUSER_OPTIONS);
-    writeFileSync(filePath, code, "utf-8");
-    console.log(`[build-ui] Obfuscated ${fileName}`);
-  } catch (error) {
-    console.error(`[build-ui] js-confuser failed on ${fileName}:`, error);
-    process.exit(1);
+    try {
+      const { code } = await JsConfuser.obfuscate(source, JS_CONFUSER_OPTIONS);
+      writeFileSync(filePath, code, "utf-8");
+      console.log(`[build-ui] Obfuscated ${fileName}`);
+    } catch (error) {
+      console.error(`[build-ui] js-confuser failed on ${fileName}:`, error);
+      process.exit(1);
+    }
   }
 }
 

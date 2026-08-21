@@ -385,6 +385,53 @@ system" section.
 has no working character-select system yet (`characters` above is a
 placeholder only), so vehicle ownership is account-wide for now.
 
+### Items table
+
+```
+items
+  id                 BIGINT AUTO_INCREMENT primary key
+  owner_account_id   BIGINT nullable references accounts(id)   -- NULL = lying in the world, not carried
+  scheme_key         VARCHAR(64) not null   -- gm_items/shared/ItemSchemes.lua key, e.g. "Mała ryba"
+  amount             INT not null default 1
+  item_values        TEXT nullable   -- toJSON(...), per-instance data the scheme alone can't hold (e.g. a vehicle key's {vehicleId})
+  flags              TEXT nullable   -- toJSON(...), per-instance behavior flags
+  favorite           TINYINT(1) not null default 0
+  position           TEXT nullable   -- toJSON({x,y,z}), only meaningful while owner_account_id is NULL
+  interior           INT not null default 0
+  dimension          INT not null default 0
+  created_at         TIMESTAMP default CURRENT_TIMESTAMP
+  updated_at         TIMESTAMP default CURRENT_TIMESTAMP
+```
+
+Owned by `gm_items` (a `[gameplay]/` resource), NOT `core` - same
+"`core` only holds the model/repository, the owning resource reaches it
+through an event bridge" split `vehicles` above uses. `core/server/
+ItemService.lua` is the bridge dispatcher (mirrors `core/server/
+VehicleService.lua` exactly); `gm_items/server/ItemBridge.lua` is the
+calling side.
+
+A single row is either a player's carried item (`owner_account_id` set,
+`position` NULL) or a world-dropped item (`owner_account_id` NULL,
+`position` set) - never both, and the two are the SAME table rather than
+separate ones, so picking an item up or dropping it is just flipping
+which half of the row is populated (see `ItemService.lua`'s `drop`/
+`pickup`). This mirrors the reference implementation this was ported
+from, which used an `owner = -1` sentinel for the same "lying in the
+world" state on a single `items` table - translated here into a real
+nullable FK instead of a magic number.
+
+`scheme_key`'s corresponding row in `ItemSchemes.lua` (name shown to the
+player is the key itself, type, category, weight, stack limit, world
+object model) is never duplicated into this table - scheme data is
+static/code-defined so a balance change is a code change, not a
+migration, exactly like `Enums.VehiclePurpose`'s own reasoning for why
+`GROUP`/`EVENT`/etc. aren't in this project's `vehicles` table yet. Only
+`Enums.ItemType.PLAIN` (plain stackables) and `VEHICLE_KEY` (integrates
+with the existing `gm_vehicles`) exist today - a fishing-rod-style
+`USABLE` item type from the reference implementation was deliberately not
+ported since it depended on a job/fishing system this project doesn't
+have, per `Architecture.md`'s "Adding a new system" section.
+
 ## What a new adapter must NOT do (if the backend ever changes again)
 
 - Must not change any repository/model's SQL expectations (`?`-style

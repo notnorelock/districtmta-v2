@@ -21,6 +21,13 @@ local HUD_OVERLAY = "hud"
 local WATERMARK_OVERLAY = "watermark"
 local GTA_COMPONENTS = { "radar", "area_name", "vehicle_name", "armour", "breath", "clock", "health", "money", "weapon", "wanted", "radio", "ammo" }
 local UPDATE_INTERVAL_MS = 2500
+-- Hard cap on how often a changed-state push can actually go out, even
+-- while health/oxygen/etc. keep changing every single frame (natural
+-- regen ticks up/down gradually rather than snapping, so trackStateChanged()
+-- can legitimately return true on many consecutive frames in a row while
+-- healing/drowning - each one IS a real change, but pushing every frame is
+-- still far more often than the HUD (or /browserdebug's console) needs).
+local MIN_PUSH_INTERVAL_MS = 250
 local PLACEHOLDER_HUNGER = 100
 local PLACEHOLDER_THIRST = 100
 
@@ -48,6 +55,14 @@ local lastInWater = false
 local lastVoiceActive = false
 local lastVoiceLevel = DEFAULT_VOICE_LEVEL
 local lastUpdateTick = 0
+-- Tick of the last actual uiPushEvent (not the last trackStateChanged()
+-- detection) - see MIN_PUSH_INTERVAL_MS's own comment.
+local lastPushTick = 0
+-- True once trackStateChanged() has seen a change that hasn't made it out
+-- in a push yet, because MIN_PUSH_INTERVAL_MS hasn't elapsed - the next
+-- push (whenever it happens) still carries it, nothing is lost, it's just
+-- not sent on every single frame it was detected on.
+local pendingChange = false
 
 local function getPedMaxOxygenLevel(ped)
     local underwater_stamina = getPedStat(ped, 225)
@@ -56,7 +71,20 @@ local function getPedMaxOxygenLevel(ped)
     return maxoxygen
 end
 
+-- Only meaningful while actually in water - out of water, MTA regenerates
+-- oxygen gradually rather than snapping it back to max, so reading the
+-- real level here would flicker between e.g. 99/100 frame to frame
+-- (isElementInWater is a clean boolean, no such regen curve to flicker
+-- against) and spam trackStateChanged()/PUSH_HUD_UPDATED every frame for
+-- no visible reason - the HUD only ever shows this while drowning is true
+-- anyway (see pushHudState's own drowning field), so a flickering value
+-- the player was never going to see was never worth reading in the first
+-- place.
 local function oxygenPercent()
+    if not isElementInWater(localPlayer) then
+        return 100
+    end
+
     local max = getPedMaxOxygenLevel(localPlayer)
     if not max or max <= 0 then return 100 end
     return math.floor(math.min(100, (getPedOxygenLevel(localPlayer) / max) * 100))
@@ -78,6 +106,8 @@ end
 
 local function resetTrackedState()
     lastUpdateTick = getTickCount()
+    lastPushTick = 0
+    pendingChange = false
     lastHealth = 0
     lastOxygenPercent = 100
     lastInWater = false
@@ -157,9 +187,26 @@ end
 addEventHandler("onClientPreRender", root, function()
     if not active then return end
 
+    -- trackStateChanged() runs every frame regardless (it's what keeps
+    -- lastHealth/lastOxygenPercent/etc. current - gradual regen/drowning
+    -- can legitimately flip it true on many consecutive frames), but the
+    -- resulting uiPushEvent is rate-limited to MIN_PUSH_INTERVAL_MS via
+    -- pendingChange below - trackStateChanged()'s own already-written
+    -- lastX fields are what the eventual push reads, so no change is ever
+    -- lost, it just isn't sent more often than the cap allows.
     if trackStateChanged() then
-        HUD.pushHudState(true)
-    elseif getTickCount() - lastUpdateTick >= UPDATE_INTERVAL_MS then
+        pendingChange = true
+    end
+
+    local now = getTickCount()
+    if pendingChange and now - lastPushTick >= MIN_PUSH_INTERVAL_MS then
+        pendingChange = false
+        lastPushTick = now
+        lastUpdateTick = now
+        HUD.pushHudState()
+    elseif now - lastUpdateTick >= UPDATE_INTERVAL_MS then
+        lastPushTick = now
+        lastUpdateTick = now
         HUD.pushHudState()
     end
 end)

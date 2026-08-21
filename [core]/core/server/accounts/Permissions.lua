@@ -25,6 +25,11 @@ Permissions.Bit = {
     -- fixing a stuck player's car is a different, lower-stakes action than
     -- granting them a vehicle.
     VEHICLE_ADMIN = 65536,
+    -- gm_items' "/giveitem" admin command - spawning an arbitrary item
+    -- into a player's inventory for testing/support, same tier as
+    -- VEHICLE_ADMIN's own "grant something without going through the
+    -- normal in-world way to get it".
+    GIVE_ITEM = 131072,
 }
 
 local function bitOr(...)
@@ -48,7 +53,8 @@ local MODERATOR_PERMISSIONS = bitOr(
     Permissions.Bit.HEAL,
     Permissions.Bit.JETPACK,
     Permissions.Bit.SPAWN_VEHICLE,
-    Permissions.Bit.VEHICLE_ADMIN
+    Permissions.Bit.VEHICLE_ADMIN,
+    Permissions.Bit.GIVE_ITEM
 )
 local ADMINISTRATOR_PERMISSIONS = bitOr(MODERATOR_PERMISSIONS, Permissions.Bit.BAN, Permissions.Bit.REVOKE_PENALTY)
 -- VIEW_STATS is RCON+/BOARD-only, deliberately not in ADMINISTRATOR_PERMISSIONS.

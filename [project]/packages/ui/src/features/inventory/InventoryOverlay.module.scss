@@ -1,0 +1,96 @@
+// CSS Modules + Sass, scoped to features/inventory/ only - see
+// webpack.config.js's *.module.scss rule comment for why.
+// @reference (not @import "tailwindcss"), relative path not the "@/"
+// alias - see HudIcon.module.scss's comment on the same directive for why.
+@reference "../../styles/globals.css";
+
+// pointer-events-none on root, same as ScoreboardOverlay.module.scss's
+// own root - clicks only reach .panel/.contextMenu while the cursor is
+// active (gm_items' own uiFocusBrowser toggle via right-click).
+.root {
+  @apply pointer-events-none fixed inset-0 z-40 flex items-center justify-center;
+}
+
+.panel {
+  @apply pointer-events-auto flex h-[70vh] max-h-[600px] w-140 max-w-[90vw] overflow-hidden rounded-xl border border-border bg-popover/95 font-display shadow-lg;
+}
+
+// Category tab rail down the left side - ported from the reference's own
+// row of icon buttons above the list, moved to a vertical rail instead
+// (reads better alongside a right-anchored panel than a horizontal strip
+// squeezed above the header).
+.tabs {
+  @apply flex shrink-0 flex-col items-center gap-1 border-r border-border bg-secondary/20 p-2;
+}
+
+.tab {
+  @apply flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+}
+
+.tabActive {
+  @apply bg-primary/15 text-primary hover:bg-primary/15 hover:text-primary;
+}
+
+.main {
+  @apply flex min-w-0 flex-1 flex-col;
+}
+
+.header {
+  @apply flex items-center justify-between gap-3 border-b border-border px-4 py-3;
+}
+
+.title {
+  @apply text-sm font-semibold text-foreground;
+}
+
+.weight {
+  @apply flex items-center gap-1.5 text-xs text-muted-foreground;
+}
+
+.listWrap {
+  @apply flex-1 overflow-y-auto;
+}
+
+.row {
+  @apply flex items-center gap-2.5 border-b border-border/40 px-4 py-2.5 last:border-b-0 hover:bg-secondary/40;
+}
+
+.rowIcon {
+  @apply flex size-8 shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground;
+}
+
+.rowName {
+  @apply min-w-0 flex-1 truncate text-sm text-foreground;
+}
+
+.favoriteIcon {
+  @apply shrink-0 fill-current text-warning;
+}
+
+.rowAmount {
+  @apply shrink-0 text-xs tabular-nums text-muted-foreground;
+}
+
+.empty {
+  @apply px-4 py-8 text-center text-sm text-muted-foreground;
+}
+
+.footer {
+  @apply border-t border-border px-4 py-2 text-center text-xs text-muted-foreground;
+}
+
+// Plain absolutely-positioned div at the right-click coordinates - no
+// context-menu/popover primitive exists anywhere in this project's
+// component library (checked before writing this), see
+// InventoryOverlay.tsx's own module comment.
+.contextMenu {
+  @apply pointer-events-auto fixed z-50 flex w-44 flex-col overflow-hidden rounded-lg border border-border bg-popover shadow-lg;
+}
+
+.contextItem {
+  @apply flex items-center gap-2 px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-secondary;
+}
+
+.contextItemDanger {
+  @apply text-destructive hover:bg-destructive/10;
+}

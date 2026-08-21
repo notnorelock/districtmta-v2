@@ -50,6 +50,7 @@ function getElementData()
         Player = ElementData.Player,
         Account = ElementData.Account,
         Vehicle = ElementData.Vehicle,
+        Item = ElementData.Item,
     }
 end
 

@@ -66,6 +66,17 @@ ElementData = {
         -- same reasoning as UPGRADES_CACHE above.
         LAST_DRIVERS_CACHE = "vehicle:lastDriversCache",
     },
+    -- gm_items: a world-dropped item's own "object" element (not the
+    -- world root element gm_interactions targets) mirrors these - see
+    -- ItemService.lua's spawnWorldItem.
+    Item = {
+        -- items table row id this world object was spawned from.
+        ID = "item:id",
+        -- ItemSchemes.lua key (a string name, e.g. "Mała ryba") - read by
+        -- the pickup interaction handler to know what it's picking up
+        -- without a round-trip to the database first.
+        SCHEME_KEY = "item:schemeKey",
+    },
 }
 
 -- AuthUiController.lua mirrors most of an account row's own columns onto

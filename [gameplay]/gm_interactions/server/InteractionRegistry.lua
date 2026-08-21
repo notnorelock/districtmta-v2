@@ -141,6 +141,27 @@ InteractionRegistry.register("vehicle:adminFlip", {
     end,
 })
 
+-- World item pickup - gm_items (a separate resource) can't register its
+-- own handler here directly, since a handler is a Lua function value and
+-- this project's hard rule (see docs/Architecture.md) says a callback
+-- can never cross a resource boundary. Instead this entry is generic:
+-- the condition only checks for ElementData.Item.ID's PRESENCE (no
+-- knowledge of gm_items' own item shape/schemes needed), and the handler
+-- only forwards a plain triggerEvent to gm_items - the actual pickup
+-- logic (ownership, weight check, row deletion) lives entirely in
+-- gm_items/server/ItemService.lua's own Events.ITEM_PICKUP listener.
+InteractionRegistry.register("object:itemPickup", {
+    label = "Podnieś",
+    icon = "IconHandGrab",
+    elementType = "object",
+    condition = function(_, object)
+        return getElementData(object, ElementData.Item.ID) ~= false
+    end,
+    handler = function(player, object)
+        triggerEvent(Events.ITEM_PICKUP, resourceRoot, player, getElementData(object, ElementData.Item.ID))
+    end,
+})
+
 InteractionRegistry.register("vehicle:adminMoveToSelf", {
     label = "Przenieś pojazd do siebie",
     icon = "IconArrowBackUp",

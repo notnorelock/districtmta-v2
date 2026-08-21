@@ -56,7 +56,30 @@ function QueryBuilder:offset(count)
 end
 
 -- Model.NULL as a condition value produces a literal `?? IS NULL` / `?? IS NOT NULL`
--- with no `?` placeholder, since `= ?` never matches NULL in MySQL regardless of the bound value.
+-- with no `?` placeholder, since `= ?`/`!= ?` never matches/excludes NULL
+-- in MySQL regardless of the bound value - `= NULL` and `!= NULL` are
+-- BOTH always false, never true, for any row (including one whose column
+-- actually is NULL), so a plain operator-as-is substitution here would
+-- silently return zero rows forever instead of erroring (confirmed live:
+-- ItemRepository.findOwnerless's :where("owner_account_id", Model.NULL)
+-- - defaulting to "=" - never matched a single dropped item's row).
+-- "IS"/"IS NOT" pass through as-is (some existing callers already spell
+-- it out explicitly, e.g. AccountPenaltyRepository.lua/
+-- AdminDutySessionRepository.lua's :where(column, "IS", Model.NULL));
+-- "="/"=="/"!="/"<>" are mapped to their NULL-safe equivalent so a caller
+-- using the default 2-arg :where(column, Model.NULL) form (implicit "=")
+-- still gets correct SQL. Any other operator against Model.NULL is a
+-- caller bug (not a valid SQL NULL comparison) and errors immediately
+-- rather than emitting invalid/always-false SQL.
+local NULL_OPERATOR_MAP = {
+    ["="] = "IS",
+    ["=="] = "IS",
+    ["!="] = "IS NOT",
+    ["<>"] = "IS NOT",
+    ["IS"] = "IS",
+    ["IS NOT"] = "IS NOT",
+}
+
 -- @return string clauseWithLeadingSpaceOrEmpty, table parameters
 function QueryBuilder:_buildWhere()
     if #self._wheres == 0 then
@@ -68,7 +91,9 @@ function QueryBuilder:_buildWhere()
 
     for _, condition in ipairs(self._wheres) do
         if condition.value == Model.NULL then
-            parts[#parts + 1] = "?? " .. condition.operator .. " NULL"
+            local nullOperator = NULL_OPERATOR_MAP[condition.operator]
+            assert(nullOperator, "QueryBuilder:where() with Model.NULL only supports =/!=/<>, got: " .. tostring(condition.operator))
+            parts[#parts + 1] = "?? " .. nullOperator .. " NULL"
             parameters[#parameters + 1] = condition.column
         else
             parts[#parts + 1] = "?? " .. condition.operator .. " ?"

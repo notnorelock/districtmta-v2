@@ -72,12 +72,14 @@ local PushService = {
 -- these from ITS OWN resourceRoot, not core's, by design (see
 -- AccountEndpoints.lua/FetchBridge.lua) - source == resourceRoot would
 -- never hold here even for the legitimate call. Events.VEHICLE_REPOSITORY_REQUEST
--- ("core:vehicleRepositoryRequest") is excluded for the identical reason:
--- gm_vehicles/server/VehicleBridge.lua triggers it from ITS OWN
--- resourceRoot, not core's - see VehicleService.lua.
+-- ("core:vehicleRepositoryRequest") and Events.ITEM_REPOSITORY_REQUEST
+-- ("core:itemRepositoryRequest") are excluded for the identical reason:
+-- gm_vehicles/server/VehicleBridge.lua and gm_items/server/ItemBridge.lua
+-- each trigger their own event from THEIR OWN resourceRoot, not core's -
+-- see VehicleService.lua/ItemService.lua.
 local _addEventHandler = addEventHandler
 addEventHandler = function(event, attachedTo, handlerFunction, ...)
-    if type(event) ~= "string" or event:sub(1, 2) == "on" or event:sub(1, 9) == "endpoint:" or event == "core:vehicleRepositoryRequest" then
+    if type(event) ~= "string" or event:sub(1, 2) == "on" or event:sub(1, 9) == "endpoint:" or event == "core:vehicleRepositoryRequest" or event == "core:itemRepositoryRequest" then
         return _addEventHandler(event, attachedTo, handlerFunction, ...)
     end
 

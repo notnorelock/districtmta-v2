@@ -92,4 +92,16 @@ export const pl = {
   "worldInteraction.title": "Interakcja",
   "worldInteraction.scrollHint": "Przewiń, aby wybrać",
   "worldInteraction.spaceHint": "Naciśnij, aby aktywować",
+
+  "inventory.category.favorites": "Ulubione",
+  "inventory.category.all": "Wszystko",
+  "inventory.category.food": "Jedzenie",
+  "inventory.category.keys": "Kluczyki",
+  "inventory.category.other": "Inne",
+  "inventory.empty": "Brak przedmiotów w tej kategorii",
+  "inventory.hint": "Kliknij przedmiot, aby zobaczyć opcje",
+  "inventory.action.use": "Użyj",
+  "inventory.action.favorite": "Do ulubionych",
+  "inventory.action.unfavorite": "Usuń z ulubionych",
+  "inventory.action.drop": "Wyrzuć",
 } as const;

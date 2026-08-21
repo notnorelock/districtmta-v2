@@ -23,6 +23,25 @@ Events = {
     -- Browser <-> client Lua (not networked, browser events only)
     BROWSER_READY = "ui.ready",
 
+    -- Single generic channel every domain-specific CEF -> client Lua
+    -- "fire and forget" notification goes through (MtaBridge.ts's
+    -- notify(eventName, ...args)), instead of each resource's own client
+    -- Lua registering an addEventHandler directly on window.mta.triggerEvent's
+    -- target event name. window.mta.triggerEvent stringifies every
+    -- argument on the way into Lua regardless of its real JS type
+    -- (confirmed live: a JS number arrived here as a Lua STRING), so
+    -- MtaTransport.ts's notify() JSON-encodes its whole args array and
+    -- sends it as this one event's payload; core_ui/client/ui/Transport.lua's
+    -- own handler (the only addEventHandler(Events.UI_NOTIFY, ...) in the
+    -- project) decodes it back into real typed values and re-fires the
+    -- ORIGINAL eventName via a plain triggerEvent(eventName, root, ...args)
+    -- for whichever resource's own client Lua actually owns that event
+    -- (gm_items/InventoryState.lua, gm_vehicles_interaction/
+    -- VehicleInteractionState.lua, gm_interactions/WorldInteractionState.lua,
+    -- ...) - those files read args normally now, with no per-resource
+    -- JSON-decoding of their own.
+    UI_NOTIFY = "ui.notify",
+
     -- Local-only "remember me" credential persistence (browser <-> client
     -- Lua only - never touches the server)
     CREDENTIALS_SAVE = "credentials.save",
@@ -316,4 +335,65 @@ Events = {
     -- trusts the client's own "it's allowed" belief from the list it was
     -- shown a moment earlier).
     INTERACTION_CALL = "interactions:call",
+
+    -- Server-to-server bridge between gm_items (owns the handler closure/
+    -- callback) and core (owns ItemRepository/the database) - the exact
+    -- same requestId-correlated request/response shape
+    -- VEHICLE_REPOSITORY_REQUEST/_RESPONSE uses (see its own comment and
+    -- docs/Architecture.md's "the one hard rule"). gm_items/server/
+    -- ItemBridge.lua triggers ITEM_REPOSITORY_REQUEST with
+    -- { requestId, method, args }; core/server/ItemService.lua
+    -- runs the matching ItemRepository method and triggers
+    -- ITEM_REPOSITORY_RESPONSE back with { requestId, ok, result }. Both
+    -- fire via plain triggerEvent, not triggerServerEvent/triggerClientEvent.
+    ITEM_REPOSITORY_REQUEST = "core:itemRepositoryRequest",
+    ITEM_REPOSITORY_RESPONSE = "items:itemRepositoryResponse",
+
+    -- Client -> server: player pressed I, wants a fresh snapshot of their
+    -- own inventory - request/response (like SCOREBOARD_REQUEST_PLAYERS)
+    -- rather than an unprompted push, re-requested on every open so
+    -- amount/favorite changes since the last open are never stale.
+    INVENTORY_REQUEST_ITEMS = "inventory:requestItems",
+
+    -- Server -> requesting client only: response to INVENTORY_REQUEST_ITEMS,
+    -- the player's full item list as plain data - see ItemService.lua's
+    -- toEntry for the exact shape. InventoryState.lua forwards it into the
+    -- CEF overlay via PUSH_INVENTORY_ITEMS.
+    INVENTORY_ITEMS_RECEIVED = "inventory:itemsReceived",
+
+    -- Pushed into the CEF overlay once INVENTORY_ITEMS_RECEIVED arrives,
+    -- and again any time the server changes the player's items on its own
+    -- (picked up/used/dropped/received) so the panel stays live while open.
+    PUSH_INVENTORY_ITEMS = "inventory.items",
+
+    -- Client -> server: player chose "Użyj" on an item (its database row
+    -- id) from the inventory panel. Server re-validates ownership and the
+    -- item's own scheme before running its effect - never trusts the
+    -- panel's own belief that using it is valid.
+    INVENTORY_USE_ITEM = "inventory:useItem",
+
+    -- Client -> server: player chose "Wyrzuć" on an item - drops it as a
+    -- world object at the player's own current position (server-derived,
+    -- never a client-supplied position).
+    INVENTORY_DROP_ITEM = "inventory:dropItem",
+
+    -- Client -> server: player toggled the "favorite" star on an item -
+    -- purely a per-account display preference, no gameplay effect.
+    INVENTORY_TOGGLE_FAVORITE = "inventory:toggleFavorite",
+
+    -- World item pickup, via gm_interactions' own generic "object:
+    -- itemPickup" InteractionRegistry entry (registered in
+    -- gm_interactions/server/InteractionRegistry.lua itself, not gm_items -
+    -- a handler function can't cross the resource boundary, so gm_items
+    -- can't register its own entry there; see that file's own comment on
+    -- this entry) rather than a bespoke detection system, same reasoning
+    -- gm_interactions' own module comment gives for reusing it. Fired via
+    -- plain triggerEvent (server-to-server, gm_interactions -> gm_items),
+    -- not triggerServerEvent/triggerClientEvent - `player` is passed
+    -- explicitly since this never touches a client/browser.
+    -- gm_items/server/ItemPickupHandler.lua re-validates range/ownerless-
+    -- ness itself (InteractionService.lua already re-validated range
+    -- generically before calling the handler; this only carries the
+    -- specific item row id through to gm_items).
+    ITEM_PICKUP = "items:pickup",
 }

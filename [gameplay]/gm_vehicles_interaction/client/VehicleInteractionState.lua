@@ -106,7 +106,9 @@ addEventHandler("onClientKey", root, function(key, state)
 end)
 
 --- The frontend confirms which action it activated (its own current
---- selection) via this - see VehicleMenuOverlay.tsx's onActivate.
+--- selection) via this (relayed through core_ui's ui:notify channel - see
+--- Transport.lua's module comment - so `action` arrives already
+--- JSON-decoded back into a real string) - see VehicleMenuOverlay.tsx's onActivate.
 addEvent(Events.VEHICLE_INTERACTION_ACTIVATED, true)
 addEventHandler(Events.VEHICLE_INTERACTION_ACTIVATED, root, function(action)
     requestToggle(action)

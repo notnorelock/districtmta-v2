@@ -14,6 +14,7 @@ import { BlackoutOverlay } from "@/features/blackout/BlackoutOverlay";
 import { ScoreboardOverlay } from "@/features/scoreboard/ScoreboardOverlay";
 import { VehicleMenuOverlay } from "@/features/vehicleInteraction/VehicleMenuOverlay";
 import { WorldInteractionOverlay } from "@/features/worldInteraction/WorldInteractionOverlay";
+import { InventoryOverlay } from "@/features/inventory/InventoryOverlay";
 import { Watermark } from "@/components/common/Watermark";
 import { authStore } from "@/stores/auth.store";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -78,6 +79,10 @@ const AppContent: Component = () => {
           shown by gm_interactions while E is held near an interactable
           element - see WorldInteractionOverlay.tsx's own comment. */}
       <WorldInteractionOverlay />
+      {/* Uses its own "inventory" overlay key (Overlay name prop),
+          toggled by gm_items while I is pressed - see
+          InventoryOverlay.tsx's own comment. */}
+      <InventoryOverlay />
       <ToastStack />
     </div>
   );

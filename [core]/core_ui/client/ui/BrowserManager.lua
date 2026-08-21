@@ -307,17 +307,29 @@ addEventHandler("onClientResourceStop", resourceRoot, function()
     browserFocused = false
     openWindows = {}
     visibleOverlays = {}
+
+    if getDevelopmentMode() then
+        setDevelopmentMode(false, false)
+    end
 end)
 
--- CEF devtools for debugging the frontend in-game: /browserdebug
+-- CEF devtools for debugging the frontend in-game: /browserdebug toggles
+-- on/off (see https://wiki.multitheftauto.com/wiki/GetDevelopmentMode) -
+-- setDevelopmentMode(false) also closes the separate devtools window/
+-- disables the resource-download-cache bypass that (true, true) turns on,
+-- not just the on-screen devtools panel itself.
+local browserDevToolsOpen = false
+
 addCommandHandler("browserdebug", function()
     if not browser or not isElement(browser) then
         outputChatBox("browserdebug: browser not created yet")
         return
     end
 
-    setDevelopmentMode(true, true)
-    toggleBrowserDevTools(browser, true)
+    browserDevToolsOpen = not browserDevToolsOpen
+
+    setDevelopmentMode(browserDevToolsOpen, true)
+    toggleBrowserDevTools(browser, browserDevToolsOpen)
 end)
 
 -- Flat exported wrappers - MTA exports only resolve bare global functions, not dotted paths like UI.open.
