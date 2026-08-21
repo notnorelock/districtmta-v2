@@ -36,4 +36,10 @@
     <script src="client/GlobalResources.lua" type="client" cache="false" />
     <script src="shared/ItemSchemes.lua" type="client" cache="false" />
     <script src="client/InventoryState.lua" type="client" cache="false" />
+
+    <!-- Read-only query, not a callback - safe across the resource
+    boundary (see docs/Architecture.md's "the one hard rule"). Used by
+    gm_interactions' "vehicle:toggleLock" entry to gate lock/unlock access
+    to whoever is carrying that vehicle's key. -->
+    <export function="itemServiceHasVehicleKey" type="server" />
 </meta>

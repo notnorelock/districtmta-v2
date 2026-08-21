@@ -162,6 +162,34 @@ InteractionRegistry.register("object:itemPickup", {
     end,
 })
 
+-- Lock/unlock toggle, gated on carrying that specific vehicle's key -
+-- same effect as ItemUseHandlers.lua's own VEHICLE_KEY "use" handler
+-- (setVehicleLocked/isVehicleLocked, a plain MTA native), just reachable
+-- from the world interaction menu directly instead of opening the
+-- inventory panel to click "Użyj". itemServiceHasVehicleKey is a
+-- read-only query export (not a callback - safe across the resource
+-- boundary per docs/Architecture.md's "the one hard rule"), pcall'd since
+-- gm_items could in principle be stopped/restarting independently of
+-- gm_interactions.
+InteractionRegistry.register("vehicle:toggleLock", {
+    label = "Otwórz/zamknij pojazd",
+    icon = "IconLock",
+    elementType = "vehicle",
+    condition = function(player, vehicle)
+        local vehicleId = getElementData(vehicle, ElementData.Vehicle.ID)
+        if not vehicleId then
+            return false
+        end
+        local ok, hasKey = pcall(function()
+            return exports.gm_items:itemServiceHasVehicleKey(player, vehicleId)
+        end)
+        return ok and hasKey == true
+    end,
+    handler = function(player, vehicle)
+        setVehicleLocked(vehicle, not isVehicleLocked(vehicle))
+    end,
+})
+
 InteractionRegistry.register("vehicle:adminMoveToSelf", {
     label = "Przenieś pojazd do siebie",
     icon = "IconArrowBackUp",

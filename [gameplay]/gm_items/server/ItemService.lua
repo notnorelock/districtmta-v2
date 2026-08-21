@@ -49,6 +49,27 @@ ItemService.itemsOf = function(player)
 end
 
 --- @param player element
+-- @param vehicleId number a gm_vehicles database row id (ElementData.Vehicle.ID)
+-- @return boolean true if `player` is carrying a VEHICLE_KEY item whose
+--         itemValues[1] == vehicleId - used by gm_interactions'
+--         "vehicle:toggleLock" entry to gate who can lock/unlock a
+--         vehicle via the world interaction menu (owner-only, same
+--         itemValues shape ItemUseHandlers.lua's own VEHICLE_KEY handler reads).
+ItemService.hasVehicleKey = function(player, vehicleId)
+    for _, item in ipairs(ItemService.itemsOf(player)) do
+        local scheme = ItemSchemes.get(item.schemeKey)
+        if scheme and scheme.type == Enums.ItemType.VEHICLE_KEY and item.itemValues[1] == vehicleId then
+            return true
+        end
+    end
+    return false
+end
+
+function itemServiceHasVehicleKey(player, vehicleId)
+    return ItemService.hasVehicleKey(player, vehicleId)
+end
+
+--- @param player element
 -- @return number the current combined weight of player's carried items
 ItemService.weightOf = function(player)
     local weight = 0
