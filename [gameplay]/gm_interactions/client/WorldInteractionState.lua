@@ -153,6 +153,9 @@ local function openInteractionMode()
     if isPedInVehicle(localPlayer) then
         return
     end
+    if isChatBoxInputActive() then
+        return
+    end
 
     lookingForInteractions = true
     activeTarget = nil

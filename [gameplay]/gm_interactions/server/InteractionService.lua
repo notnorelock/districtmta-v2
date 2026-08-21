@@ -1,19 +1,3 @@
--- World interaction (E, held) - server side. Owns the actual range/type
--- re-validation and interaction execution; WorldInteractionState.lua
--- (client) only decides which nearby element to ASK about (closest to
--- screen center, see its own module comment) and never assumes an
--- interaction is actually allowed just because the client thinks it looks
--- reasonable - both INTERACTION_REQUEST_LIST and INTERACTION_CALL below
--- redo the distance/type checks against server-authoritative element
--- state, same pattern as VehicleInteractionService.lua's own re-validation
--- of "is this player actually the driver".
-InteractionService = InteractionService or {}
-
--- Fixed per-type ranges - the original reference implementation scaled
--- object/vehicle ranges off the element's own radius via getElementRadius,
--- which doesn't exist in MTA (there is no generic "how big is this
--- element" native); a fixed distance per type is close enough for an
--- interaction-range check and doesn't need one.
 local PLAYER_RANGE = 3
 local OBJECT_RANGE = 5
 local VEHICLE_RANGE = 8
