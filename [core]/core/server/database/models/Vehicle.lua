@@ -24,6 +24,12 @@ Vehicle = Model:extend("vehicles", {
     { name = "max_fuel", type = "integer", nullable = false, default = 100 },
     { name = "owner_account_id", type = "reference", nullable = false, references = { table = "accounts", column = "id" } },
     { name = "locked", type = "boolean", nullable = false, default = true },
+    -- Manual handbrake (setElementFrozen), toggled via gm_vehicles_
+    -- interaction's radial menu - see VehicleInteractionService.lua's own
+    -- module comment on why setElementFrozen models this (fully immobile,
+    -- not just GTA's own space-bar handbrake). Survives save/respawn like
+    -- every other transient toggle here (locked, lights, ...).
+    { name = "handbrake", type = "boolean", nullable = false, default = false },
     -- { parts, neons, paintjob, engine } - see Enums.lua's own module comment.
     { name = "upgrades", type = "text", nullable = true },
     -- door index (0-5) -> state

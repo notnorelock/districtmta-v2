@@ -72,6 +72,15 @@ local function spawnFromRow(row)
         if type(row.lights.color) == "table" then
             setVehicleHeadLightColor(vehicle, row.lights.color[1], row.lights.color[2], row.lights.color[3])
         end
+        -- Whether the headlights are forced on
+        -- (VehicleInteractionService.lua's radial menu "lights" toggle -
+        -- getVehicleOverrideLights 2 = force on, 1 = force off, 0 = no
+        -- override/time-of-day-driven). 1 (no override, matches every
+        -- vehicle's previous fixed spawn behavior) for a row saved before
+        -- this field existed.
+        setVehicleOverrideLights(vehicle, tonumber(row.lights.override) or 1)
+    else
+        setVehicleOverrideLights(vehicle, 1)
     end
 
     if type(row.panels) == "table" then
@@ -110,9 +119,13 @@ local function spawnFromRow(row)
     setElementDimension(vehicle, row.dimension or 0)
     setVehicleRespawnPosition(vehicle, position[1], position[2], position[3], rotation[1], rotation[2], rotation[3])
 
-    setElementFrozen(vehicle, true)
+    -- Defaults to true (handbrake engaged) for a freshly-created row with
+    -- no saved handbrake value yet, matching every vehicle's previous
+    -- always-frozen-on-spawn behavior - see VehicleInteractionService.lua's
+    -- own module comment on why this is modeled as setElementFrozen
+    -- rather than GTA's own space-bar handbrake.
+    setElementFrozen(vehicle, row.handbrake ~= false and row.handbrake ~= 0)
     setVehicleEngineState(vehicle, false)
-    setVehicleOverrideLights(vehicle, 1)
 
     return vehicle
 end
@@ -136,6 +149,7 @@ VehicleService.createPrivate = function(player, model, ownerAccountId, callback)
         max_fuel = DEFAULT_MAX_FUEL,
         owner_account_id = ownerAccountId,
         locked = true,
+        handbrake = true,
         interior = getElementInterior(player),
         dimension = getElementDimension(player),
     }}, function(ok, rowOrError)
@@ -192,9 +206,10 @@ local function currentStateOf(vehicle)
         rotation = { rx, ry, rz },
         health = getElementHealth(vehicle),
         locked = isVehicleLocked(vehicle),
+        handbrake = isElementFrozen(vehicle),
         upgrades = upgrades,
         doors = doors,
-        lights = { state = lightState, color = { headR, headG, headB } },
+        lights = { state = lightState, color = { headR, headG, headB }, override = getVehicleOverrideLights(vehicle) },
         panels = panels,
         wheels = { w1, w2, w3, w4 },
         color = { r1, g1, b1, r2, g2, b2, r3, g3, b3, r4, g4, b4 },
@@ -267,6 +282,9 @@ end)
 
 addEventHandler("onVehicleExit", root, function(player, seat)
     if seat == 0 and vehicleIds[source] then
+        if getVehicleEngineState(source) then
+            setVehicleEngineState(source, false)
+        end
         VehicleService.save(source)
     end
 end)

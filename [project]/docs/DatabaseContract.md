@@ -342,9 +342,10 @@ vehicles
   max_fuel           INT not null default 100
   owner_account_id   BIGINT not null references accounts(id)
   locked             TINYINT(1) not null default 1
+  handbrake          TINYINT(1) not null default 0   -- manual handbrake (setElementFrozen), see VehicleInteractionService.lua
   upgrades           TEXT nullable   -- toJSON({parts, neons, paintjob, engine})
   doors              TEXT nullable   -- toJSON({[0..5] -> state})
-  lights             TEXT nullable   -- toJSON({state={[0..3]->state}, color={r,g,b}})
+  lights             TEXT nullable   -- toJSON({state={[0..3]->state}, color={r,g,b}, override=getVehicleOverrideLights})
   panels             TEXT nullable   -- toJSON({[0..6] -> state})
   wheels             TEXT nullable   -- toJSON({fl,fr,rl,rr})
   color              TEXT nullable   -- toJSON({r1,g1,b1, r2,g2,b2, r3,g3,b3, r4,g4,b4}), matches getVehicleColor(v, true)
