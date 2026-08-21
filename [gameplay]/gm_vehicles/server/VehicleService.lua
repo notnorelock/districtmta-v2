@@ -110,9 +110,9 @@ local function spawnFromRow(row)
     setElementDimension(vehicle, row.dimension or 0)
     setVehicleRespawnPosition(vehicle, position[1], position[2], position[3], rotation[1], rotation[2], rotation[3])
 
+    setElementFrozen(vehicle, true)
     setVehicleEngineState(vehicle, false)
     setVehicleOverrideLights(vehicle, 1)
-    setElementFrozen(vehicle, true)
 
     return vehicle
 end
@@ -258,6 +258,9 @@ end
 -- save-on-exit behavior.
 addEventHandler("onVehicleEnter", root, function(player, seat)
     if seat == 0 and vehicleIds[source] then
+        if getVehicleEngineState(source) then
+            setVehicleEngineState(source, false)
+        end
         VehicleService.recordDriver(source, player)
     end
 end)
