@@ -66,25 +66,26 @@ local function flashLights(vehicle, times)
 end
 
 -- Door indices 2-5 are the actual entry doors (front-left/front-right/
--- rear-left/rear-right) - see https://wiki.multitheftauto.com/wiki/SetVehicleDoorState.
--- 0 (hood) and 1 (trunk) are deliberately excluded: setVehicleLocked
--- alone doesn't stop a player walking through a door that's already
--- open, but a hood/trunk being open doesn't let anyone INTO the vehicle,
--- so forcing those shut too would just be a cosmetic side effect with no
--- actual security purpose.
+-- rear-left/rear-right) - see https://wiki.multitheftauto.com/wiki/GetVehicleDoorOpenRatio /
+-- SetVehicleDoorOpenRatio. 0 (hood) and 1 (trunk) are deliberately
+-- excluded: setVehicleLocked alone doesn't stop a player walking through
+-- a door that's already open, but a hood/trunk being open doesn't let
+-- anyone INTO the vehicle, so forcing those shut too would just be a
+-- cosmetic side effect with no actual security purpose.
 local ENTRY_DOOR_INDICES = { 2, 3, 4, 5 }
--- getVehicleDoorState's own value 0 - fully closed. 1/2/3/4 are ajar
--- through fully-open swing positions, anything not 0 needs closing.
-local DOOR_STATE_CLOSED = 0
+-- setVehicleDoorOpenRatio eases from the door's current ratio to this one
+-- over DOOR_CLOSE_ANIMATION_MS instead of snapping shut instantly the way
+-- setVehicleDoorState does.
+local DOOR_CLOSE_ANIMATION_MS = 400
 
---- Forces every open entry door shut - setVehicleLocked alone leaves an
+--- Eases every open entry door shut - setVehicleLocked alone leaves an
 --- already-open door open, letting anyone still walk straight in despite
 --- the vehicle now being locked.
 -- @param vehicle vehicle
 local function closeOpenDoors(vehicle)
     for _, doorIndex in ipairs(ENTRY_DOOR_INDICES) do
-        if getVehicleDoorState(vehicle, doorIndex) ~= DOOR_STATE_CLOSED then
-            setVehicleDoorState(vehicle, doorIndex, DOOR_STATE_CLOSED)
+        if getVehicleDoorOpenRatio(vehicle, doorIndex) > 0 then
+            setVehicleDoorOpenRatio(vehicle, doorIndex, 0, DOOR_CLOSE_ANIMATION_MS)
         end
     end
 end

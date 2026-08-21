@@ -5,6 +5,8 @@ import {
   IconArrowBackUp,
   IconHandGrab,
   IconLock,
+  IconEngine,
+  IconBox,
   IconQuestionMark,
   IconMouse2,
   IconSpace,
@@ -33,6 +35,8 @@ const ICONS: Record<string, IconComponent> = {
   IconArrowBackUp,
   IconHandGrab,
   IconLock,
+  IconEngine,
+  IconBox,
 };
 
 /**

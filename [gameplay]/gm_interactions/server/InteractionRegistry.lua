@@ -169,33 +169,79 @@ InteractionRegistry.register("object:itemPickup", {
     end,
 })
 
+-- Shared by every vehicle:* interaction below that's gated on actually
+-- carrying that vehicle's key (lock, hood, trunk) - itemServiceHasVehicleKey
+-- is a read-only query export (plain data in/out, safe across the
+-- resource boundary per docs/Architecture.md's "the one hard rule"),
+-- pcall'd since gm_items could in principle be stopped/restarting
+-- independently of gm_interactions.
+-- @param player element
+-- @param vehicle vehicle
+-- @return boolean
+local function hasVehicleKey(player, vehicle)
+    local vehicleId = getElementData(vehicle, ElementData.Vehicle.ID)
+    if not vehicleId then
+        return false
+    end
+    local ok, hasKey = pcall(function()
+        return exports.gm_items:itemServiceHasVehicleKey(player, vehicleId)
+    end)
+    return ok and hasKey == true
+end
+
 -- Lock/unlock toggle, gated on carrying that specific vehicle's key -
 -- same effect as ItemUseHandlers.lua's own VEHICLE_KEY "use" handler, just
 -- reachable from the world interaction menu directly instead of opening
--- the inventory panel to click "Użyj". Both go through gm_vehicles'
+-- the inventory panel to click "Użyj". Goes through gm_vehicles'
 -- toggleVehicleLock export (plain data in/out, safe across the resource
 -- boundary per docs/Architecture.md's "the one hard rule") rather than
 -- calling setVehicleLocked directly, so the headlight-flash signal
 -- (VehicleLockService.lua) fires from this too, not just gm_vehicles' own
--- callers. itemServiceHasVehicleKey/toggleVehicleLock are both pcall'd
--- since gm_items/gm_vehicles could in principle be stopped/restarting
--- independently of gm_interactions.
+-- callers. Pcall'd since gm_vehicles could in principle be stopped/
+-- restarting independently of gm_interactions.
 InteractionRegistry.register("vehicle:toggleLock", {
     label = "Otwórz/zamknij pojazd",
     icon = "IconLock",
     elementType = "vehicle",
-    condition = function(player, vehicle)
-        local vehicleId = getElementData(vehicle, ElementData.Vehicle.ID)
-        if not vehicleId then
-            return false
-        end
-        local ok, hasKey = pcall(function()
-            return exports.gm_items:itemServiceHasVehicleKey(player, vehicleId)
-        end)
-        return ok and hasKey == true
-    end,
+    condition = hasVehicleKey,
     handler = function(player, vehicle)
-        exports.gm_vehicles:toggleVehicleLock(vehicle)
+        pcall(function()
+            exports.gm_vehicles:toggleVehicleLock(vehicle)
+        end)
+    end,
+})
+
+-- Door index 0 (hood) / 1 (trunk) - see
+-- https://wiki.multitheftauto.com/wiki/GetVehicleDoorState /
+-- SetVehicleDoorOpenRatio. setVehicleDoorState snaps straight to the
+-- target state with no animation - setVehicleDoorOpenRatio(vehicle, door,
+-- ratio, time) eases between the door's current and target ratio over
+-- `time` ms instead, the same smooth swing a player gets from actually
+-- opening a door by walking into it. Touches the vehicle element directly
+-- rather than through gm_vehicles - a couple of native calls, not worth
+-- adding an export for (same reasoning the admin vehicle interactions
+-- above already give for touching the vehicle element directly).
+local DOOR_ANIMATION_MS = 400
+
+InteractionRegistry.register("vehicle:toggleHood", {
+    label = "Otwórz/zamknij maskę",
+    icon = "IconEngine",
+    elementType = "vehicle",
+    condition = hasVehicleKey,
+    handler = function(_, vehicle)
+        local isOpen = getVehicleDoorOpenRatio(vehicle, 0) > 0
+        setVehicleDoorOpenRatio(vehicle, 0, isOpen and 0 or 1, DOOR_ANIMATION_MS)
+    end,
+})
+
+InteractionRegistry.register("vehicle:toggleTrunk", {
+    label = "Otwórz/zamknij bagażnik",
+    icon = "IconBox",
+    elementType = "vehicle",
+    condition = hasVehicleKey,
+    handler = function(_, vehicle)
+        local isOpen = getVehicleDoorOpenRatio(vehicle, 1) > 0
+        setVehicleDoorOpenRatio(vehicle, 1, isOpen and 0 or 1, DOOR_ANIMATION_MS)
     end,
 })
 
