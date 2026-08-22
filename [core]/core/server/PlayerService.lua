@@ -86,6 +86,7 @@ PlayerService.setAccountContext = function(player, account)
         setElementData(player, ElementData.Account.PREMIUM, true)
     end
 
+    setPlayerName(player, account.login)
     PlayerService.refreshNametagColor(player)
 
     AccountPenaltyService.isMuted(account.id, function(isMuted, activeMute)
@@ -354,6 +355,13 @@ end
 PlayerService.isOnDuty = function(player)
     return type(getElementData(player, ElementData.Player.ADMIN)) == "table"
 end
+
+addEventHandler("onPlayerChangeNick", root, function(_, _, changedByUser)
+    if changedByUser then
+        cancelEvent()
+        return
+    end
+end)
 
 addEventHandler("onPlayerQuit", root, function()
     PlayerService.setDuty(source, false)
