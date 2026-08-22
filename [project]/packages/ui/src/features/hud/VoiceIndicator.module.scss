@@ -4,8 +4,12 @@
 // alias - see HudIcon.module.scss's comment on the same directive for why.
 @reference "../../styles/globals.css";
 
-// Anchored directly above HudBar's icon row (fixed bottom-4 right-4, 44px
-// icons) so the two never overlap regardless of how many speakers are listed.
+// Default/fallback position: anchored directly above HudBar's icon row
+// (fixed bottom-4 right-4, 44px icons) so the two never overlap regardless
+// of how many speakers are listed. Overridden via inline style
+// (VoiceIndicator.tsx's dockStyle) to dock above the native radar
+// (bottom-left) instead, whenever it's visible - see that file's own
+// comment.
 .list {
   @apply pointer-events-none fixed bottom-20 right-4 z-40 flex flex-col-reverse items-end gap-1;
 }
@@ -28,6 +32,10 @@
 .waveBar {
   @apply w-1 rounded-full;
   height: 25%;
+  // Fallback so a bar is always visible even if MODE_WAVE_CLASS somehow
+  // didn't match speaker.mode (unrecognized mode value) - the per-mode
+  // variants below override this whenever their class is present.
+  background: var(--color-muted-foreground);
   animation: wave-bounce 0.9s ease-in-out infinite;
 }
 

@@ -49,8 +49,8 @@ RadarComponent.new = function()
         blipSize = 25,
     }
 
-    self.width = mathFloor(335 / zoom)
-    self.height = mathFloor(210 / zoom)
+    self.width = mathFloor(395 / zoom)
+    self.height = mathFloor(270 / zoom)
     self.posX = 20
     self.posY = (screenH - 40 / zoom) - self.height
 

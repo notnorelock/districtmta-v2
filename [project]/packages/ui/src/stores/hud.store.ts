@@ -10,6 +10,8 @@ const [stats, setStats] = createStore<HudStats>({
   drowning: false,
   voiceActive: false,
   voiceLevel: 0,
+  radarVisible: false,
+  radarPosition: false,
 });
 
 export const hudStore = {

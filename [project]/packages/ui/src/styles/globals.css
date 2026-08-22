@@ -2,6 +2,30 @@
 @import "tw-animate-css";
 
 /*
+  Tailwind v4 only emits a --color-* custom property for a @theme token
+  that its scanner sees used as an actual utility class (bg-X/text-X/...)
+  somewhere in a scanned source file (.tsx/.ts) - a raw var(--color-X)
+  written directly in a .module.scss file (VoiceIndicator, RadioCard,
+  ScoreboardOverlay, BlackoutOverlay, VehicleMenuOverlay,
+  WorldInteractionOverlay all do this for success/warning) does NOT count
+  as "used", so the token gets tree-shaken out of the build entirely -
+  the variable silently doesn't exist at runtime (not merely "unstyled",
+  literally undefined) rather than erroring, which is why this went
+  unnoticed until a screenshot showed DevTools flagging
+  "--color-success is not defined". success/warning are the only two
+  tokens with this problem today (every other token this project
+  references via raw var() also happens to be used as a real utility
+  class somewhere in .tsx, which is what saves it) - @source inline()
+  force-generates these regardless of whether the scanner ever sees a
+  matching class, so the .module.scss files above can keep using
+  var(--color-success)/var(--color-warning) directly. If a NEW token is
+  ever added here that's only ever consumed via raw var() in a
+  .module.scss (never as an actual bg-X/text-X/border-X class in .tsx),
+  it needs adding to this list too.
+*/
+@source inline("{bg,text,border}-{success,warning}");
+
+/*
   Design tokens for the district UI. This is a game overlay, not a web
   app - the palette favors a dark, low-chrome, slightly translucent look
   over a typical SaaS/admin light theme. Components consume these via

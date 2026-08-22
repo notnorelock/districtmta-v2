@@ -89,10 +89,23 @@ NotificationsComponent.new = function()
         local radarVisible = radarComponent:isVisible()
 
         if radarVisible then
-            local x, _, w, h = radarComponent:getPosition()
+            local x, y, w, h = radarComponent:getPosition()
             if not self.useRadarPosition then
+                -- position.y is this stack's BOTTOM edge, not its top -
+                -- drawNotification()'s posY = pos.y - offsetY, and
+                -- recalculateOffsets() gives the NEWEST card offsetY≈0
+                -- (drawn at pos.y itself) while older cards get a growing
+                -- POSITIVE offsetY (drawn higher up, subtracted from
+                -- pos.y) - so the stack already grows upward on its own
+                -- from pos.y, regardless of how many cards are in it.
+                -- y here is the radar's own TOP edge (dxDraw, top-down),
+                -- so docking the stack's bottom edge a fixed gap above
+                -- that is just y - 35, not y - one card's height (the old
+                -- "-h+35"/"-self.position.h-35" both only ever accounted
+                -- for a single card, so the gap grew with every
+                -- additional notification in the stack).
                 self.position.x = x
-                self.position.y = (self.position.y - h + 35)
+                self.position.y = y - (75/zoom)
                 self.position.w = w
                 self.useRadarPosition = true
             end

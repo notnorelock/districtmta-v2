@@ -145,6 +145,13 @@ HUD.pushHudState = function(force)
         lastUpdateTick = getTickCount()
     end
 
+    -- getRadarPosition/isRadarVisible are Bootstrap.lua's own globals, same
+    -- resource - no exports.ui_hud: needed. x/y/w/h are real screen pixels
+    -- (dxDraw, not CSS units), but CEF renders at the same 1:1 screen
+    -- resolution, so the frontend (VoiceIndicator.tsx) can use them
+    -- directly as px - see RadarComponent.lua's own getPosition().
+    local radarX, radarY, radarW, radarH = getRadarPosition()
+
     exports.core_ui:uiPushEvent(Events.PUSH_HUD_UPDATED, {
         health = lastHealth,
         hunger = PLACEHOLDER_HUNGER,
@@ -160,12 +167,23 @@ HUD.pushHudState = function(force)
         -- VOICE_MODE_LEVEL's own comment. HudIcon renders this as the
         -- ring's fill percentage, same mechanic as health/hunger/thirst.
         voiceLevel = lastVoiceLevel,
+        -- Lets VoiceIndicator.tsx dock itself beside the native radar
+        -- instead of a fixed CSS position - radarPosition is false (not a
+        -- table) whenever the radar component isn't ready yet, same
+        -- "false means not ready" convention getRadarPosition() itself uses.
+        radarVisible = isRadarVisible(),
+        radarPosition = radarX and { x = radarX, y = radarY, w = radarW, h = radarH } or false,
     })
 end
 
 HUD.start = function()
     exports.core_ui:uiShowOverlay(HUD_OVERLAY)
     exports.core_ui:uiShowOverlay(WATERMARK_OVERLAY)
+    -- Bootstrap.lua's own RadarComponent starts hidden (self.visible =
+    -- false) - GTA_COMPONENTS below already turns off the native GTA
+    -- radar this replaces, so without this call there would be no radar
+    -- at all after spawning.
+    setRadarVisible(true)
     if active then return end
 
     for _, v in ipairs(GTA_COMPONENTS) do
@@ -178,6 +196,7 @@ HUD.start = function()
 end
 
 HUD.stop = function()
+    setRadarVisible(false)
     if not active then return end
 
     exports.core_ui:uiHideOverlay(HUD_OVERLAY)
