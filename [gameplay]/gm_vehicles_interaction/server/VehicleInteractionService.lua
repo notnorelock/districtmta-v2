@@ -59,6 +59,28 @@ local function broadcastState(vehicle, action)
     end
 end
 
+-- Only gm_vehicles' own persistent vehicles carry ElementData.Vehicle.ID
+-- (set by VehicleService.lua's spawnFromRow) - a temporary /veh spawn
+-- (gm_roleplay) or any other vehicle this resource works on regardless
+-- (see this file's own module comment on why it isn't coupled to
+-- gm_vehicles) has no such id and therefore no gm_items key concept to
+-- check, so those are left unrestricted rather than treated as
+-- "no key, deny."
+-- @param player element
+-- @param vehicle vehicle
+-- @return boolean
+local function canStartEngine(player, vehicle)
+    local vehicleId = getElementData(vehicle, ElementData.Vehicle.ID)
+    if not vehicleId then
+        return true
+    end
+
+    local ok, hasKey = pcall(function()
+        return exports.gm_items:itemServiceHasVehicleKey(player, vehicleId)
+    end)
+    return ok and hasKey == true
+end
+
 addEvent(Events.VEHICLE_INTERACTION_TOGGLE, true)
 addEventHandler(Events.VEHICLE_INTERACTION_TOGGLE, root, function(action)
     local player = client
@@ -68,7 +90,19 @@ addEventHandler(Events.VEHICLE_INTERACTION_TOGGLE, root, function(action)
     end
 
     if action == "engine" then
-        setVehicleEngineState(vehicle, not getVehicleEngineState(vehicle))
+        -- Starting the engine (not stopping it - a driver who already
+        -- has it running, e.g. one who legitimately started it themself
+        -- and is now just passing the wheel, isn't re-checked to turn it
+        -- back off) requires actually carrying this vehicle's key -
+        -- otherwise anyone who ends up in the driver seat (an unlocked/
+        -- already-open vehicle, a passenger who climbed over) could
+        -- start and drive off a vehicle they don't own.
+        local wantsOn = not getVehicleEngineState(vehicle)
+        if wantsOn and not canStartEngine(player, vehicle) then
+            outputChatBox("Nie masz kluczyków do tego pojazdu.", player, 255, 80, 80)
+            return
+        end
+        setVehicleEngineState(vehicle, wantsOn)
     elseif action == "lights" then
         local wantsOn = getVehicleOverrideLights(vehicle) ~= 2
         setVehicleOverrideLights(vehicle, wantsOn and 2 or 1)
