@@ -23,6 +23,11 @@ Vehicle = Model:extend("vehicles", {
     { name = "fuel", type = "integer", nullable = false, default = 100 },
     { name = "max_fuel", type = "integer", nullable = false, default = 100 },
     { name = "owner_account_id", type = "reference", nullable = false, references = { table = "accounts", column = "id" } },
+    -- Non-nil = this vehicle is sitting in a storage lot (vehicle_stores
+    -- row), NOT spawned in the world - see gm_vehicles/server/
+    -- VehicleStorageService.lua. VehicleService.lua's own onResourceStart
+    -- spawn-all-private loader skips any row with a non-nil store_id.
+    { name = "store_id", type = "reference", nullable = true, references = { table = "vehicle_stores", column = "id" } },
     { name = "locked", type = "boolean", nullable = false, default = true },
     -- Manual handbrake (setElementFrozen), toggled via gm_vehicles_
     -- interaction's radial menu - see VehicleInteractionService.lua's own

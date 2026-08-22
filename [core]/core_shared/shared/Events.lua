@@ -423,4 +423,52 @@ Events = {
     -- (requests can race - a player might stream out before the response
     -- for their stream-in arrives).
     NAMETAG_DATA_RECEIVED = "nametags:dataReceived",
+
+    -- Vehicle storage lots (gm_vehicles/server/VehicleStorageService.lua) -
+    -- walking into a lot's enter marker opens the CEF panel listing every
+    -- vehicle THIS account owns that's currently sitting in THIS lot
+    -- (store_id = that lot's id). Server -> client, `player` implicit
+    -- (targeted triggerClientEvent, not broadcast) - fired the moment the
+    -- marker is entered, no client -> server request needed first (unlike
+    -- inventory/scoreboard's own request/response pattern) since the
+    -- server already knows which lot and which account without the client
+    -- asking.
+    VEHICLE_STORAGE_OPEN = "vehicles:storageOpen",
+    -- Client -> server: walked out of the enter marker - closes the panel
+    -- client-side (VehicleStorageState.lua) without needing a round trip.
+    VEHICLE_STORAGE_CLOSE = "vehicles:storageClose",
+
+    -- Server -> requesting client only: the lot's vehicle list, keyed to
+    -- VEHICLE_STORAGE_OPEN's own storeId - see VehicleStorageService.lua's
+    -- toEntry for the exact shape. VehicleStorageState.lua forwards it
+    -- into the CEF panel via PUSH_VEHICLE_STORAGE_ITEMS.
+    VEHICLE_STORAGE_ITEMS_RECEIVED = "vehicles:storageItemsReceived",
+    -- Pushed into the CEF panel once VEHICLE_STORAGE_ITEMS_RECEIVED arrives.
+    PUSH_VEHICLE_STORAGE_ITEMS = "vehicles.storageItems",
+
+    -- Client -> server: player picked a vehicle (its database row id) from
+    -- the storage panel to retrieve. Server re-validates ownership OR
+    -- vehicle-key possession (borrowing someone else's vehicle - see
+    -- VehicleStorageService.lua's own playerHasKeyTo) and that the
+    -- vehicle is genuinely still in this lot before spawning it - never
+    -- trusts the panel's own belief that retrieving it is valid.
+    VEHICLE_STORAGE_RETRIEVE = "vehicles:storageRetrieve",
+
+    -- Storing a vehicle has NO event of its own - driving onto a lot's
+    -- store_position colshape stores it automatically, entirely server-
+    -- side (see gm_vehicles/server/VehicleStorageService.lua's
+    -- onStoreZoneHit/tryStoreVehicle) - no client involvement at all.
+
+    -- Server-to-server, core -> gm_vehicles (fire-and-forget, no response -
+    -- unlike VEHICLE_REPOSITORY_REQUEST/_RESPONSE, nothing here needs a
+    -- result back). core/server/commands/AdminCommands.lua's own
+    -- /createstore, /addstorespawn, /movestore, /removestore all trigger
+    -- this once their own database write finishes, so
+    -- VehicleStorageService.lua's own VehicleStorageService.reload() can
+    -- destroy its current markers and re-fetch vehicle_stores from
+    -- scratch - without this, an admin would have to manually restart
+    -- gm_vehicles after every single storage-lot edit for it to take
+    -- effect (see VehicleStorageService.lua's own module comment on why
+    -- markers aren't otherwise live).
+    VEHICLE_STORE_RELOAD = "core:vehicleStoreReload",
 }

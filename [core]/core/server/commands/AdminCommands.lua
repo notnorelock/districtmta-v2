@@ -319,3 +319,273 @@ CommandRegistry.register("jetpack", Permissions.Bit.JETPACK, function(player)
     })
     CommandRegistry.reply(player, hasJetpack and "Jetpack włączony." or "Jetpack wyłączony.", Enums.NotificationType.SUCCESS)
 end)
+
+-- /createstore, /addstorespawn, /clearstorespawns, /movestore,
+-- /setstorepos, /stores, /removestore - vehicle_stores table management
+-- (VehicleStoreRepository.lua). Lives
+-- here rather than in gm_vehicles because the table/repository itself
+-- lives in core (see Vehicle.lua's own module comment on why every
+-- model/repository lives in core, never in the gameplay resource that
+-- consumes it) - these commands talk to VehicleStoreRepository directly,
+-- no VehicleBridge round trip needed since this is the same resource.
+-- Every command that actually changes a row fires
+-- Events.VEHICLE_STORE_RELOAD once its write finishes, so gm_vehicles'
+-- own VehicleStorageService.reload() picks it up live - no manual
+-- gm_vehicles restart needed (see that event's own comment in Events.lua).
+local function reloadVehicleStores()
+    triggerEvent(Events.VEHICLE_STORE_RELOAD, resourceRoot)
+end
+CommandRegistry.register("createstore", Permissions.Bit.VEHICLE_ADMIN, function(player, name)
+    if CommandRegistry.isConsole(player) then
+        CommandRegistry.reply(player, "/createstore można użyć tylko w grze", Enums.NotificationType.WARNING)
+        return
+    end
+
+    if type(name) ~= "string" or name == "" then
+        CommandRegistry.reply(player, "Użycie: /createstore <nazwa>", Enums.NotificationType.WARNING)
+        return
+    end
+
+    local x, y, z = getElementPosition(player)
+    local _, _, heading = getElementRotation(player)
+
+    VehicleStoreRepository.create({
+        name = name,
+        enter_position = { x, y, z },
+        -- Seeded with the admin's own current spot as the first retrieval
+        -- point - see /addstorespawn to add more afterward. A store with
+        -- zero spawn positions is skipped entirely by
+        -- VehicleStorageService.lua's own loader (logged as a warning),
+        -- so this avoids creating a lot nothing can ever be retrieved from.
+        spawn_positions = { { x, y, z, heading, 0, 0 } },
+    }, function(ok, storeOrError)
+        if not ok then
+            CommandRegistry.reply(player, "Nie udało się stworzyć przechowalni: " .. tostring(storeOrError), Enums.NotificationType.ERROR)
+            return
+        end
+
+        Logger.security("AdminCommands", "Vehicle store created", {
+            player = getPlayerName(player),
+            storeId = storeOrError.id,
+            name = name,
+        })
+        reloadVehicleStores()
+        CommandRegistry.reply(player, "Stworzono przechowalnię '" .. name .. "' (id " .. storeOrError.id .. ").", Enums.NotificationType.SUCCESS)
+    end)
+end)
+
+CommandRegistry.register("addstorespawn", Permissions.Bit.VEHICLE_ADMIN, function(player, target)
+    if CommandRegistry.isConsole(player) then
+        CommandRegistry.reply(player, "/addstorespawn można użyć tylko w grze", Enums.NotificationType.WARNING)
+        return
+    end
+
+    local id = tonumber(target)
+    if not id then
+        CommandRegistry.reply(player, "Użycie: /addstorespawn <id przechowalni>", Enums.NotificationType.WARNING)
+        return
+    end
+
+    VehicleStoreRepository.findById(id, function(ok, storeOrError)
+        if not ok or not storeOrError then
+            CommandRegistry.reply(player, "Nie znaleziono przechowalni o podanym id.", Enums.NotificationType.ERROR)
+            return
+        end
+
+        local x, y, z = getElementPosition(player)
+        local _, _, heading = getElementRotation(player)
+
+        local spawnPositions = storeOrError.spawn_positions or {}
+        spawnPositions[#spawnPositions + 1] = { x, y, z, heading, 0, 0 }
+
+        VehicleStoreRepository.update(id, { spawn_positions = spawnPositions }, function(updateOk, affectedOrError)
+            if not updateOk then
+                CommandRegistry.reply(player, "Nie udało się dodać punktu odbioru: " .. tostring(affectedOrError), Enums.NotificationType.ERROR)
+                return
+            end
+
+            Logger.security("AdminCommands", "Vehicle store spawn point added", {
+                player = getPlayerName(player),
+                storeId = id,
+                total = #spawnPositions,
+            })
+            reloadVehicleStores()
+            CommandRegistry.reply(player, "Dodano punkt odbioru do przechowalni '" .. storeOrError.name .. "' (" .. #spawnPositions .. " łącznie).", Enums.NotificationType.SUCCESS)
+        end)
+    end)
+end)
+
+-- Clears the ENTIRE spawn_positions list back to empty, to redo it from
+-- scratch with /addstorespawn - deliberately no "remove just one" variant
+-- (spawn positions have no id/index a player could reasonably reference
+-- from in-game, unlike vehicle_stores rows themselves). A lot with zero
+-- spawn_positions is skipped entirely by VehicleStorageService.lua's own
+-- reload() (its marker/zone disappear until at least one is added back) -
+-- the reply below says so explicitly rather than leaving that a surprise.
+CommandRegistry.register("clearstorespawns", Permissions.Bit.VEHICLE_ADMIN, function(player, target)
+    local id = tonumber(target)
+    if not id then
+        CommandRegistry.reply(player, "Użycie: /clearstorespawns <id przechowalni>", Enums.NotificationType.WARNING)
+        return
+    end
+
+    VehicleStoreRepository.findById(id, function(ok, storeOrError)
+        if not ok or not storeOrError then
+            CommandRegistry.reply(player, "Nie znaleziono przechowalni o podanym id.", Enums.NotificationType.ERROR)
+            return
+        end
+
+        VehicleStoreRepository.update(id, { spawn_positions = {} }, function(updateOk, affectedOrError)
+            if not updateOk then
+                CommandRegistry.reply(player, "Nie udało się usunąć punktów odbioru: " .. tostring(affectedOrError), Enums.NotificationType.ERROR)
+                return
+            end
+
+            Logger.security("AdminCommands", "Vehicle store spawn points cleared", {
+                player = CommandRegistry.issuerLabel(player),
+                storeId = id,
+            })
+            reloadVehicleStores()
+            CommandRegistry.reply(player, "Usunięto wszystkie punkty odbioru przechowalni '" .. storeOrError.name .. "'. Przechowalnia jest teraz nieaktywna, dopóki nie dodasz nowego przez /addstorespawn.", Enums.NotificationType.WARNING)
+        end)
+    end)
+end)
+
+CommandRegistry.register("movestore", Permissions.Bit.VEHICLE_ADMIN, function(player, target)
+    if CommandRegistry.isConsole(player) then
+        CommandRegistry.reply(player, "/movestore można użyć tylko w grze", Enums.NotificationType.WARNING)
+        return
+    end
+
+    local id = tonumber(target)
+    if not id then
+        CommandRegistry.reply(player, "Użycie: /movestore <id przechowalni>", Enums.NotificationType.WARNING)
+        return
+    end
+
+    VehicleStoreRepository.findById(id, function(ok, storeOrError)
+        if not ok or not storeOrError then
+            CommandRegistry.reply(player, "Nie znaleziono przechowalni o podanym id.", Enums.NotificationType.ERROR)
+            return
+        end
+
+        -- Only moves the ENTER marker (where the panel opens) - the
+        -- spawn_positions list (where a retrieved vehicle is placed) is
+        -- untouched, same reasoning /addstorespawn keeps them separate:
+        -- an admin moving the marker itself hasn't necessarily moved
+        -- where cars should come out too.
+        local x, y, z = getElementPosition(player)
+
+        VehicleStoreRepository.update(id, { enter_position = { x, y, z } }, function(updateOk, affectedOrError)
+            if not updateOk then
+                CommandRegistry.reply(player, "Nie udało się przenieść przechowalni: " .. tostring(affectedOrError), Enums.NotificationType.ERROR)
+                return
+            end
+
+            Logger.security("AdminCommands", "Vehicle store moved", {
+                player = getPlayerName(player),
+                storeId = id,
+            })
+            reloadVehicleStores()
+            CommandRegistry.reply(player, "Przeniesiono wejście przechowalni '" .. storeOrError.name .. "' w twoje miejsce.", Enums.NotificationType.SUCCESS)
+        end)
+    end)
+end)
+
+-- Sets/moves the SEPARATE store marker (drive a vehicle onto it, press G -
+-- see VehicleStorageService.lua's own module comment on why this is a
+-- different spot from enter_position's retrieval panel marker).
+CommandRegistry.register("setstorepos", Permissions.Bit.VEHICLE_ADMIN, function(player, target)
+    if CommandRegistry.isConsole(player) then
+        CommandRegistry.reply(player, "/setstorepos można użyć tylko w grze", Enums.NotificationType.WARNING)
+        return
+    end
+
+    local id = tonumber(target)
+    if not id then
+        CommandRegistry.reply(player, "Użycie: /setstorepos <id przechowalni>", Enums.NotificationType.WARNING)
+        return
+    end
+
+    VehicleStoreRepository.findById(id, function(ok, storeOrError)
+        if not ok or not storeOrError then
+            CommandRegistry.reply(player, "Nie znaleziono przechowalni o podanym id.", Enums.NotificationType.ERROR)
+            return
+        end
+
+        local x, y, z = getElementPosition(player)
+
+        VehicleStoreRepository.update(id, { store_position = { x, y, z } }, function(updateOk, affectedOrError)
+            if not updateOk then
+                CommandRegistry.reply(player, "Nie udało się ustawić miejsca oddawania: " .. tostring(affectedOrError), Enums.NotificationType.ERROR)
+                return
+            end
+
+            Logger.security("AdminCommands", "Vehicle store store_position set", {
+                player = getPlayerName(player),
+                storeId = id,
+            })
+            reloadVehicleStores()
+            CommandRegistry.reply(player, "Ustawiono miejsce oddawania pojazdów dla przechowalni '" .. storeOrError.name .. "'.", Enums.NotificationType.SUCCESS)
+        end)
+    end)
+end)
+
+CommandRegistry.register("stores", Permissions.Bit.VEHICLE_ADMIN, function(player)
+    VehicleStoreRepository.findAll(function(ok, storesOrError)
+        if not ok then
+            CommandRegistry.reply(player, "Nie udało się wczytać przechowalni: " .. tostring(storesOrError), Enums.NotificationType.ERROR)
+            return
+        end
+
+        if #storesOrError == 0 then
+            CommandRegistry.reply(player, "Nie ma jeszcze żadnej przechowalni.", Enums.NotificationType.INFO)
+            return
+        end
+
+        local lines = {}
+        for _, store in ipairs(storesOrError) do
+            local spawnCount = type(store.spawn_positions) == "table" and #store.spawn_positions or 0
+            lines[#lines + 1] = ("[%d] %s (%d pkt. odbioru)"):format(store.id, store.name, spawnCount)
+        end
+        CommandRegistry.reply(player, table.concat(lines, "\n"), Enums.NotificationType.INFO)
+    end)
+end)
+
+CommandRegistry.register("removestore", Permissions.Bit.VEHICLE_ADMIN, function(player, target)
+    local id = tonumber(target)
+    if not id then
+        CommandRegistry.reply(player, "Użycie: /removestore <id przechowalni>", Enums.NotificationType.WARNING)
+        return
+    end
+
+    -- Refuses to delete a lot with vehicles still parked in it - those
+    -- rows would keep their now-dangling store_id, permanently hiding
+    -- them from the world (VehicleRepository.findAllPrivate only spawns
+    -- store_id IS NULL rows) with no way left to retrieve them.
+    VehicleRepository.findByStoreId(id, function(ok, vehiclesOrError)
+        if not ok then
+            CommandRegistry.reply(player, "Nie udało się sprawdzić przechowalni: " .. tostring(vehiclesOrError), Enums.NotificationType.ERROR)
+            return
+        end
+
+        if #vehiclesOrError > 0 then
+            CommandRegistry.reply(player, "Ta przechowalnia zawiera " .. #vehiclesOrError .. " pojazd(y/ów) - nie można jej usunąć.", Enums.NotificationType.ERROR)
+            return
+        end
+
+        VehicleStoreRepository.delete(id, function(deleteOk, affectedOrError)
+            if not deleteOk or affectedOrError == 0 then
+                CommandRegistry.reply(player, "Nie znaleziono przechowalni o podanym id.", Enums.NotificationType.ERROR)
+                return
+            end
+
+            Logger.security("AdminCommands", "Vehicle store removed", {
+                player = CommandRegistry.issuerLabel(player),
+                storeId = id,
+            })
+            reloadVehicleStores()
+            CommandRegistry.reply(player, "Usunięto przechowalnię (id " .. id .. ").", Enums.NotificationType.SUCCESS)
+        end)
+    end)
+end)

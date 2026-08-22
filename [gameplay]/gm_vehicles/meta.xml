@@ -8,13 +8,18 @@
 
     <include resource="core_shared" />
     <include resource="core" />
+    <include resource="core_ui" />
 
     <script src="server/GlobalResources.lua" type="server" cache="false" />
     <script src="server/VehicleBridge.lua" type="server" cache="false" />
     <script src="server/VehicleService.lua" type="server" cache="false" />
     <script src="server/VehicleLockService.lua" type="server" cache="false" />
+    <script src="server/VehicleStorageService.lua" type="server" cache="false" />
     <script src="server/PublicVehicles.lua" type="server" cache="false" />
     <script src="server/VehicleCommands.lua" type="server" cache="false" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/VehicleStorageState.lua" type="client" cache="false" />
 
     <!-- Plain data in/data out (a boolean vehicle, a boolean back) - safe
     across the resource boundary per docs/Architecture.md's "the one hard

@@ -161,6 +161,25 @@ addEventHandler("onClientVehicleExit", root, function(player)
     end
 end)
 
+-- Covers a vehicle disappearing out from under the local player without a
+-- normal exit ever firing - onClientVehicleExit is NOT guaranteed here:
+-- destroyElement() on an occupied vehicle (e.g. gm_vehicles/server/
+-- VehicleStorageService.lua's own store-zone sweep destroying an
+-- abandoned/rejected vehicle, or VehicleService.storeVehicle removing one
+-- that got successfully stored) just removes the element outright, MTA
+-- doesn't synthesize an exit event for the ped who was riding it. Without
+-- this, the last station's stream (and its "now playing" card) would keep
+-- playing/showing indefinitely for a vehicle that no longer exists.
+-- Checked BEFORE the element is gone (getPedOccupiedVehicle still
+-- resolves it in this handler), not source == localPlayer's own vehicle
+-- data (already gone by the time any such lookup would run).
+addEventHandler("onClientElementDestroy", root, function()
+    if source == getPedOccupiedVehicle(localPlayer) then
+        stopSound()
+        pushCardState(nil, false, true)
+    end
+end)
+
 addEvent(Events.RADIO_STATIONS_RECEIVED, true)
 addEventHandler(Events.RADIO_STATIONS_RECEIVED, root, function(stations)
     exports.core_ui:uiPushEvent(Events.PUSH_RADIO_STATIONS, stations)

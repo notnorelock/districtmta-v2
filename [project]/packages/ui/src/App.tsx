@@ -14,6 +14,7 @@ import { ScoreboardOverlay } from "@/features/scoreboard/ScoreboardOverlay";
 import { VehicleMenuOverlay } from "@/features/vehicleInteraction/VehicleMenuOverlay";
 import { WorldInteractionOverlay } from "@/features/worldInteraction/WorldInteractionOverlay";
 import { InventoryOverlay } from "@/features/inventory/InventoryOverlay";
+import { VehicleStorageOverlay } from "@/features/vehicleStorage/VehicleStorageOverlay";
 import { Watermark } from "@/components/common/Watermark";
 import { authStore } from "@/stores/auth.store";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -82,6 +83,10 @@ const AppContent: Component = () => {
           toggled by gm_items while I is pressed - see
           InventoryOverlay.tsx's own comment. */}
       <InventoryOverlay />
+      {/* Uses its own "vehicleStorage" overlay key (Overlay name prop),
+          opened/closed by gm_vehicles while standing inside a storage
+          lot's enter marker - see VehicleStorageOverlay.tsx's own comment. */}
+      <VehicleStorageOverlay />
     </div>
   );
 };

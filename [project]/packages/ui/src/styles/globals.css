@@ -355,3 +355,26 @@
   opacity: 0;
   transform: scale(0.98);
 }
+
+/*
+  Vehicle storage overlay (features/vehicleStorage/VehicleStorageOverlay.tsx) -
+  centered panel opened/closed by walking into/out of a storage lot's
+  marker (VehicleStorageState.lua), same plain fade+scale as "scoreboard"/
+  "inventory" above. Without this block, solid-transition-group's
+  Transition has no CSS transition to wait on for its exit-active class,
+  so it never fires its own removal callback and the panel's DOM node
+  stays mounted (visibly stuck open) even after overlayStore correctly
+  flips to hidden - confirmed live via /browserdebug (overlay.hide
+  reached the store and emptied visibleOverlays, but the panel never
+  disappeared) before this rule existed.
+*/
+.vehicleStorage-enter-active,
+.vehicleStorage-exit-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.vehicleStorage-enter-from,
+.vehicleStorage-exit-to {
+  opacity: 0;
+  transform: scale(0.98);
+}

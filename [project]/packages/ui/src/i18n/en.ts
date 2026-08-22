@@ -105,4 +105,15 @@ export const en: Record<keyof typeof pl, string> = {
   "inventory.action.favorite": "Add to favorites",
   "inventory.action.unfavorite": "Remove from favorites",
   "inventory.action.drop": "Drop",
+
+  "vehicleStorage.title": "Vehicle storage",
+  "vehicleStorage.category.all": "All",
+  "vehicleStorage.category.owned": "My vehicles",
+  "vehicleStorage.category.shared": "Shared",
+  "vehicleStorage.empty": "You have no vehicles here",
+  "vehicleStorage.hint.retrieve": "Click a vehicle to retrieve it",
+  "vehicleStorage.hint.store": "Drive your vehicle onto the marked spot to store it here",
+  "vehicleStorage.action.retrieve": "Retrieve",
+  "vehicleStorage.mileage": "Mileage",
+  "vehicleStorage.plate": "Plate",
 };

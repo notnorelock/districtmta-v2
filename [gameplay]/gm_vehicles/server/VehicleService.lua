@@ -267,6 +267,61 @@ VehicleService.saveAll = function()
     end
 end
 
+--- Saves `vehicle`'s current state, marks its row as sitting in
+--- `storeId`'s lot, and removes it from the world - see
+--- VehicleStorageService.lua's own "store" handler, the only caller.
+-- @param vehicle vehicle
+-- @param storeId number
+-- @param callback function(ok: boolean)
+VehicleService.storeVehicle = function(vehicle, storeId, callback)
+    local id = vehicleIds[vehicle]
+    if not id then
+        callback(false)
+        return
+    end
+
+    local state = currentStateOf(vehicle)
+    state.store_id = storeId
+
+    VehicleBridge.call("update", { id, state }, function(ok, affectedOrError)
+        if not ok then
+            Logger.error("VehicleService", "Vehicle store failed", { id = id, storeId = storeId, error = tostring(affectedOrError) })
+            callback(false)
+            return
+        end
+
+        vehicleIds[vehicle] = nil
+        if isElement(vehicle) then
+            destroyElement(vehicle)
+        end
+        callback(true)
+    end)
+end
+
+--- Spawns a stored row at `spawnPosition` - see VehicleStorageService.lua's
+--- own "retrieve" handler, the only caller. Mirrors spawnFromRow but
+--- places the vehicle at the given storage-lot spawn point instead of its
+--- own saved world position (a stored vehicle's saved position is
+--- wherever it was last driven/stored from, not meaningful for where to
+--- place it on retrieval) - overrides row.position/rotation before
+--- delegating, so every other field (health/locked/upgrades/doors/...)
+--- still restores exactly like a normal spawn.
+-- @param row table a vehicles table row (JSON columns already decoded) -
+--        NOT mutated, spawnFromRow reads a shallow copy with position/
+--        rotation overridden.
+-- @param spawnPosition table { x, y, z, rx, ry, rz }
+-- @return vehicle|nil
+VehicleService.spawnFromStore = function(row, spawnPosition)
+    local overridden = {}
+    for key, value in pairs(row) do
+        overridden[key] = value
+    end
+    overridden.position = { spawnPosition.x, spawnPosition.y, spawnPosition.z }
+    overridden.rotation = { spawnPosition.rx or 0, spawnPosition.ry or 0, spawnPosition.rz or 0 }
+
+    return spawnFromRow(overridden)
+end
+
 -- Records the driver and saves immediately on exit (not just the
 -- periodic autosave) so a vehicle's last-known state survives a crash
 -- between autosave ticks, matching the reference implementation's own

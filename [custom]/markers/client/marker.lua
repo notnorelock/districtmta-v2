@@ -110,12 +110,17 @@ Markers.getIconTarget = function(icon, r, g, b)
     return Markers.iconTargets[key]
 end
 
+-- Only clears the cached TEXT render target - NOT the ground-ring
+-- animation state (see Markers.grounds's own separate lifecycle below).
+-- Called both when a marker's text element-data changes (needs a fresh
+-- target for the new string) and when it has no text at all (nothing to
+-- draw) - neither case should also reset the ground animation, which has
+-- nothing to do with text.
 Markers.removeTarget = function(el)
     if Markers.text[el] then
         destroyElement(Markers.text[el])
         Markers.text[el] = nil
     end
-    Markers.grounds[el] = nil
 end
 
 -- typy markerów wspieranych: ring, cylinder, corona
@@ -152,7 +157,11 @@ Markers.renderMarkers = function()
             end
 
             if alpha <= 0 then
+                -- Marker genuinely out of view (too far/off-screen/wrong
+                -- interior-dimension) - full reset, unlike the "no text"
+                -- case below which only ever clears the text target.
                 Markers.removeTarget(marker)
+                Markers.grounds[marker] = nil
             else
                 local anim = interpolateBetween(0, 0, 0, 0.10, 0, 0, (tick / 2500), 'SineCurve')
                 local size = getMarkerSize(marker) * 2

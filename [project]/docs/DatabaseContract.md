@@ -341,6 +341,7 @@ vehicles
   fuel               INT not null default 100
   max_fuel           INT not null default 100
   owner_account_id   BIGINT not null references accounts(id)
+  store_id           BIGINT nullable references vehicle_stores(id)   -- non-null = sitting in this storage lot, NOT spawned in the world
   locked             TINYINT(1) not null default 1
   handbrake          TINYINT(1) not null default 0   -- manual handbrake (setElementFrozen), see VehicleInteractionService.lua
   upgrades           TEXT nullable   -- toJSON({parts, neons, paintjob, engine})
@@ -385,6 +386,57 @@ system" section.
 `owner_account_id` points at `accounts.id`, not a character - this project
 has no working character-select system yet (`characters` above is a
 placeholder only), so vehicle ownership is account-wide for now.
+
+`store_id` is non-null exactly while a vehicle is sitting in a storage lot
+(`gm_vehicles/server/VehicleStorageService.lua`) - `VehicleRepository.
+findAllPrivate`'s own `WHERE store_id IS NULL` clause is what keeps a
+stored vehicle out of the world across a `gm_vehicles` restart, until a
+player retrieves it again. Clearing it back to NULL on retrieve goes
+through the same `NULL_SENTINEL` string trick `items.owner_account_id`
+uses (see below) - `gm_vehicles` has no access to `Model.NULL` across the
+resource boundary.
+
+### Vehicle stores table
+
+```
+vehicle_stores
+  id                 BIGINT AUTO_INCREMENT primary key
+  name               VARCHAR(64) not null
+  enter_position     TEXT not null   -- toJSON({x,y,z}) - the marker a player walks into to open the retrieval panel
+  store_position     TEXT nullable   -- toJSON({x,y,z}) - the SEPARATE colshape a vehicle is driven onto + G to store it
+  spawn_positions    TEXT not null   -- toJSON({ {x,y,z,rx,ry,rz}, ... }) - where a retrieved vehicle is placed (first free one, see below)
+  created_at         TIMESTAMP default CURRENT_TIMESTAMP
+```
+
+Admin-configured storage lot locations - managed via `core`'s own
+`/createstore`, `/addstorespawn`, `/movestore`, `/setstorepos`,
+`/removestore` commands (`AdminCommands.lua`), never inserted directly.
+Every command that changes a row fires `Events.VEHICLE_STORE_RELOAD`
+(`core:vehicleStoreReload`, server-to-server, `core` -> `gm_vehicles`) so
+`VehicleStorageService.lua`'s own `reload()` destroys its current
+markers/zones and rebuilds them from a fresh query - no `gm_vehicles`
+restart needed after an edit. A lot with zero `spawn_positions` is
+skipped entirely at load (logged as a warning) rather than spawning a
+marker nobody can retrieve anything from; `store_position` is optional -
+an older row (or one nobody has run `/setstorepos` on yet) simply has no
+drop-off zone until it does.
+
+`enter_position` and `store_position` are deliberately separate spots -
+walking into `enter_position` opens the retrieval panel (see
+`Events.VEHICLE_STORAGE_OPEN`/`_CLOSE`), driving a vehicle onto
+`store_position`'s colshape stores it immediately, no keypress at all
+(`VehicleStorageService.lua`'s `onStoreZoneHit`/`tryStoreVehicle`) - the
+two used to be the same marker, split so retrieving never fights the
+panel's own right-click cursor toggle, and so a lot's in-door and
+out-door can be different physical spots. Retrieval itself checks each `spawn_positions`
+entry in order for an already-parked vehicle within a small radius and
+uses the first clear one, rejecting the request only if every single one
+is currently occupied (`VehicleStorageService.lua`'s `findFreeSpawnPosition`).
+Separately, any vehicle that sits inside `store_position`'s zone for more
+than a minute without actually being stored (not the driver's own private
+vehicle, or simply abandoned there) is destroyed automatically, so a
+blocked drop-off zone doesn't stay blocked forever
+(`STORE_ZONE_GRACE_MS`/`sweepStoreZones`).
 
 ### Items table
 

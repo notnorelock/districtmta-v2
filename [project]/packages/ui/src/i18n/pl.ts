@@ -103,4 +103,15 @@ export const pl = {
   "inventory.action.favorite": "Do ulubionych",
   "inventory.action.unfavorite": "Usuń z ulubionych",
   "inventory.action.drop": "Wyrzuć",
+
+  "vehicleStorage.title": "Przechowalnia pojazdów",
+  "vehicleStorage.category.all": "Wszystkie",
+  "vehicleStorage.category.owned": "Moje pojazdy",
+  "vehicleStorage.category.shared": "Udostępnione",
+  "vehicleStorage.empty": "Nie masz tutaj żadnych pojazdów",
+  "vehicleStorage.hint.retrieve": "Kliknij pojazd, aby go odebrać",
+  "vehicleStorage.hint.store": "Wjedź swoim pojazdem na wyznaczone miejsce, aby go tu zostawić",
+  "vehicleStorage.action.retrieve": "Odbierz",
+  "vehicleStorage.mileage": "Przebieg",
+  "vehicleStorage.plate": "Tablica",
 } as const;

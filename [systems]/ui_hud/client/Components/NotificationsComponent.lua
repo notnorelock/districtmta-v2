@@ -231,7 +231,7 @@ NotificationsComponent.new = function()
 
         self:recalculateOffsets("in")
 
-        outputDebugString(string.format("[%s] %s", properties.title, text))
+        outputConsole(string.format("[%s] %s", properties.title, text))
 
         return notification
     end
