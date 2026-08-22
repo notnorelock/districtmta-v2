@@ -24,6 +24,8 @@ export interface SmokeBackgroundProps {
   maxVelocity?: [number, number, number];
   velocityResetFactor?: number;
   class?: string;
+  /** Renders with a transparent WebGL context instead of an opaque black background - for layering the smoke over something other than solid black (e.g. SpawnSelectView.tsx's map). Defaults to false to keep AuthCard.tsx's own black-backed usage unchanged. */
+  transparent?: boolean;
 }
 
 const DEFAULTS: Required<Omit<SmokeBackgroundProps, "class">> = {
@@ -42,6 +44,7 @@ const DEFAULTS: Required<Omit<SmokeBackgroundProps, "class">> = {
   maxBounds: [800, 800, 800],
   maxVelocity: [30, 30, 0],
   velocityResetFactor: 10,
+  transparent: false,
 };
 
 export const SmokeBackground: Component<SmokeBackgroundProps> = (rawProps) => {
@@ -59,12 +62,14 @@ export const SmokeBackground: Component<SmokeBackgroundProps> = (rawProps) => {
     if (!containerRef) return;
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
+    if (!props.transparent) {
+      scene.background = new THREE.Color(0x000000);
+    }
 
     camera = new THREE.PerspectiveCamera(60, containerRef.clientWidth / containerRef.clientHeight, 1, 6000);
     camera.position.z = 500;
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: props.transparent });
     renderer.setSize(containerRef.clientWidth, containerRef.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerRef.appendChild(renderer.domElement);

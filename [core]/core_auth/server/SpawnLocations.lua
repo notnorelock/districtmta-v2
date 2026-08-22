@@ -57,11 +57,14 @@ SpawnLocations.findById = function(id)
     return locationsById[id]
 end
 
---- @return table[] array of { id, name, description }
+--- @return table[] array of { id, name, description, x, y } - x/y are
+-- the same world coordinates used to actually spawn the player (see
+-- gm_roleplay's gameplayEnterWorld), sent to the client purely to place
+-- a pin on Map2D.
 SpawnLocations.toPublicList = function()
     local list = {}
     for i, location in ipairs(SpawnLocations) do
-        list[i] = { id = location.id, name = location.name, description = location.description }
+        list[i] = { id = location.id, name = location.name, description = location.description, x = location.x, y = location.y }
     end
     return list
 end

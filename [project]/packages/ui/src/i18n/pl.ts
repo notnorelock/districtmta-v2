@@ -53,6 +53,7 @@ export const pl = {
   "spawn.title": "Wybierz miejsce spawnu",
   "spawn.subtitle": "Zdecyduj, gdzie chcesz rozpocząć rozgrywkę",
   "spawn.select": "Wybierz",
+  "spawn.previewCancel": "Anuluj",
   "spawn.entering": "Wchodzenie do świata...",
 
 

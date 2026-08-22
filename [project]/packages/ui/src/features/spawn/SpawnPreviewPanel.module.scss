@@ -1,0 +1,33 @@
+@reference "../../styles/globals.css";
+
+// Anchored via inline left/top (see SpawnPreviewPanel.tsx) to the pin's
+// own on-canvas position - translateX(-50%) centers it horizontally over
+// the pin, translateY(-100%) plus the negative margin-top below lifts
+// the whole card just above the pin's own icon instead of covering it.
+.root {
+  @apply pointer-events-none absolute z-20 flex -translate-x-1/2 -translate-y-full flex-col items-center pb-3;
+}
+
+.card {
+  @apply pointer-events-auto relative flex w-56 flex-col gap-3 rounded-xl border border-border bg-popover/95 p-4 font-display shadow-lg;
+}
+
+.closeButton {
+  @apply absolute right-2 top-2 flex size-5 items-center justify-center rounded-full text-sm leading-none text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:pointer-events-none disabled:opacity-50;
+}
+
+.info {
+  @apply min-w-0 pr-5;
+}
+
+.title {
+  @apply text-sm font-bold text-foreground;
+}
+
+.description {
+  @apply mt-1 text-xs text-muted-foreground;
+}
+
+.confirmButton {
+  @apply h-9 w-full rounded-md text-xs font-bold uppercase tracking-wider;
+}

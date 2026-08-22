@@ -55,6 +55,7 @@ export const en: Record<keyof typeof pl, string> = {
   "spawn.title": "Choose your spawn location",
   "spawn.subtitle": "Decide where you want to start playing",
   "spawn.select": "Select",
+  "spawn.previewCancel": "Cancel",
   "spawn.entering": "Entering the world...",
 
 

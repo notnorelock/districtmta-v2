@@ -1,0 +1,25 @@
+@reference "../../styles/globals.css";
+
+.root {
+  @apply relative h-full w-full overflow-hidden rounded-xl border border-border bg-black;
+}
+
+.canvas {
+  @apply block h-full w-full cursor-grab touch-none;
+}
+
+.canvas:active {
+  @apply cursor-grabbing;
+}
+
+.pinTooltip {
+  @apply pointer-events-none absolute z-10 flex -translate-x-1/2 -translate-y-full flex-col items-center gap-0.5 rounded-md border border-border bg-popover px-2.5 py-1.5 font-display text-xs text-popover-foreground shadow-md;
+}
+
+.pinTooltipTitle {
+  @apply font-semibold text-foreground;
+}
+
+.pinTooltipDescription {
+  @apply text-muted-foreground;
+}
