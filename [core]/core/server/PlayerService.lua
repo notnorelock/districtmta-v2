@@ -86,7 +86,9 @@ PlayerService.setAccountContext = function(player, account)
         setElementData(player, ElementData.Account.PREMIUM, true)
     end
 
-    setPlayerName(player, account.login)
+    if getPlayerName(player) ~= account.login then
+        setPlayerName(player, account.login)
+    end
     PlayerService.refreshNametagColor(player)
 
     AccountPenaltyService.isMuted(account.id, function(isMuted, activeMute)
