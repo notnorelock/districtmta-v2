@@ -48,7 +48,6 @@ export interface MtaFetchRequestEnvelope {
 export type MtaPushEventName =
   | "account.updated"
   | "account.resolved"
-  | "notification.created"
   | "ui.open"
   | "ui.close"
   | "loading.progress"

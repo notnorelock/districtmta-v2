@@ -63,7 +63,7 @@ Server-pushed events (not initiated by a browser request) use a parallel,
 explicitly separate channel:
 
 ```
-NotificationService.send(player, {...})       (core/server/notifications/NotificationService.lua)
+SomeService.somethingHappened(player, {...})   (e.g. core/server/AccountService.lua)
      |  exports.core_ui:pushServiceSend(player, event, data)  -- plain data only
      v
 PushService.send(player, event, data)         core_ui/server/PushService.lua
@@ -76,6 +76,19 @@ MtaTransport (browser side)                   window.__mtaPushEvent installed by
      v
 MtaBridge dispatches to any mta.on(event, handler) subscribers
 ```
+
+**Toast notifications are NOT part of this CEF channel.**
+`NotificationService.send(player, {...})`/`.broadcast(...)`
+(`core/server/notifications/NotificationService.lua`) fires
+`Events.NOTIFICATION_SHOW` directly via `triggerClientEvent`, straight to
+`ui_hud/client/Bootstrap.lua`'s own handler, which calls its native dxDraw
+`NotificationsComponent:show(category, text, properties)` - no CEF/browser
+hop at all. This project used to have a CEF toast stack
+(`packages/ui/src/features/notifications/`) driven over this same
+`PushService` channel; it was removed once the native `ui_hud` toast stack
+existed, so `NotificationService` is now the one exception to "server
+pushes go through `PushService`/`UI_PUSH_EVENT`" - everything else server-
+originated in the table below still does.
 
 RPC responses and pushed events deliberately use different JS entry points
 (`__mtaFetchResponse` vs `__mtaPushEvent`) and different MTA custom events
@@ -118,7 +131,6 @@ constants) and which path each takes:
 
 | Event | Path | Purpose |
 |---|---|---|
-| `notification.created` | server → client-side push | `NotificationService.send` - toasts (`ToastStack.tsx`) |
 | `account.updated`/`account.resolved` | server → client-side push | account state changes |
 | `ui.open`/`ui.close` | server → client-side push, or client-side directly (`BrowserManager.lua`'s `UI.open`/`UI.close`) | named-window visibility (`uiStore`) |
 | `ui.alreadyInWorld` | client-side only | tells the frontend "no window is opening, stop showing the loading screen" for a player who reconnected-in-place after a mid-session resource restart while already spawned - see `docs/Architecture.md`'s "Loading gate" section |

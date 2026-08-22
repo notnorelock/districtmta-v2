@@ -6,7 +6,6 @@ import { WindowProvider, useWindow } from "@/components/common/WindowProvider";
 import { LoginView } from "@/features/auth/LoginView";
 import { SpawnSelectView } from "@/features/spawn/SpawnSelectView";
 import { ResourceCheckScreen } from "@/features/loading/ResourceCheckScreen";
-import { ToastStack } from "@/features/notifications/ToastStack";
 import { HudBar } from "@/features/hud/HudBar";
 import { VoiceIndicator } from "@/features/hud/VoiceIndicator";
 import { RadioCard } from "@/features/hud/RadioCard";
@@ -83,7 +82,6 @@ const AppContent: Component = () => {
           toggled by gm_items while I is pressed - see
           InventoryOverlay.tsx's own comment. */}
       <InventoryOverlay />
-      <ToastStack />
     </div>
   );
 };

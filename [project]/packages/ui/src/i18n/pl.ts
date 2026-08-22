@@ -55,7 +55,6 @@ export const pl = {
   "spawn.select": "Wybierz",
   "spawn.entering": "Wchodzenie do świata...",
 
-  "notification.dismiss": "Zamknij",
 
   "blackout.title": "Jesteś nieprzytomny",
   "blackout.waitingForHelp": "Oczekuj na pomoc medyczną.",

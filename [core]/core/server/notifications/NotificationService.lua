@@ -2,17 +2,15 @@ NotificationService = NotificationService or {}
 
 --- @param player element
 -- @param notification table { type: "success"|"error"|"info"|"warning", title: string, message: string|nil }
+--         Rendered by ui_hud's own native dxDraw NotificationsComponent,
+--         not CEF - see Events.NOTIFICATION_SHOW's own comment.
 NotificationService.send = function(player, notification)
     assert(isElement(player), "NotificationService.send expects a player element")
     assert(type(notification) == "table", "NotificationService.send expects a notification table")
     assert(type(notification.type) == "string", "notification.type is required")
     assert(type(notification.title) == "string", "notification.title is required")
 
-    PushService.send(player, Events.PUSH_NOTIFICATION_CREATED, {
-        type = notification.type,
-        title = notification.title,
-        message = notification.message,
-    })
+    triggerClientEvent(player, Events.NOTIFICATION_SHOW, resourceRoot, notification.type, notification.title, notification.message)
 end
 
 --- Convenience broadcast variant.

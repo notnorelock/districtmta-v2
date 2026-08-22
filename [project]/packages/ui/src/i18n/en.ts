@@ -57,7 +57,6 @@ export const en: Record<keyof typeof pl, string> = {
   "spawn.select": "Select",
   "spawn.entering": "Entering the world...",
 
-  "notification.dismiss": "Dismiss",
 
   "blackout.title": "You are unconscious",
   "blackout.waitingForHelp": "Wait for medical help.",

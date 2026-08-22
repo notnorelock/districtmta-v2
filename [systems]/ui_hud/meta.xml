@@ -10,6 +10,33 @@
     <include resource="core_ui" />
     <include resource="gm_voice" />
 
+    <!-- Deliberately per-subfolder, not a single "assets/**" - other
+    resources in this project (e.g. [custom]/markers/meta.xml) already
+    establish that convention rather than relying on ** matching
+    recursively, which MTA's own <file> glob doesn't reliably support. -->
+    <file src="assets/*" />
+    <file src="assets/radar/*" />
+    <file src="assets/radar/blips/*" />
+    <file src="assets/notifications/*" />
+
     <script src="client/GlobalResources.lua" type="client" cache="false" />
-    <script src="client/HudState.lua" type="client" cache="false" />
+    <script src="client/HUDState.lua" type="client" cache="false" />
+
+    <!-- Native dxDraw HUD pieces (radar/FPS/notifications) - a separate
+    rendering system from HudState.lua's own CEF-pushed health/hunger/
+    thirst/voice HUD above, not a replacement for it. Load order matters:
+    Animate before HUDComponent (uses AnimationManager), HUDComponent
+    before HUDBase/the components (HUDBase.addComponent and every
+    component's own .new() expect it), Helpers/Notification before
+    NotificationsComponent (uses both), Bootstrap last (wires every
+    component into one HUDBase instance). -->
+    <script src="client/Animate.lua" type="client" cache="false" />
+    <script src="client/Components/HUDComponent.lua" type="client" cache="false" />
+    <script src="client/Models/HUDBase.lua" type="client" cache="false" />
+    <script src="client/Helpers.lua" type="client" cache="false" />
+    <script src="client/Models/Notification.lua" type="client" cache="false" />
+    <script src="client/Components/FPSComponent.lua" type="client" cache="false" />
+    <script src="client/Components/RadarComponent.lua" type="client" cache="false" />
+    <script src="client/Components/NotificationsComponent.lua" type="client" cache="false" />
+    <script src="client/Bootstrap.lua" type="client" cache="false" />
 </meta>

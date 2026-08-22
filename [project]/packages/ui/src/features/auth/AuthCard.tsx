@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { TextField, TextFieldInput, TextFieldLabel } from "@/components/ui/TextField";
 import { Checkbox, CheckboxLabel } from "@/components/ui/Checkbox";
 import { authStore } from "@/stores/auth.store";
-import { notificationStore } from "@/stores/notification.store";
 import { mta } from "@/lib/mta/MtaBridge";
 import { t } from "@/i18n";
 import { cn } from "@/lib/cn";
@@ -222,7 +221,9 @@ const RegisterForm: Component<{ onSwitchToLogin: () => void }> = (props) => {
     setSubmitting(false);
 
     if (success) {
-      notificationStore.success(t()("account.created"), t()("account.created.description"));
+      mta.notify("onClientShowNotification", "success", t()("account.created.description"), {
+        title: t()("account.created"),
+      });
       props.onSwitchToLogin();
     }
   };

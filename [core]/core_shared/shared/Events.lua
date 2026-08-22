@@ -101,9 +101,18 @@ Events = {
     -- Push event names delivered over UI_PUSH_EVENT (CEF-bound only)
     PUSH_ACCOUNT_UPDATED = "account.updated",
     PUSH_ACCOUNT_RESOLVED = "account.resolved",
-    PUSH_NOTIFICATION_CREATED = "notification.created",
     PUSH_UI_OPEN = "ui.open",
     PUSH_UI_CLOSE = "ui.close",
+
+    -- Server -> client: NotificationService.send/.broadcast, rendered by
+    -- ui_hud's own native dxDraw NotificationsComponent (NOT CEF - the
+    -- toast stack this used to push into, packages/ui/src/features/
+    -- notifications/, was removed). args: (type, title, message|nil),
+    -- type is one of Enums.NotificationType. See
+    -- ui_hud/client/Bootstrap.lua's handler for the type -> category
+    -- mapping (NotificationsComponent's categories use "warn", not
+    -- Enums.NotificationType's "warning").
+    NOTIFICATION_SHOW = "notification:show",
 
     -- Pushed by AuthUiClient.lua on Events.AUTH_ALREADY_IN_WORLD - tells
     -- the frontend directly "there is no window to open, stop showing the
