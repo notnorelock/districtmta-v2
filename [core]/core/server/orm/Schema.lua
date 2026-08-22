@@ -180,6 +180,60 @@ local function migrateTable(tableName, columns, onDone)
     end)
 end
 
+--- Orders every registered table so each one comes after every OTHER
+--- registered table it has a `references` column pointing at - plain
+--- alphabetical order (the previous behavior) has no relationship to FK
+--- dependencies, so it would create a table before the table its own
+--- FOREIGN KEY constraint points at whenever alphabetical order and
+--- dependency order happened to disagree (confirmed live: some tables
+--- intermittently failed to create with a "CREATE TABLE failed" error -
+--- MySQL rejects a FOREIGN KEY referencing a table that doesn't exist
+--- yet). A table referencing another table NOT registered here (e.g.
+--- Schema.define never got called for it, or a typo in `references.table`)
+--- is left in its original relative position rather than erroring - that
+--- FK would fail at CREATE TABLE time regardless of ordering, and
+--- migrateTable's own error logging already surfaces it.
+-- @param tableNames string[] every registered table name
+-- @return string[] a new array, topologically sorted (referenced tables first)
+local function dependencyOrder(tableNames)
+    local visited = {}
+    local visiting = {}
+    local ordered = {}
+
+    local function visit(tableName)
+        if visited[tableName] then
+            return
+        end
+        if visiting[tableName] then
+            -- A cycle (A references B, B references A, directly or
+            -- transitively) - break it here rather than recursing forever;
+            -- whichever table closes the cycle just keeps its place in
+            -- creation order relative to the one that started it.
+            return
+        end
+        visiting[tableName] = true
+
+        local columns = definitions[tableName]
+        if columns then
+            for _, column in ipairs(columns) do
+                if column.references and definitions[column.references.table] then
+                    visit(column.references.table)
+                end
+            end
+        end
+
+        visiting[tableName] = nil
+        visited[tableName] = true
+        ordered[#ordered + 1] = tableName
+    end
+
+    for _, tableName in ipairs(tableNames) do
+        visit(tableName)
+    end
+
+    return ordered
+end
+
 --- Creates missing tables/columns for every registered model. Runs
 --- asynchronously and sequentially - does NOT finish by the time this
 --- call returns. See docs/DatabaseContract.md's "Migration" section for
@@ -191,7 +245,12 @@ Schema.migrate = function(onComplete)
     for tableName in pairs(definitions) do
         tableNames[#tableNames + 1] = tableName
     end
+    -- Sorted alphabetically FIRST so dependencyOrder's own traversal order
+    -- (and therefore the final migration order among tables with no FK
+    -- relationship to each other) stays deterministic run to run, then
+    -- reordered so every table comes after whatever it references.
     table.sort(tableNames)
+    tableNames = dependencyOrder(tableNames)
 
     local function migrateNext(index)
         local tableName = tableNames[index]
