@@ -116,7 +116,7 @@ InteractionRegistry.register("vehicle:adminFix", {
     end,
     handler = function(player, vehicle)
         fixVehicle(vehicle)
-        outputChatBox("Naprawiono pojazd.", player, 100, 220, 120)
+        NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = "Naprawiono pojazd." })
         Logger.info("InteractionRegistry", "Admin fixed a vehicle", {
             player = getPlayerName(player),
             vehicleId = getElementData(vehicle, ElementData.Vehicle.ID),
@@ -140,7 +140,7 @@ InteractionRegistry.register("vehicle:adminFlip", {
         local x, y, z = getElementPosition(vehicle)
         setElementRotation(vehicle, rx + 180, ry, rz)
         setElementPosition(vehicle, x, y, z + 1.5)
-        outputChatBox("Obrócono pojazd.", player, 100, 220, 120)
+        NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = "Obrócono pojazd." })
         Logger.info("InteractionRegistry", "Admin flipped a vehicle", {
             player = getPlayerName(player),
             vehicleId = getElementData(vehicle, ElementData.Vehicle.ID),
@@ -258,7 +258,7 @@ InteractionRegistry.register("vehicle:adminMoveToSelf", {
         local rad = math.rad(rz)
         setElementPosition(vehicle, x + math.sin(-rad) * 1.5, y + math.cos(-rad) * 1.5, z)
         setElementRotation(vehicle, rx, ry, rz)
-        outputChatBox("Przeniesiono pojazd do siebie.", player, 100, 220, 120)
+        NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = "Przeniesiono pojazd do siebie." })
         Logger.info("InteractionRegistry", "Admin moved a vehicle to self", {
             player = getPlayerName(player),
             vehicleId = getElementData(vehicle, ElementData.Vehicle.ID),

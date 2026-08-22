@@ -2,7 +2,7 @@
 -- "Admin duty, panel, and reports" section.
 CommandRegistry.register("duty", Permissions.Bit.TOGGLE_DUTY, function(player)
     if CommandRegistry.isConsole(player) then
-        CommandRegistry.reply(player, "/duty can only be used in-game")
+        CommandRegistry.reply(player, "/duty można użyć tylko w grze", Enums.NotificationType.WARNING)
         return
     end
 
@@ -21,7 +21,7 @@ CommandRegistry.register("duty", Permissions.Bit.TOGGLE_DUTY, function(player)
         accountId = accountId,
         onDuty = nowOnDuty,
     })
-    CommandRegistry.reply(player, nowOnDuty and "Jesteś teraz na służbie." or "Zszedłeś ze służby.")
+    CommandRegistry.reply(player, nowOnDuty and "Jesteś teraz na służbie." or "Zszedłeś ze służby.", Enums.NotificationType.SUCCESS)
 
     -- core_admin's KeyBinds.lua binds/unbinds F6/F7 off this - see
     -- Events.ADMIN_DUTY_CHANGED's own comment.
@@ -30,39 +30,39 @@ end)
 
 CommandRegistry.register("report", nil, function(player, target, ...)
     if CommandRegistry.isConsole(player) then
-        CommandRegistry.reply(player, "/report can only be used in-game")
+        CommandRegistry.reply(player, "/report można użyć tylko w grze", Enums.NotificationType.WARNING)
         return
     end
 
     local reporterAccountId = PlayerService.getAccountId(player)
     if not reporterAccountId then
-        CommandRegistry.reply(player, "Musisz być zalogowany, aby zgłosić gracza.")
+        CommandRegistry.reply(player, "Musisz być zalogowany, aby zgłosić gracza.", Enums.NotificationType.ERROR)
         return
     end
 
     if not target then
-        CommandRegistry.reply(player, "Usage: /report <login|id|nick> <powód>")
+        CommandRegistry.reply(player, "Użycie: /report <login|id|nick> <powód>", Enums.NotificationType.WARNING)
         return
     end
 
     local reason = table.concat({ ... }, " ")
     if reason == "" then
-        CommandRegistry.reply(player, "Usage: /report <login|id|nick> <powód>")
+        CommandRegistry.reply(player, "Użycie: /report <login|id|nick> <powód>", Enums.NotificationType.WARNING)
         return
     end
 
     CommandRegistry.resolveTargetAccount(player, target, function(reportedAccount)
         ReportService.create(reporterAccountId, reportedAccount.id, reason, function(report)
-            CommandRegistry.reply(player, "Zgłoszenie na '" .. reportedAccount.login .. "' zostało wysłane.")
+            CommandRegistry.reply(player, "Zgłoszenie na '" .. reportedAccount.login .. "' zostało wysłane.", Enums.NotificationType.SUCCESS)
         end, function(code, message)
-            CommandRegistry.reply(player, "Nie udało się wysłać zgłoszenia: " .. tostring(message or code))
+            CommandRegistry.reply(player, "Nie udało się wysłać zgłoszenia: " .. tostring(message or code), Enums.NotificationType.ERROR)
         end)
     end)
 end)
 
 CommandRegistry.register("reports", Permissions.Bit.VIEW_REPORTS, function(player)
     if CommandRegistry.isConsole(player) then
-        CommandRegistry.reply(player, "/reports can only be used in-game")
+        CommandRegistry.reply(player, "/reports można użyć tylko w grze", Enums.NotificationType.WARNING)
         return
     end
 
@@ -71,7 +71,7 @@ end)
 
 CommandRegistry.register("apanel", Permissions.Bit.ADMIN_PANEL, function(player)
     if CommandRegistry.isConsole(player) then
-        CommandRegistry.reply(player, "/apanel can only be used in-game")
+        CommandRegistry.reply(player, "/apanel można użyć tylko w grze", Enums.NotificationType.WARNING)
         return
     end
 
@@ -111,12 +111,12 @@ end
 
 CommandRegistry.register("goto", Permissions.Bit.TELEPORT, function(player, target)
     if CommandRegistry.isConsole(player) then
-        CommandRegistry.reply(player, "/goto can only be used in-game")
+        CommandRegistry.reply(player, "/goto można użyć tylko w grze", Enums.NotificationType.WARNING)
         return
     end
 
     if not target then
-        CommandRegistry.reply(player, "Usage: /goto <login|id|nick>")
+        CommandRegistry.reply(player, "Użycie: /goto <login|id|nick>", Enums.NotificationType.WARNING)
         return
     end
 
@@ -124,12 +124,12 @@ CommandRegistry.register("goto", Permissions.Bit.TELEPORT, function(player, targ
     if not targetPlayer then
         CommandRegistry.reply(player, ambiguous
             and "Znaleziono więcej niż jednego gracza - podaj więcej liter nicku lub użyj numeru gracza."
-            or "Nie znaleziono gracza online o podanym loginie/nicku/id.")
+            or "Nie znaleziono gracza online o podanym loginie/nicku/id.", Enums.NotificationType.ERROR)
         return
     end
 
     if targetPlayer == player then
-        CommandRegistry.reply(player, "Nie możesz teleportować się do samego siebie.")
+        CommandRegistry.reply(player, "Nie możesz teleportować się do samego siebie.", Enums.NotificationType.ERROR)
         return
     end
 
@@ -139,17 +139,17 @@ CommandRegistry.register("goto", Permissions.Bit.TELEPORT, function(player, targ
         player = getPlayerName(player),
         target = getPlayerName(targetPlayer),
     })
-    CommandRegistry.reply(player, "Teleportowano do " .. getPlayerName(targetPlayer) .. ".")
+    CommandRegistry.reply(player, "Teleportowano do " .. getPlayerName(targetPlayer) .. ".", Enums.NotificationType.SUCCESS)
 end)
 
 CommandRegistry.register("gethere", Permissions.Bit.TELEPORT, function(player, target)
     if CommandRegistry.isConsole(player) then
-        CommandRegistry.reply(player, "/gethere can only be used in-game")
+        CommandRegistry.reply(player, "/gethere można użyć tylko w grze", Enums.NotificationType.WARNING)
         return
     end
 
     if not target then
-        CommandRegistry.reply(player, "Usage: /gethere <login|id|nick>")
+        CommandRegistry.reply(player, "Użycie: /gethere <login|id|nick>", Enums.NotificationType.WARNING)
         return
     end
 
@@ -157,12 +157,12 @@ CommandRegistry.register("gethere", Permissions.Bit.TELEPORT, function(player, t
     if not targetPlayer then
         CommandRegistry.reply(player, ambiguous
             and "Znaleziono więcej niż jednego gracza - podaj więcej liter nicku lub użyj numeru gracza."
-            or "Nie znaleziono gracza online o podanym loginie/nicku/id.")
+            or "Nie znaleziono gracza online o podanym loginie/nicku/id.", Enums.NotificationType.ERROR)
         return
     end
 
     if targetPlayer == player then
-        CommandRegistry.reply(player, "Nie możesz przywołać samego siebie.")
+        CommandRegistry.reply(player, "Nie możesz przywołać samego siebie.", Enums.NotificationType.ERROR)
         return
     end
 
@@ -172,8 +172,8 @@ CommandRegistry.register("gethere", Permissions.Bit.TELEPORT, function(player, t
         player = getPlayerName(player),
         target = getPlayerName(targetPlayer),
     })
-    CommandRegistry.reply(player, "Przywołano " .. getPlayerName(targetPlayer) .. " do siebie.")
-    CommandRegistry.reply(targetPlayer, "Zostałeś przywołany przez " .. getPlayerName(player) .. ".")
+    CommandRegistry.reply(player, "Przywołano " .. getPlayerName(targetPlayer) .. " do siebie.", Enums.NotificationType.SUCCESS)
+    CommandRegistry.reply(targetPlayer, "Zostałeś przywołany przez " .. getPlayerName(player) .. ".", Enums.NotificationType.INFO)
 end)
 
 --- Teleports `player` INTO the vehicle's driver seat if it's free,
@@ -192,19 +192,19 @@ end
 
 CommandRegistry.register("gotocar", Permissions.Bit.TELEPORT, function(player, target)
     if CommandRegistry.isConsole(player) then
-        CommandRegistry.reply(player, "/gotocar can only be used in-game")
+        CommandRegistry.reply(player, "/gotocar można użyć tylko w grze", Enums.NotificationType.WARNING)
         return
     end
 
     local id = tonumber(target)
     if not id then
-        CommandRegistry.reply(player, "Usage: /gotocar <id pojazdu>")
+        CommandRegistry.reply(player, "Użycie: /gotocar <id pojazdu>", Enums.NotificationType.WARNING)
         return
     end
 
     local vehicle = findVehicleById(id)
     if not vehicle then
-        CommandRegistry.reply(player, "Nie znaleziono pojazdu o podanym id.")
+        CommandRegistry.reply(player, "Nie znaleziono pojazdu o podanym id.", Enums.NotificationType.ERROR)
         return
     end
 
@@ -217,24 +217,24 @@ CommandRegistry.register("gotocar", Permissions.Bit.TELEPORT, function(player, t
     })
     CommandRegistry.reply(player, warpedIn
         and "Teleportowano do pojazdu (id " .. id .. ")."
-        or "Teleportowano obok pojazdu (id " .. id .. ") - miejsce kierowcy zajęte.")
+        or "Teleportowano obok pojazdu (id " .. id .. ") - miejsce kierowcy zajęte.", Enums.NotificationType.SUCCESS)
 end)
 
 CommandRegistry.register("getcar", Permissions.Bit.TELEPORT, function(player, target)
     if CommandRegistry.isConsole(player) then
-        CommandRegistry.reply(player, "/getcar can only be used in-game")
+        CommandRegistry.reply(player, "/getcar można użyć tylko w grze", Enums.NotificationType.WARNING)
         return
     end
 
     local id = tonumber(target)
     if not id then
-        CommandRegistry.reply(player, "Usage: /getcar <id pojazdu>")
+        CommandRegistry.reply(player, "Użycie: /getcar <id pojazdu>", Enums.NotificationType.WARNING)
         return
     end
 
     local vehicle = findVehicleById(id)
     if not vehicle then
-        CommandRegistry.reply(player, "Nie znaleziono pojazdu o podanym id.")
+        CommandRegistry.reply(player, "Nie znaleziono pojazdu o podanym id.", Enums.NotificationType.ERROR)
         return
     end
 
@@ -244,14 +244,14 @@ CommandRegistry.register("getcar", Permissions.Bit.TELEPORT, function(player, ta
         player = getPlayerName(player),
         vehicleId = id,
     })
-    CommandRegistry.reply(player, "Przywołano pojazd (id " .. id .. ") do siebie.")
+    CommandRegistry.reply(player, "Przywołano pojazd (id " .. id .. ") do siebie.", Enums.NotificationType.SUCCESS)
 end)
 
 local DEFAULT_HEALTH = 100
 
 CommandRegistry.register("heal", Permissions.Bit.HEAL, function(player, target)
     if CommandRegistry.isConsole(player) then
-        CommandRegistry.reply(player, "/heal can only be used in-game")
+        CommandRegistry.reply(player, "/heal można użyć tylko w grze", Enums.NotificationType.WARNING)
         return
     end
 
@@ -262,7 +262,7 @@ CommandRegistry.register("heal", Permissions.Bit.HEAL, function(player, target)
         if not resolved then
             CommandRegistry.reply(player, ambiguous
                 and "Znaleziono więcej niż jednego gracza - podaj więcej liter nicku lub użyj numeru gracza."
-                or "Nie znaleziono gracza online o podanym loginie/nicku/id.")
+                or "Nie znaleziono gracza online o podanym loginie/nicku/id.", Enums.NotificationType.ERROR)
             return
         end
         targetPlayer = resolved
@@ -291,10 +291,10 @@ CommandRegistry.register("heal", Permissions.Bit.HEAL, function(player, target)
     })
 
     if targetPlayer == player then
-        CommandRegistry.reply(player, "Zostałeś uleczony.")
+        CommandRegistry.reply(player, "Zostałeś uleczony.", Enums.NotificationType.SUCCESS)
     else
-        CommandRegistry.reply(player, "Uleczono " .. getPlayerName(targetPlayer) .. ".")
-        CommandRegistry.reply(targetPlayer, "Zostałeś uleczony przez " .. getPlayerName(player) .. ".")
+        CommandRegistry.reply(player, "Uleczono " .. getPlayerName(targetPlayer) .. ".", Enums.NotificationType.SUCCESS)
+        CommandRegistry.reply(targetPlayer, "Zostałeś uleczony przez " .. getPlayerName(player) .. ".", Enums.NotificationType.INFO)
     end
 end)
 
@@ -302,7 +302,7 @@ end)
 -- while on duty, same as F6/F7.
 CommandRegistry.register("jetpack", Permissions.Bit.JETPACK, function(player)
     if CommandRegistry.isConsole(player) then
-        CommandRegistry.reply(player, "/jetpack can only be used in-game")
+        CommandRegistry.reply(player, "/jetpack można użyć tylko w grze", Enums.NotificationType.WARNING)
         return
     end
 
@@ -317,5 +317,5 @@ CommandRegistry.register("jetpack", Permissions.Bit.JETPACK, function(player)
         player = getPlayerName(player),
         hasJetpack = hasJetpack,
     })
-    CommandRegistry.reply(player, hasJetpack and "Jetpack włączony." or "Jetpack wyłączony.")
+    CommandRegistry.reply(player, hasJetpack and "Jetpack włączony." or "Jetpack wyłączony.", Enums.NotificationType.SUCCESS)
 end)

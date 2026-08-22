@@ -26,12 +26,12 @@ addCommandHandler("giveitem", function(player, _, ...)
     end
 
     if not isReady(player) then
-        outputChatBox("Musisz być zalogowany i w grze, aby użyć tej komendy.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Musisz być zalogowany i w grze, aby użyć tej komendy." })
         return
     end
 
     if not canGiveItems(player) then
-        outputChatBox("Nie masz uprawnień do tej komendy.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie masz uprawnień do tej komendy." })
         return
     end
 
@@ -49,17 +49,17 @@ addCommandHandler("giveitem", function(player, _, ...)
 
     local schemeKey = table.concat(nameParts, " ")
     if schemeKey == "" or not ItemSchemes.get(schemeKey) then
-        outputChatBox("Użycie: /giveitem <nazwa przedmiotu> [ilość] - nieznana nazwa.", player, 255, 200, 0)
+        NotificationService.send(player, { type = Enums.NotificationType.WARNING, message = "Użycie: /giveitem <nazwa przedmiotu> [ilość] - nieznana nazwa." })
         return
     end
 
     ItemService.give(player, schemeKey, amount, nil, function(ok)
         if not ok then
-            outputChatBox("Nie udało się dodać przedmiotu (za duży ciężar lub błąd).", player, 255, 80, 80)
+            NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie udało się dodać przedmiotu (za duży ciężar lub błąd)." })
             return
         end
 
-        outputChatBox(("Dodano przedmiot: %s x%d"):format(schemeKey, amount), player, 0, 200, 0)
+        NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = ("Dodano przedmiot: %s x%d"):format(schemeKey, amount) })
         Logger.security("ItemCommands", "Player gave themselves an item", {
             player = getPlayerName(player),
             schemeKey = schemeKey,

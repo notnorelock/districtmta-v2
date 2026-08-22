@@ -27,19 +27,23 @@ end)
 -- entry point (also used directly by its own /test-noti* commands and by
 -- the frontend's mta.notify("onClientShowNotification", ...) calls) -
 -- kept as ONE trigger path into the component rather than this handler
--- calling notifications:show() itself as a second one. NotificationsComponent's
--- own categories use "warn", not "warning" (Enums.NotificationType's key)
--- - everything else maps 1:1.
+-- calling notifications:show() itself as a second one.
+-- Enums.NotificationType's keys map 1:1 onto NotificationsComponent's own
+-- category keys.
 local NOTIFICATION_TYPE_TO_CATEGORY = {
     success = "success",
     error = "error",
     info = "info",
-    warning = "warn",
+    warning = "warning",
 }
 
 addEvent(Events.NOTIFICATION_SHOW, true)
 addEventHandler(Events.NOTIFICATION_SHOW, resourceRoot, function(notificationType, title, message)
     local category = NOTIFICATION_TYPE_TO_CATEGORY[notificationType] or "notification"
+    -- title is nil more often than not now (see NotificationService.send's
+    -- own comment) - properties.title left nil here just means
+    -- NotificationsComponent:show() falls back to the category's own
+    -- default heading, exactly as intended.
     triggerEvent("onClientShowNotification", root, category, message or title, { title = title })
 end)
 

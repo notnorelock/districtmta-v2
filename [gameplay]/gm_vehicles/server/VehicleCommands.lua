@@ -28,35 +28,35 @@ addCommandHandler("createvehicle", function(player, _, modelArg)
     end
 
     if not isReady(player) then
-        outputChatBox("Musisz być zalogowany i w grze, aby użyć tej komendy.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Musisz być zalogowany i w grze, aby użyć tej komendy." })
         return
     end
 
     if not canSpawnVehicles(player) then
-        outputChatBox("Nie masz uprawnień do tej komendy.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie masz uprawnień do tej komendy." })
         return
     end
 
     local model = tonumber(modelArg) or getVehicleModelFromName(tostring(modelArg or ""))
     if not model or model < 400 or model > 611 then
-        outputChatBox("Użycie: /createvehicle <nazwa lub id modelu>", player, 255, 200, 0)
+        NotificationService.send(player, { type = Enums.NotificationType.WARNING, message = "Użycie: /createvehicle <nazwa lub id modelu>" })
         return
     end
 
     local accountId = PlayerService.getAccountId(player)
     if not accountId then
-        outputChatBox("Nie udało się ustalić Twojego konta.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie udało się ustalić Twojego konta." })
         return
     end
 
     VehicleService.createPrivate(player, model, accountId, function(vehicle)
         if not vehicle then
-            outputChatBox("Nie udało się stworzyć pojazdu.", player, 255, 80, 80)
+            NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie udało się stworzyć pojazdu." })
             return
         end
 
         warpPedIntoVehicle(player, vehicle)
-        outputChatBox("Stworzono pojazd prywatny: " .. (getVehicleNameFromModel(model) or tostring(model)), player, 0, 200, 0)
+        NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = "Stworzono pojazd prywatny: " .. (getVehicleNameFromModel(model) or tostring(model)) })
 
         Logger.security("VehicleCommands", "Player created a private vehicle", {
             player = getPlayerName(player),

@@ -11,27 +11,27 @@ local function parseRole(raw)
             names[#names + 1] = name
         end
         table.sort(names)
-        return nil, "Unknown role '" .. raw .. "' - valid roles: " .. table.concat(names, ", ")
+        return nil, "Nieznana ranga '" .. raw .. "' - dostępne rangi: " .. table.concat(names, ", ")
     end
     return role, nil
 end
 
 CommandRegistry.register("setrole", Permissions.Bit.SET_ROLE, function(player, targetLogin, roleRaw)
     if not targetLogin or not roleRaw then
-        CommandRegistry.reply(player, "Usage: /setrole <login|id|nick> <role>")
+        CommandRegistry.reply(player, "Użycie: /setrole <login|id|nick> <ranga>", Enums.NotificationType.WARNING)
         return
     end
 
     local role, roleError = parseRole(roleRaw)
     if not role then
-        CommandRegistry.reply(player, roleError)
+        CommandRegistry.reply(player, roleError, Enums.NotificationType.ERROR)
         return
     end
 
     CommandRegistry.resolveTargetAccount(player, targetLogin, function(account)
         AccountService.setRole(account.id, role, function(setOk, affectedOrError)
             if not setOk then
-                CommandRegistry.reply(player, "Failed to set role: " .. tostring(affectedOrError))
+                CommandRegistry.reply(player, "Nie udało się ustawić rangi: " .. tostring(affectedOrError), Enums.NotificationType.ERROR)
                 return
             end
 
@@ -41,7 +41,7 @@ CommandRegistry.register("setrole", Permissions.Bit.SET_ROLE, function(player, t
                 newRole = roleRaw:upper(),
                 issuedBy = CommandRegistry.issuerLabel(player),
             })
-            CommandRegistry.reply(player, "Set '" .. account.login .. "' role to " .. roleRaw:upper())
+            CommandRegistry.reply(player, "Ustawiono rangę '" .. account.login .. "' na " .. roleRaw:upper(), Enums.NotificationType.SUCCESS)
         end)
     end)
 end)

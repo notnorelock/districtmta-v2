@@ -12,14 +12,37 @@ CommandRegistry.isConsole = function(player)
     return player == nil or player == false
 end
 
+-- title text NotificationsComponent.lua's own categories fall back to
+-- when properties.title isn't given - mirrored here so a command reply's
+-- toast heading reads the same as every other one in the project
+-- ("Sukces"/"Błąd"/...) rather than a generic "Komenda" label.
+local NOTIFICATION_TYPE_TITLE = {
+    success = "Sukces",
+    error = "Błąd",
+    info = "Informacja",
+    warning = "Ostrzeżenie",
+}
+
 --- @param player element|nil issuer (nil/false = server console -> outputServerLog)
 -- @param message string
-CommandRegistry.reply = function(player, message)
+-- @param notificationType string|nil one of Enums.NotificationType
+--        ("success"|"error"|"info"|"warning") - defaults to "info". Console
+--        replies ignore this entirely (outputServerLog has no concept of
+--        type/color); a real player gets it as a native ui_hud toast
+--        instead of a plain chat line - message carries the actual reply
+--        text, title is just the type's own generic label.
+CommandRegistry.reply = function(player, message, notificationType)
     if CommandRegistry.isConsole(player) then
         outputServerLog(message)
-    else
-        outputChatBox(message, player, 200, 200, 200)
+        return
     end
+
+    local type_ = notificationType or Enums.NotificationType.INFO
+    NotificationService.send(player, {
+        type = type_,
+        title = NOTIFICATION_TYPE_TITLE[type_] or NOTIFICATION_TYPE_TITLE[Enums.NotificationType.INFO],
+        message = message,
+    })
 end
 
 --- @param player element|nil issuer
@@ -68,7 +91,7 @@ CommandRegistry.resolveTargetAccount = function(player, target, onFound)
     local onlineMatch, ambiguous = PlayerId.tryResolve(target)
 
     if ambiguous then
-        CommandRegistry.reply(player, "Znaleziono więcej niż jednego gracza - podaj więcej liter nicku lub użyj numeru gracza.")
+        CommandRegistry.reply(player, "Znaleziono więcej niż jednego gracza - podaj więcej liter nicku lub użyj numeru gracza.", Enums.NotificationType.ERROR)
         return
     end
 
@@ -85,11 +108,11 @@ CommandRegistry.resolveTargetAccount = function(player, target, onFound)
 
     AccountRepository.findByLogin(ValidationRules.normalizeLogin(tostring(target)), function(ok, account)
         if not ok then
-            CommandRegistry.reply(player, "Lookup failed: " .. tostring(account))
+            CommandRegistry.reply(player, "Wyszukiwanie nie powiodło się: " .. tostring(account), Enums.NotificationType.ERROR)
             return
         end
         if not account then
-            CommandRegistry.reply(player, "No account found matching '" .. tostring(target) .. "'")
+            CommandRegistry.reply(player, "Nie znaleziono konta pasującego do '" .. tostring(target) .. "'", Enums.NotificationType.ERROR)
             return
         end
         onFound(account)

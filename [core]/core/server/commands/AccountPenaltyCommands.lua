@@ -7,7 +7,7 @@ local function parseDuration(raw)
 
     local amount, unit = raw:match("^(%d+)([mhd])$")
     if not amount then
-        return false, nil, "Invalid duration '" .. raw .. "' - use e.g. 30m, 2h, 7d, or 'perm'"
+        return false, nil, "Nieprawidłowy czas trwania '" .. raw .. "' - użyj np. 30m, 2h, 7d, lub 'perm'"
     end
 
     local seconds = tonumber(amount)
@@ -33,13 +33,13 @@ end
 
 CommandRegistry.register("ban", Permissions.Bit.BAN, function(player, targetLogin, durationRaw, ...)
     if not targetLogin then
-        CommandRegistry.reply(player, "Usage: /ban <login|id|nick> [duration|perm] [reason]")
+        CommandRegistry.reply(player, "Użycie: /ban <login|id|nick> [czas|perm] [powód]", Enums.NotificationType.WARNING)
         return
     end
 
     local durationOk, durationSeconds, durationError = parseDuration(durationRaw)
     if not durationOk then
-        CommandRegistry.reply(player, durationError)
+        CommandRegistry.reply(player, durationError, Enums.NotificationType.ERROR)
         return
     end
 
@@ -55,7 +55,7 @@ CommandRegistry.register("ban", Permissions.Bit.BAN, function(player, targetLogi
             issuedByAccountId = issuerAccountId(player),
         }, function(ok, penaltyOrError)
             if not ok then
-                CommandRegistry.reply(player, "Ban failed: " .. tostring(penaltyOrError))
+                CommandRegistry.reply(player, "Nie udało się zbanować: " .. tostring(penaltyOrError), Enums.NotificationType.ERROR)
                 return
             end
 
@@ -66,12 +66,12 @@ CommandRegistry.register("ban", Permissions.Bit.BAN, function(player, targetLogi
                 durationSeconds = durationSeconds,
                 reason = reason,
             })
-            CommandRegistry.reply(player, "Banned '" .. account.login .. "'" .. (durationSeconds and (" for " .. durationRaw) or " permanently"))
+            CommandRegistry.reply(player, "Zbanowano '" .. account.login .. "'" .. (durationSeconds and (" na " .. durationRaw) or " na stałe"), Enums.NotificationType.SUCCESS)
 
             -- Ban only blocks future logins; also kick if connected now.
             for _, candidate in ipairs(getElementsByType("player")) do
                 if PlayerService.getAccountId(candidate) == account.id then
-                    kickPlayer(candidate, "Banned" .. (reason and (": " .. reason) or ""))
+                    kickPlayer(candidate, "Zbanowano" .. (reason and (": " .. reason) or ""))
                     break
                 end
             end
@@ -81,20 +81,20 @@ end)
 
 CommandRegistry.register("unban", Permissions.Bit.REVOKE_PENALTY, function(player, targetLogin)
     if not targetLogin then
-        CommandRegistry.reply(player, "Usage: /unban <login|id|nick>")
+        CommandRegistry.reply(player, "Użycie: /unban <login|id|nick>", Enums.NotificationType.WARNING)
         return
     end
 
     CommandRegistry.resolveTargetAccount(player, targetLogin, function(account)
         AccountPenaltyService.isBanned(account.id, function(isBanned, activeBan)
             if not isBanned then
-                CommandRegistry.reply(player, "'" .. account.login .. "' is not currently banned")
+                CommandRegistry.reply(player, "'" .. account.login .. "' nie jest obecnie zbanowany", Enums.NotificationType.WARNING)
                 return
             end
 
             AccountPenaltyService.revoke(activeBan.id, function(ok, affectedOrError)
                 if not ok then
-                    CommandRegistry.reply(player, "Unban failed: " .. tostring(affectedOrError))
+                    CommandRegistry.reply(player, "Nie udało się odbanować: " .. tostring(affectedOrError), Enums.NotificationType.ERROR)
                     return
                 end
 
@@ -103,23 +103,23 @@ CommandRegistry.register("unban", Permissions.Bit.REVOKE_PENALTY, function(playe
                     targetLogin = account.login,
                     issuedBy = CommandRegistry.issuerLabel(player),
                 })
-                CommandRegistry.reply(player, "Unbanned '" .. account.login .. "'")
+                CommandRegistry.reply(player, "Odbanowano '" .. account.login .. "'", Enums.NotificationType.SUCCESS)
             end)
         end, function(message)
-            CommandRegistry.reply(player, "isBanned check failed: " .. message)
+            CommandRegistry.reply(player, "Sprawdzenie bana nie powiodło się: " .. message, Enums.NotificationType.ERROR)
         end)
     end)
 end)
 
 CommandRegistry.register("mute", Permissions.Bit.MUTE, function(player, targetLogin, durationRaw, ...)
     if not targetLogin then
-        CommandRegistry.reply(player, "Usage: /mute <login|id|nick> [duration|perm] [reason]")
+        CommandRegistry.reply(player, "Użycie: /mute <login|id|nick> [czas|perm] [powód]", Enums.NotificationType.WARNING)
         return
     end
 
     local durationOk, durationSeconds, durationError = parseDuration(durationRaw)
     if not durationOk then
-        CommandRegistry.reply(player, durationError)
+        CommandRegistry.reply(player, durationError, Enums.NotificationType.ERROR)
         return
     end
 
@@ -135,7 +135,7 @@ CommandRegistry.register("mute", Permissions.Bit.MUTE, function(player, targetLo
             issuedByAccountId = issuerAccountId(player),
         }, function(ok, penaltyOrError)
             if not ok then
-                CommandRegistry.reply(player, "Mute failed: " .. tostring(penaltyOrError))
+                CommandRegistry.reply(player, "Nie udało się wyciszyć: " .. tostring(penaltyOrError), Enums.NotificationType.ERROR)
                 return
             end
 
@@ -146,14 +146,14 @@ CommandRegistry.register("mute", Permissions.Bit.MUTE, function(player, targetLo
                 durationSeconds = durationSeconds,
                 reason = reason,
             })
-            CommandRegistry.reply(player, "Muted '" .. account.login .. "'" .. (durationSeconds and (" for " .. durationRaw) or " permanently"))
+            CommandRegistry.reply(player, "Wyciszono '" .. account.login .. "'" .. (durationSeconds and (" na " .. durationRaw) or " na stałe"), Enums.NotificationType.SUCCESS)
         end)
     end)
 end)
 
 CommandRegistry.register("warn", Permissions.Bit.WARN, function(player, targetLogin, ...)
     if not targetLogin then
-        CommandRegistry.reply(player, "Usage: /warn <login|id|nick> [reason]")
+        CommandRegistry.reply(player, "Użycie: /warn <login|id|nick> [powód]", Enums.NotificationType.WARNING)
         return
     end
 
@@ -168,7 +168,7 @@ CommandRegistry.register("warn", Permissions.Bit.WARN, function(player, targetLo
             issuedByAccountId = issuerAccountId(player),
         }, function(ok, penaltyOrError)
             if not ok then
-                CommandRegistry.reply(player, "Warn failed: " .. tostring(penaltyOrError))
+                CommandRegistry.reply(player, "Nie udało się ostrzec: " .. tostring(penaltyOrError), Enums.NotificationType.ERROR)
                 return
             end
 
@@ -178,14 +178,14 @@ CommandRegistry.register("warn", Permissions.Bit.WARN, function(player, targetLo
                 issuedBy = CommandRegistry.issuerLabel(player),
                 reason = reason,
             })
-            CommandRegistry.reply(player, "Warned '" .. account.login .. "'")
+            CommandRegistry.reply(player, "Ostrzeżono '" .. account.login .. "'", Enums.NotificationType.SUCCESS)
         end)
     end)
 end)
 
 CommandRegistry.register("kick", Permissions.Bit.KICK, function(player, targetLogin, ...)
     if not targetLogin then
-        CommandRegistry.reply(player, "Usage: /kick <login|id|nick> [reason]")
+        CommandRegistry.reply(player, "Użycie: /kick <login|id|nick> [powód]", Enums.NotificationType.WARNING)
         return
     end
 
@@ -200,7 +200,7 @@ CommandRegistry.register("kick", Permissions.Bit.KICK, function(player, targetLo
             issuedByAccountId = issuerAccountId(player),
         }, function(ok, penaltyOrError)
             if not ok then
-                CommandRegistry.reply(player, "Kick log failed: " .. tostring(penaltyOrError))
+                CommandRegistry.reply(player, "Nie udało się zapisać wyrzucenia: " .. tostring(penaltyOrError), Enums.NotificationType.ERROR)
                 return
             end
 
@@ -210,11 +210,11 @@ CommandRegistry.register("kick", Permissions.Bit.KICK, function(player, targetLo
                 issuedBy = CommandRegistry.issuerLabel(player),
                 reason = reason,
             })
-            CommandRegistry.reply(player, "Kicked '" .. account.login .. "'")
+            CommandRegistry.reply(player, "Wyrzucono '" .. account.login .. "'", Enums.NotificationType.SUCCESS)
 
             for _, candidate in ipairs(getElementsByType("player")) do
                 if PlayerService.getAccountId(candidate) == account.id then
-                    kickPlayer(candidate, "Kicked" .. (reason and (": " .. reason) or ""))
+                    kickPlayer(candidate, "Wyrzucono" .. (reason and (": " .. reason) or ""))
                     break
                 end
             end

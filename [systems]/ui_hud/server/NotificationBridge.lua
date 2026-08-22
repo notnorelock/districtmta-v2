@@ -14,18 +14,19 @@ NotificationBridge = NotificationBridge or {}
 
 --- @param player element
 -- @param notificationType string "success"|"error"|"info"|"warning"
--- @param title string
+-- @param title string|nil omit to use NotificationsComponent.lua's own
+--        per-category default heading ("Sukces"/"Błąd"/...)
 -- @param message string|nil
 NotificationBridge.show = function(player, notificationType, title, message)
     assert(isElement(player), "NotificationBridge.show expects a player element")
     assert(type(notificationType) == "string", "notificationType is required")
-    assert(type(title) == "string", "title is required")
+    assert(title == nil or type(title) == "string", "title must be a string if given")
 
     triggerClientEvent(player, Events.NOTIFICATION_SHOW, resourceRoot, notificationType, title, message)
 end
 
 --- @param notificationType string "success"|"error"|"info"|"warning"
--- @param title string
+-- @param title string|nil
 -- @param message string|nil
 NotificationBridge.broadcast = function(notificationType, title, message)
     for _, player in ipairs(getElementsByType("player")) do

@@ -40,12 +40,12 @@ addCommandHandler("veh", function(player, _, modelArg)
     end
 
     if not isReady(player) then
-        outputChatBox("Musisz być zalogowany i w grze, aby użyć tej komendy.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Musisz być zalogowany i w grze, aby użyć tej komendy." })
         return
     end
 
     if type(modelArg) ~= "string" or modelArg == "" then
-        outputChatBox("Użycie: /veh <nazwa lub id pojazdu>", player, 255, 200, 0)
+        NotificationService.send(player, { type = Enums.NotificationType.WARNING, message = "Użycie: /veh <nazwa lub id pojazdu>" })
         return
     end
 
@@ -55,7 +55,7 @@ addCommandHandler("veh", function(player, _, modelArg)
     -- number, but not a real vehicle) since createVehicle itself doesn't
     -- reject an out-of-range model, it just fails silently later.
     if not model or model < 400 or model > 611 then
-        outputChatBox("Nieznany pojazd: '" .. modelArg .. "'. Podaj nazwę (np. infernus) lub poprawne id modelu.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nieznany pojazd: '" .. modelArg .. "'. Podaj nazwę (np. infernus) lub poprawne id modelu." })
         return
     end
 
@@ -63,7 +63,7 @@ addCommandHandler("veh", function(player, _, modelArg)
     local vehicle = createVehicle(model, x, y, z, 0, 0, heading)
 
     if not vehicle then
-        outputChatBox("Nie udało się stworzyć pojazdu.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie udało się stworzyć pojazdu." })
         return
     end
 
@@ -71,7 +71,7 @@ addCommandHandler("veh", function(player, _, modelArg)
     setElementInterior(vehicle, getElementInterior(player))
     warpPedIntoVehicle(player, vehicle)
 
-    outputChatBox("Zaspawnowano pojazd: " .. (getVehicleNameFromModel(model) or tostring(model)), player, 0, 200, 0)
+    NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = "Zaspawnowano pojazd: " .. (getVehicleNameFromModel(model) or tostring(model)) })
 
     Logger.info("VehicleCommands", "Player spawned a vehicle", {
         player = getPlayerName(player),
@@ -85,18 +85,18 @@ addCommandHandler("fix", function(player)
     end
 
     if not isReady(player) then
-        outputChatBox("Musisz być zalogowany i w grze, aby użyć tej komendy.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Musisz być zalogowany i w grze, aby użyć tej komendy." })
         return
     end
 
     local vehicle = driverVehicleOf(player)
     if not vehicle then
-        outputChatBox("Musisz siedzieć za kierownicą pojazdu.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Musisz siedzieć za kierownicą pojazdu." })
         return
     end
 
     fixVehicle(vehicle)
-    outputChatBox("Pojazd naprawiony.", player, 0, 200, 0)
+    NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = "Pojazd naprawiony." })
 
     Logger.info("VehicleCommands", "Player fixed a vehicle", { player = getPlayerName(player) })
 end)
@@ -107,13 +107,13 @@ addCommandHandler("flip", function(player)
     end
 
     if not isReady(player) then
-        outputChatBox("Musisz być zalogowany i w grze, aby użyć tej komendy.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Musisz być zalogowany i w grze, aby użyć tej komendy." })
         return
     end
 
     local vehicle = driverVehicleOf(player)
     if not vehicle then
-        outputChatBox("Musisz siedzieć za kierownicą pojazdu.", player, 255, 80, 80)
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Musisz siedzieć za kierownicą pojazdu." })
         return
     end
 
@@ -125,7 +125,7 @@ addCommandHandler("flip", function(player)
     setElementVelocity(vehicle, 0, 0, 0)
     setElementAngularVelocity(vehicle, 0, 0, 0)
 
-    outputChatBox("Pojazd wyprostowany.", player, 0, 200, 0)
+    NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = "Pojazd wyprostowany." })
 
     Logger.info("VehicleCommands", "Player flipped a vehicle", { player = getPlayerName(player) })
 end)

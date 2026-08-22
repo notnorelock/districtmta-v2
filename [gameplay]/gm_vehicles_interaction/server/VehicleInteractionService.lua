@@ -99,7 +99,7 @@ addEventHandler(Events.VEHICLE_INTERACTION_TOGGLE, root, function(action)
         -- start and drive off a vehicle they don't own.
         local wantsOn = not getVehicleEngineState(vehicle)
         if wantsOn and not canStartEngine(player, vehicle) then
-            outputChatBox("Nie masz kluczyków do tego pojazdu.", player, 255, 80, 80)
+            NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie masz kluczyków do tego pojazdu." })
             return
         end
         setVehicleEngineState(vehicle, wantsOn)

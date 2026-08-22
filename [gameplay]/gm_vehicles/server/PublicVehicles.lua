@@ -57,7 +57,7 @@ addEventHandler("onVehicleStartEnter", root, function(enteringPlayer, seat)
     end
 
     if entry.driver and entry.driver ~= enteringPlayer and isElement(entry.driver) then
-        outputChatBox("Ten pojazd publiczny jest zajęty przez innego gracza.", enteringPlayer, 255, 80, 80)
+        NotificationService.send(enteringPlayer, { type = Enums.NotificationType.ERROR, message = "Ten pojazd publiczny jest zajęty przez innego gracza." })
         cancelEvent()
     end
 end)

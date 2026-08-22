@@ -66,15 +66,14 @@ addEventHandler("onPlayerChat", root, function(message, messageType)
             and AccountService.formatExpiryForDisplay(mute.expiresAt)
             or "bezterminowo"
 
-        outputChatBox(
-            ("#FF0000Nie możesz pisać na czacie. Twoje konto ma aktywne wyciszenie do %s.%s"):format(
+        NotificationService.send(source, {
+            type = Enums.NotificationType.ERROR,
+            title = "Wyciszenie",
+            message = ("Nie możesz pisać na czacie. Twoje konto ma aktywne wyciszenie do %s.%s"):format(
                 until_,
                 mute.reason and (" Powód: " .. mute.reason) or ""
             ),
-            source,
-            255, 255, 255,
-            true
-        )
+        })
         return
     end
 

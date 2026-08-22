@@ -37,6 +37,11 @@ local Logger = {
     security = function(scope, message, context) exports.core:loggerSecurity(scope, message, context) end,
 }
 
+local NotificationService = {
+    send = function(player, notification) exports.core:notificationServiceSend(player, notification) end,
+    broadcast = function(notification) exports.core:notificationServiceBroadcast(notification) end,
+}
+
 local ElementData = setmetatable({
     accountField = function(field) return exports.core_shared:elementDataAccountField(field) end,
 }, {
@@ -69,6 +74,9 @@ setmetatable(_G, {
                 return Permissions
             end
             return false
+        end
+        if key == "NotificationService" then
+            return isResourceAvailable("core") and NotificationService or false
         end
         if key == "Logger" then
             return isResourceAvailable("core") and Logger or false

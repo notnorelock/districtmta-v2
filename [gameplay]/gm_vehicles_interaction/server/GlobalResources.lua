@@ -13,8 +13,14 @@ end
 
 local TABLE_RESOURCE_MAP = {
     Events = { resource = "core_shared", getter = "getEvents" },
+    Enums = { resource = "core_shared", getter = "getEnums" },
 }
 local cachedTables = {}
+
+local NotificationService = {
+    send = function(player, notification) exports.core:notificationServiceSend(player, notification) end,
+    broadcast = function(notification) exports.core:notificationServiceBroadcast(notification) end,
+}
 
 local ElementData = setmetatable({
     accountField = function(field) return exports.core_shared:elementDataAccountField(field) end,
@@ -34,6 +40,10 @@ setmetatable(_G, {
     __index = function(table, key)
         if key == "ElementData" then
             return isResourceAvailable("core_shared") and ElementData or false
+        end
+
+        if key == "NotificationService" then
+            return isResourceAvailable("core") and NotificationService or false
         end
 
         local tableSpec = TABLE_RESOURCE_MAP[key]
