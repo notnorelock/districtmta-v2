@@ -511,7 +511,10 @@ RadarComponent.new = function()
     end
 
     self:loadResources()
-    self:show(500)
+
+    if getElementData(localPlayer, ElementData.Player.SPAWNED) == true then
+        self:show(500)
+    end
 
     return self
 end

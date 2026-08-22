@@ -21,9 +21,15 @@ addEventHandler("onClientResourceStop", resourceRoot, function()
     end
 end)
 
--- NotificationService.send/.broadcast (core) -> Events.NOTIFICATION_SHOW ->
--- here. NotificationsComponent's own categories use "warn", not "warning"
--- (Enums.NotificationType's key) - everything else maps 1:1.
+-- NotificationService.send/.broadcast (core) -> ui_hud/server/
+-- NotificationBridge.lua -> Events.NOTIFICATION_SHOW -> here -> re-fired
+-- as "onClientShowNotification", NotificationsComponent's own single real
+-- entry point (also used directly by its own /test-noti* commands and by
+-- the frontend's mta.notify("onClientShowNotification", ...) calls) -
+-- kept as ONE trigger path into the component rather than this handler
+-- calling notifications:show() itself as a second one. NotificationsComponent's
+-- own categories use "warn", not "warning" (Enums.NotificationType's key)
+-- - everything else maps 1:1.
 local NOTIFICATION_TYPE_TO_CATEGORY = {
     success = "success",
     error = "error",
@@ -33,12 +39,8 @@ local NOTIFICATION_TYPE_TO_CATEGORY = {
 
 addEvent(Events.NOTIFICATION_SHOW, true)
 addEventHandler(Events.NOTIFICATION_SHOW, resourceRoot, function(notificationType, title, message)
-    if not hud then return end
-    local notifications = hud:getComponent("NotificationsComponent")
-    if not notifications then return end
-
     local category = NOTIFICATION_TYPE_TO_CATEGORY[notificationType] or "notification"
-    notifications:show(category, message or title, { title = title })
+    triggerEvent("onClientShowNotification", root, category, message or title, { title = title })
 end)
 
 local DEFAULT_TOGGLE_DURATION = 500

@@ -104,14 +104,18 @@ Events = {
     PUSH_UI_OPEN = "ui.open",
     PUSH_UI_CLOSE = "ui.close",
 
-    -- Server -> client: NotificationService.send/.broadcast, rendered by
-    -- ui_hud's own native dxDraw NotificationsComponent (NOT CEF - the
-    -- toast stack this used to push into, packages/ui/src/features/
-    -- notifications/, was removed). args: (type, title, message|nil),
-    -- type is one of Enums.NotificationType. See
-    -- ui_hud/client/Bootstrap.lua's handler for the type -> category
-    -- mapping (NotificationsComponent's categories use "warn", not
-    -- Enums.NotificationType's "warning").
+    -- Server -> client: fired by ui_hud/server/NotificationBridge.lua
+    -- (NOT triggered directly by callers - core's own NotificationService.
+    -- send/.broadcast goes through exports.ui_hud:notificationBridgeShow/
+    -- Broadcast rather than knowing this event at all, same as every other
+    -- cross-resource entry point in this project - the resource that owns
+    -- the behavior owns the transport). Rendered by ui_hud's own native
+    -- dxDraw NotificationsComponent (NOT CEF - the toast stack this used
+    -- to push into, packages/ui/src/features/notifications/, was
+    -- removed). args: (type, title, message|nil), type is one of
+    -- Enums.NotificationType. See ui_hud/client/Bootstrap.lua's handler
+    -- for the type -> category mapping (NotificationsComponent's
+    -- categories use "warn", not Enums.NotificationType's "warning").
     NOTIFICATION_SHOW = "notification:show",
 
     -- Pushed by AuthUiClient.lua on Events.AUTH_ALREADY_IN_WORLD - tells

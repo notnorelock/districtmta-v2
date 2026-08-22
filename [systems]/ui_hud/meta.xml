@@ -19,6 +19,11 @@
     <file src="assets/radar/blips/*" />
     <file src="assets/notifications/*" />
 
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/NotificationBridge.lua" type="server" cache="false" />
+    <export function="notificationBridgeShow" type="server" />
+    <export function="notificationBridgeBroadcast" type="server" />
+
     <script src="client/GlobalResources.lua" type="client" cache="false" />
     <script src="client/HUDState.lua" type="client" cache="false" />
 
@@ -39,4 +44,8 @@
     <script src="client/Components/RadarComponent.lua" type="client" cache="false" />
     <script src="client/Components/NotificationsComponent.lua" type="client" cache="false" />
     <script src="client/Bootstrap.lua" type="client" cache="false" />
+
+    <export function="isRadarVisible" type="client" />
+    <export function="setRadarVisible" type="client" />
+    <export function="getRadarPosition" type="client" />
 </meta>
