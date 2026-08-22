@@ -86,7 +86,7 @@ local function startLocal(seconds, duration)
     active = true
 
     exports.core_ui:uiShowOverlay("blackout")
-    exports.core_ui:uiHideOverlay("hud")
+    exports.ui_hud:setHUDVisible(false)
     toggleAllControls(false)
     -- "e" (the raw key name), not the "enter_exit" GTA control name - a
     -- plain bindKey on a key name (as opposed to a control name) keeps
@@ -111,7 +111,7 @@ local function endLocal()
     tickTimer = nil
 
     exports.core_ui:uiHideOverlay("blackout")
-    exports.core_ui:uiShowOverlay("hud")
+    exports.ui_hud:setHUDVisible(true)
     toggleAllControls(true)
     unbindKey("e", "down", requestSelfRevive)
 

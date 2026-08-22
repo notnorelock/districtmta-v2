@@ -238,3 +238,15 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
         HUD.start()
     end
 end)
+
+setHUDVisible = function(state)
+    if state then
+        if not active then
+            HUD.start()
+        end
+    else
+        if active then
+            HUD.stop()
+        end
+    end
+end

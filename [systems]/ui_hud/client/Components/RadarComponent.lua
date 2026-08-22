@@ -314,15 +314,15 @@ RadarComponent.new = function()
 
         local bottomY = self.height - 40 / zoom + self.zoneOffsetY
 
-        dxDrawImage(0, 0, self.width, self.height, "assets/radar/location_glow.png", 0, 0, 0,
-            tocolor(255, 255, 255, 220 * self.zoneAlpha))
+        -- dxDrawImage(0, 0, self.width, self.height, "assets/radar/location_glow.png", 0, 0, 0,
+        --     tocolor(255, 255, 255, 220 * self.zoneAlpha))
 
         dxDrawText(cityName, 0, bottomY, self.width, bottomY,
-            tocolor(250, 250, 250, 255 * self.zoneAlpha), 0.70 / zoom, getUIFont("bold_normal"), "center", "center")
+            tocolor(250, 250, 250, 255 * self.zoneAlpha), 0.90 / zoom, getUIFont("bold_normal"), "center", "center")
 
         if zoneName ~= cityName then
             dxDrawText(zoneName, 0, bottomY + 18 / zoom, self.width, bottomY + 18 / zoom,
-                tocolor(210, 210, 210, 255 * self.zoneAlpha), 0.55 / zoom, getUIFont("regular_normal"), "center", "center")
+                tocolor(210, 210, 210, 255 * self.zoneAlpha), 0.75 / zoom, getUIFont("regular_normal"), "center", "center")
         end
     end
 
