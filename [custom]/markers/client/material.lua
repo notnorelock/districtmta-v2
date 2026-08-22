@@ -15,14 +15,6 @@ local function getPositionFromMatrixOffset(mat, pos)
   return (pos[1] * mat[1][1] + pos[2] * mat[2][1] + pos[3] * mat[3][1] + mat[4][1]), (pos[1] * mat[1][2] + pos[2] * mat[2][2] + pos[3] * mat[3][2] + mat[4][2]), (pos[1] * mat[1][3] + pos[2] * mat[2][3] + pos[3] * mat[3][3] + mat[4][3])
 end
 
-function isOnScreen(x, y, z, s)
-  if not x or not y or not z then return end
-
-  local sx, sy = getScreenFromWorldPosition(x, y, z, s or 0.2)
-
-  return type(sx) == "number" and type(sy) == "number"
-end
-
 function drawBorderedText(text, left, top, right, bottom, r, g, b, a, scale, font, alignX, alignY, clip, wordBreak, postGUI)
   for oX = -1, 1 do
     for oY = -1, 1 do

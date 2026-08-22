@@ -139,7 +139,6 @@ Markers.renderMarkers = function()
 
             local visible = markerInt == playerInt
                 and markerDim == playerDim
-                and isOnScreen(x, y, z)
 
             local r, g, b, a = getMarkerColor(marker)
             if a ~= 0 then
