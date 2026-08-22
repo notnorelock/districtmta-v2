@@ -74,6 +74,8 @@ export const pl = {
   "scoreboard.status.inGame": "W grze",
   "scoreboard.empty": "Brak graczy spełniających kryteria",
   "scoreboard.hint": "Naciśnij prawy przycisk myszy, aby pokazać kursor",
+  "scoreboard.count.tooltip": "Liczba graczy online",
+  "scoreboard.ping.tooltip": "Ping (ms)",
 
   "vehicleMenu.engine": "Silnik",
   "vehicleMenu.lights": "Światła",
@@ -108,10 +110,17 @@ export const pl = {
   "vehicleStorage.category.all": "Wszystkie",
   "vehicleStorage.category.owned": "Moje pojazdy",
   "vehicleStorage.category.shared": "Udostępnione",
+  "vehicleStorage.sharedHint": "Masz kluczyki do tego pojazdu",
   "vehicleStorage.empty": "Nie masz tutaj żadnych pojazdów",
   "vehicleStorage.hint.retrieve": "Kliknij pojazd, aby go odebrać",
   "vehicleStorage.hint.store": "Wjedź swoim pojazdem na wyznaczone miejsce, aby go tu zostawić",
   "vehicleStorage.action.retrieve": "Odbierz",
   "vehicleStorage.mileage": "Przebieg",
   "vehicleStorage.plate": "Tablica",
+
+  "hud.health.tooltip": "Zdrowie",
+  "hud.hunger.tooltip": "Głód",
+  "hud.thirst.tooltip": "Pragnienie",
+  "hud.oxygen.tooltip": "Tlen",
+  "hud.voice.tooltip": "Tryb głosu (B, aby zmienić)",
 } as const;

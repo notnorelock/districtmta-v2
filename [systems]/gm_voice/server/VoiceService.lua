@@ -59,10 +59,12 @@ addEventHandler(Events.VOICE_CYCLE_MODE, root, function()
     local nextMode = MODE_CYCLE[(currentIndex % #MODE_CYCLE) + 1]
     VoiceService.setMode(player, nextMode)
 
-    -- outputChatBox, not a CEF toast (NotificationService) - this can fire
-    -- several times in quick succession as a player cycles past the mode
-    -- they want, and a toast queue/animation is too heavy for that.
-    outputChatBox("Tryb głosu: " .. MODE_LABEL[nextMode], player, 200, 200, 200)
+    -- Not NotificationService (a CEF toast) - this can fire several times
+    -- in quick succession as a player cycles past the mode they want, and
+    -- a toast queue/animation is too heavy for that. Relayed into a
+    -- transient tooltip over the HUD's own voice icon instead - see
+    -- Events.VOICE_MODE_CHANGED's own comment and HudBar.tsx.
+    triggerClientEvent(player, Events.VOICE_MODE_CHANGED, resourceRoot, nextMode, MODE_LABEL[nextMode])
 end)
 
 --- Mute is a general account penalty (Enums.PenaltyType.MUTE), not a

@@ -145,6 +145,20 @@ Events = {
     -- LOCAL player talking") - this is "who ELSE nearby is talking right now".
     PUSH_VOICE_NEARBY_UPDATED = "voice.nearbyUpdated",
 
+    -- Server -> client (localPlayer only): confirms the local player's own
+    -- talk-mode cycle request (see VOICE_CYCLE_MODE below) actually landed
+    -- and names the new mode. Used to be a plain outputChatBox line
+    -- (VoiceService.lua's own comment on why: cycling past the mode you
+    -- want fires this several times in a row, too rapid for a toast
+    -- queue/animation) - now relayed into the CEF HUD instead, see
+    -- PUSH_VOICE_MODE_CHANGED below and HudBar.tsx's own transient
+    -- tooltip-over-the-voice-icon.
+    VOICE_MODE_CHANGED = "voice:modeChanged",
+    -- Pushed into the CEF HUD once VOICE_MODE_CHANGED arrives - same
+    -- "fires several times in a row while cycling" shape, the frontend's
+    -- own timer just restarts on every push rather than queuing.
+    PUSH_VOICE_MODE_CHANGED = "voice.modeChanged",
+
     -- Client -> server: player pressed the cycle-voice-mode key (B).
     -- Server is authoritative over the resulting mode (drives broadcast
     -- distance in VoiceService.lua) - the client only requests a cycle,

@@ -2,6 +2,7 @@ import { type Component, For, Show, createMemo, createSignal } from "solid-js";
 import { Backpack, Fish, Key, Package, Play, Star, Trash2, Weight } from "lucide-solid";
 import type { LucideProps } from "lucide-solid";
 import { Overlay } from "@/components/common/Overlay";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/Tooltip";
 import { inventoryStore } from "@/stores/inventory.store";
 import { ITEM_SCHEME_CATEGORY, ItemCategory } from "@/types/inventory";
 import type { InventoryItem } from "@/types/inventory";
@@ -86,14 +87,17 @@ export const InventoryOverlay: Component = () => {
                 const Icon = tab.icon;
                 const active = () => activeTab() === tab.id;
                 return (
-                  <button
-                    type="button"
-                    class={`${styles.tab} ${active() ? styles.tabActive : ""}`}
-                    onClick={() => setActiveTab(tab.id)}
-                    title={t()(tab.labelKey)}
-                  >
-                    <Icon size={18} />
-                  </button>
+                  <Tooltip placement="left">
+                    <TooltipTrigger
+                      as="button"
+                      type="button"
+                      class={`${styles.tab} ${active() ? styles.tabActive : ""}`}
+                      onClick={() => setActiveTab(tab.id)}
+                    >
+                      <Icon size={18} />
+                    </TooltipTrigger>
+                    <TooltipContent>{t()(tab.labelKey)}</TooltipContent>
+                  </Tooltip>
                 );
               }}
             </For>
@@ -111,7 +115,7 @@ export const InventoryOverlay: Component = () => {
             <div class={styles.listWrap}>
               <For each={visibleItems()} fallback={<div class={styles.empty}>{t()("inventory.empty")}</div>}>
                 {(item) => (
-                  <div class={styles.row} onClick={(event) => openContextMenu(event, item)}>
+                  <div class={styles.row} onClick={(event: MouseEvent) => openContextMenu(event, item)}>
                     <div class={styles.rowIcon}>
                       <Package size={16} />
                     </div>

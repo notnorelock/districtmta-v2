@@ -72,6 +72,13 @@
   @apply shrink-0 text-primary;
 }
 
+// Wraps .sharedIcon - a plain inline-flex span (Tooltip.Trigger's own
+// "as" element), just enough of a hit target for the tooltip to attach
+// to without affecting the row's own layout.
+.sharedIconTrigger {
+  @apply inline-flex shrink-0;
+}
+
 .rowMeta {
   @apply flex items-center gap-3 text-xs text-muted-foreground;
 }

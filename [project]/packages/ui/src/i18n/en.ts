@@ -76,6 +76,8 @@ export const en: Record<keyof typeof pl, string> = {
   "scoreboard.status.inGame": "In game",
   "scoreboard.empty": "No players match your search",
   "scoreboard.hint": "Press right mouse button to show cursor",
+  "scoreboard.count.tooltip": "Players online",
+  "scoreboard.ping.tooltip": "Ping (ms)",
 
   "vehicleMenu.engine": "Engine",
   "vehicleMenu.lights": "Lights",
@@ -110,10 +112,17 @@ export const en: Record<keyof typeof pl, string> = {
   "vehicleStorage.category.all": "All",
   "vehicleStorage.category.owned": "My vehicles",
   "vehicleStorage.category.shared": "Shared",
+  "vehicleStorage.sharedHint": "You have the keys to this vehicle",
   "vehicleStorage.empty": "You have no vehicles here",
   "vehicleStorage.hint.retrieve": "Click a vehicle to retrieve it",
   "vehicleStorage.hint.store": "Drive your vehicle onto the marked spot to store it here",
   "vehicleStorage.action.retrieve": "Retrieve",
   "vehicleStorage.mileage": "Mileage",
   "vehicleStorage.plate": "Plate",
+
+  "hud.health.tooltip": "Health",
+  "hud.hunger.tooltip": "Hunger",
+  "hud.thirst.tooltip": "Thirst",
+  "hud.oxygen.tooltip": "Oxygen",
+  "hud.voice.tooltip": "Voice mode (B to change)",
 };

@@ -2,6 +2,7 @@ import { type Component, For, Show, createMemo, createSignal } from "solid-js";
 import { Car, Gauge, Hash, KeyRound, Warehouse } from "lucide-solid";
 import type { LucideProps } from "lucide-solid";
 import { Overlay } from "@/components/common/Overlay";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/Tooltip";
 import { vehicleStorageStore } from "@/stores/vehicleStorage.store";
 import { t } from "@/i18n";
 import styles from "./VehicleStorageOverlay.module.scss";
@@ -60,14 +61,17 @@ export const VehicleStorageOverlay: Component = () => {
                 const Icon = tab.icon;
                 const active = () => activeTab() === tab.id;
                 return (
-                  <button
-                    type="button"
-                    class={`${styles.tab} ${active() ? styles.tabActive : ""}`}
-                    onClick={() => setActiveTab(tab.id)}
-                    title={t()(tab.labelKey)}
-                  >
-                    <Icon size={18} />
-                  </button>
+                  <Tooltip placement="left">
+                    <TooltipTrigger
+                      as="button"
+                      type="button"
+                      class={`${styles.tab} ${active() ? styles.tabActive : ""}`}
+                      onClick={() => setActiveTab(tab.id)}
+                    >
+                      <Icon size={18} />
+                    </TooltipTrigger>
+                    <TooltipContent>{t()(tab.labelKey)}</TooltipContent>
+                  </Tooltip>
                 );
               }}
             </For>
@@ -93,7 +97,12 @@ export const VehicleStorageOverlay: Component = () => {
                       <span class={styles.rowName}>
                         {vehicle.name}
                         <Show when={!vehicle.owned}>
-                          <KeyRound size={12} class={styles.sharedIcon} />
+                          <Tooltip placement="top" openDelay={300}>
+                            <TooltipTrigger as="span" class={styles.sharedIconTrigger}>
+                              <KeyRound size={12} class={styles.sharedIcon} />
+                            </TooltipTrigger>
+                            <TooltipContent>{t()("vehicleStorage.sharedHint")}</TooltipContent>
+                          </Tooltip>
                         </Show>
                       </span>
                       <div class={styles.rowMeta}>

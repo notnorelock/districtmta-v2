@@ -2,6 +2,7 @@ import { type Component, For, Show, createMemo, createSignal } from "solid-js";
 import { Users, Wifi, X } from "lucide-solid";
 import { Overlay } from "@/components/common/Overlay";
 import { TextField, TextFieldInput } from "@/components/ui/TextField";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/Tooltip";
 import { scoreboardStore } from "@/stores/scoreboard.store";
 import { AccountRole } from "@/types/account";
 import type { ScoreboardPlayer } from "@/types/scoreboard";
@@ -122,10 +123,13 @@ export const ScoreboardOverlay: Component = () => {
               </div>
             </TextField>
 
-            <div class={styles.count}>
-              <span>{scoreboardStore.players().length}</span>
-              <Users size={16} />
-            </div>
+            <Tooltip placement="bottom">
+              <TooltipTrigger as="div" class={styles.count}>
+                <span>{scoreboardStore.players().length}</span>
+                <Users size={16} />
+              </TooltipTrigger>
+              <TooltipContent>{t()("scoreboard.count.tooltip")}</TooltipContent>
+            </Tooltip>
           </div>
 
           <div class={styles.listWrap}>
@@ -152,10 +156,13 @@ export const ScoreboardOverlay: Component = () => {
                     <span class={styles.factionBadge}>{player.faction}</span>
                   </Show>
 
-                  <div class={styles.pingCol}>
-                    <span>{player.ping}</span>
-                    <Wifi size={14} class={pingClass(player.ping)} />
-                  </div>
+                  <Tooltip placement="left">
+                    <TooltipTrigger as="div" class={styles.pingCol}>
+                      <span>{player.ping}</span>
+                      <Wifi size={14} class={pingClass(player.ping)} />
+                    </TooltipTrigger>
+                    <TooltipContent>{t()("scoreboard.ping.tooltip")}</TooltipContent>
+                  </Tooltip>
                 </div>
               )}
             </For>

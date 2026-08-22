@@ -8,6 +8,17 @@
   @apply pointer-events-none fixed bottom-4 right-4 z-40 flex items-center gap-2;
 }
 
+// .bar itself stays pointer-events-none (a HUD element floating over
+// gameplay must never block clicks/hover on the world behind it) - each
+// icon's own Tooltip.Trigger wrapper opts back into pointer-events here
+// specifically so hovering the small ring itself can open a tooltip,
+// without making the rest of the HUD row (the gaps between icons)
+// clickable/hoverable too.
+.iconTrigger,
+.voiceTrigger {
+  @apply pointer-events-auto;
+}
+
 // Drowning (oxygen) icon enter/leave, via solid-transition-group's
 // <TransitionGroup> in HudBar.tsx - unlike the whole-HUD <Transition>
 // (styles/globals.css's .hud-enter-*), this animates ONE icon inside a
