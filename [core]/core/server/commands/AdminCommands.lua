@@ -88,6 +88,27 @@ local function copyPosition(from, to)
     setElementPosition(to, x, y, z)
 end
 
+--- Finds a live world vehicle by its gm_vehicles database row id. `core`
+--- has no reverse id->element map of its own (gm_vehicles' own
+--- VehicleService.lua only tracks the forward element->id direction
+--- privately) - this scans and matches on ElementData.Vehicle.ID
+--- directly instead, exactly like gm_items/server/ItemUseHandlers.lua's
+--- own vehicle-key lookup does from a different resource. A plain
+--- ElementData read, not a call into gm_vehicles, so there's no resource-
+--- boundary/start-order concern (see docs/Architecture.md's "the one
+--- hard rule" - only callbacks/function values are restricted, not data
+--- reads off an element any resource can already see).
+-- @param id number
+-- @return vehicle|nil
+local function findVehicleById(id)
+    for _, vehicle in ipairs(getElementsByType("vehicle")) do
+        if getElementData(vehicle, ElementData.Vehicle.ID) == id then
+            return vehicle
+        end
+    end
+    return nil
+end
+
 CommandRegistry.register("goto", Permissions.Bit.TELEPORT, function(player, target)
     if CommandRegistry.isConsole(player) then
         CommandRegistry.reply(player, "/goto can only be used in-game")
@@ -153,6 +174,77 @@ CommandRegistry.register("gethere", Permissions.Bit.TELEPORT, function(player, t
     })
     CommandRegistry.reply(player, "Przywołano " .. getPlayerName(targetPlayer) .. " do siebie.")
     CommandRegistry.reply(targetPlayer, "Zostałeś przywołany przez " .. getPlayerName(player) .. ".")
+end)
+
+--- Teleports `player` INTO the vehicle's driver seat if it's free,
+--- otherwise just to its position (same "best effort" as walking up to a
+--- vehicle yourself) - either way the admin ends up at the vehicle,
+--- warpPedIntoVehicle only additionally saves them the walk/enter animation.
+-- @param player element
+-- @param vehicle vehicle
+local function teleportToVehicle(player, vehicle)
+    copyPosition(vehicle, player)
+    if getVehicleOccupant(vehicle, 0) then
+        return false
+    end
+    return warpPedIntoVehicle(player, vehicle, 0)
+end
+
+CommandRegistry.register("gotocar", Permissions.Bit.TELEPORT, function(player, target)
+    if CommandRegistry.isConsole(player) then
+        CommandRegistry.reply(player, "/gotocar can only be used in-game")
+        return
+    end
+
+    local id = tonumber(target)
+    if not id then
+        CommandRegistry.reply(player, "Usage: /gotocar <id pojazdu>")
+        return
+    end
+
+    local vehicle = findVehicleById(id)
+    if not vehicle then
+        CommandRegistry.reply(player, "Nie znaleziono pojazdu o podanym id.")
+        return
+    end
+
+    local warpedIn = teleportToVehicle(player, vehicle)
+
+    Logger.security("AdminCommands", "Teleported to vehicle", {
+        player = getPlayerName(player),
+        vehicleId = id,
+        warpedIn = warpedIn,
+    })
+    CommandRegistry.reply(player, warpedIn
+        and "Teleportowano do pojazdu (id " .. id .. ")."
+        or "Teleportowano obok pojazdu (id " .. id .. ") - miejsce kierowcy zajęte.")
+end)
+
+CommandRegistry.register("getcar", Permissions.Bit.TELEPORT, function(player, target)
+    if CommandRegistry.isConsole(player) then
+        CommandRegistry.reply(player, "/getcar can only be used in-game")
+        return
+    end
+
+    local id = tonumber(target)
+    if not id then
+        CommandRegistry.reply(player, "Usage: /getcar <id pojazdu>")
+        return
+    end
+
+    local vehicle = findVehicleById(id)
+    if not vehicle then
+        CommandRegistry.reply(player, "Nie znaleziono pojazdu o podanym id.")
+        return
+    end
+
+    copyPosition(player, vehicle)
+
+    Logger.security("AdminCommands", "Teleported vehicle to self", {
+        player = getPlayerName(player),
+        vehicleId = id,
+    })
+    CommandRegistry.reply(player, "Przywołano pojazd (id " .. id .. ") do siebie.")
 end)
 
 local DEFAULT_HEALTH = 100
