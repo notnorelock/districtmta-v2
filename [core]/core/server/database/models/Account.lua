@@ -8,6 +8,7 @@ Account = Model:extend("accounts", {
     { name = "password_hash", type = "string", length = 60, nullable = false },
     { name = "premium_expires_at", type = "timestamp", nullable = true },
     { name = "role", type = "integer", nullable = false, default = 0 },
+    { name = "money", type = "integer", nullable = false, default = 0 },
     { name = "created_at", type = "timestamp", default = "CURRENT_TIMESTAMP" },
     { name = "updated_at", type = "timestamp", default = "CURRENT_TIMESTAMP" },
     { name = "last_seen_at", type = "timestamp", nullable = true },

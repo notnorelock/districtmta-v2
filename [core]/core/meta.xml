@@ -78,6 +78,9 @@
     <export function="playerServiceGetRole" type="server" />
     <export function="playerServiceGetLogin" type="server" />
     <export function="playerServiceIsOnDuty" type="server" />
+    <export function="playerServiceGetMoney" type="server" />
+    <export function="playerServiceGiveMoney" type="server" />
+    <export function="playerServiceTakeMoney" type="server" />
     <export function="playerIdById" type="server" />
     <export function="playerIdOf" type="server" />
     <export function="playerIdResolve" type="server" />

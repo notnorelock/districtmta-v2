@@ -151,6 +151,59 @@ PlayerService.isAuthenticated = function(player)
     return accountContexts[player] ~= nil
 end
 
+--- @param player element
+-- @return number|nil the account's own money balance, or nil if not authenticated
+PlayerService.getMoney = function(player)
+    local account = accountContexts[player]
+    return account and account.money or nil
+end
+
+--- Adds to the player's account money balance (atomic UPDATE, see
+-- AccountRepository.giveMoney) and mirrors the new total onto the
+-- cached account context so a subsequent PlayerService.getMoney call in
+-- the same session reads the up-to-date value without a re-fetch.
+-- @param player element
+-- @param amount number positive integer
+-- @param callback function(ok: boolean)|nil
+PlayerService.giveMoney = function(player, amount, callback)
+    local account = accountContexts[player]
+    if not account or type(amount) ~= "number" or amount <= 0 then
+        if callback then callback(false) end
+        return
+    end
+
+    AccountRepository.giveMoney(account.id, math.floor(amount), function(ok, affectedOrError)
+        if ok and accountContexts[player] == account then
+            account.money = (account.money or 0) + math.floor(amount)
+        elseif not ok then
+            Logger.error("PlayerService", "giveMoney failed", { player = getPlayerName(player), accountId = account.id, error = tostring(affectedOrError) })
+        end
+        if callback then callback(ok) end
+    end)
+end
+
+--- Same as giveMoney, subtracting instead - floored at 0 server-side (see
+-- AccountRepository.takeMoney), so the cached mirror is clamped the same way.
+-- @param player element
+-- @param amount number positive integer
+-- @param callback function(ok: boolean)|nil
+PlayerService.takeMoney = function(player, amount, callback)
+    local account = accountContexts[player]
+    if not account or type(amount) ~= "number" or amount <= 0 then
+        if callback then callback(false) end
+        return
+    end
+
+    AccountRepository.takeMoney(account.id, math.floor(amount), function(ok, affectedOrError)
+        if ok and accountContexts[player] == account then
+            account.money = math.max(0, (account.money or 0) - math.floor(amount))
+        elseif not ok then
+            Logger.error("PlayerService", "takeMoney failed", { player = getPlayerName(player), accountId = account.id, error = tostring(affectedOrError) })
+        end
+        if callback then callback(ok) end
+    end)
+end
+
 addEventHandler("onPlayerQuit", root, function()
     PlayerService.clearAccountContext(source)
 end)
@@ -315,6 +368,19 @@ addEventHandler("onResourceStart", resourceRoot, scheduleMuteSweep)
 
 function playerServiceIsAuthenticated(player) return PlayerService.isAuthenticated(player) end
 function playerServiceGetAccountId(player) return PlayerService.getAccountId(player) end
+
+--- @return number|nil - see PlayerService.getMoney
+function playerServiceGetMoney(player) return PlayerService.getMoney(player) end
+
+--- Fire-and-forget flat exports (no callback parameter - a function value
+-- can never cross the resource boundary, see docs/Architecture.md's "one
+-- hard rule"). A caller in another resource that needs to know whether
+-- the transfer actually landed should re-check playerServiceGetMoney
+-- shortly after, or (for anything that truly needs a confirmed result)
+-- go through a request/response bridge instead, same shape as
+-- gm_vehicles/server/VehicleBridge.lua.
+function playerServiceGiveMoney(player, amount) PlayerService.giveMoney(player, amount) end
+function playerServiceTakeMoney(player, amount) PlayerService.takeMoney(player, amount) end
 
 --- @return string|nil the account login, or nil if not authenticated - a
 --- narrow accessor (not the full account context table, which also holds

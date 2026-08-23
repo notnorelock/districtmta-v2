@@ -64,3 +64,25 @@ end
 AccountRepository.updateRole = function(id, role, callback)
     Account:query():where("id", id):update({ role = role }, callback)
 end
+
+--- Adds to the account's own money balance - a single atomic
+-- `money = money + ?` UPDATE, not a read-then-write, so two concurrent
+-- give/take calls for the same account (e.g. a duty payout landing at
+-- the same moment as a /przelej transfer) can never race and drop one
+-- of them.
+-- @param id number
+-- @param amount number positive integer to add
+-- @param callback function(ok: boolean, affectedRowsOrError: number|string)
+AccountRepository.giveMoney = function(id, amount, callback)
+    Database.execute("UPDATE `accounts` SET `money` = `money` + ? WHERE `id` = ?", { amount, id }, callback)
+end
+
+--- Subtracts from the account's own money balance, floored at 0 (GREATEST
+-- in the same atomic UPDATE, not a separate check) - same race-safety
+-- reasoning as giveMoney above.
+-- @param id number
+-- @param amount number positive integer to subtract
+-- @param callback function(ok: boolean, affectedRowsOrError: number|string)
+AccountRepository.takeMoney = function(id, amount, callback)
+    Database.execute("UPDATE `accounts` SET `money` = GREATEST(0, `money` - ?) WHERE `id` = ?", { amount, id }, callback)
+end
