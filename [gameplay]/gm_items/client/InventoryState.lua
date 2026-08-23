@@ -74,6 +74,14 @@ addEventHandler(Events.INVENTORY_ITEMS_RECEIVED, root, function(items)
     exports.core_ui:uiPushEvent(Events.PUSH_INVENTORY_ITEMS, items)
 end)
 
+-- Pushed whether or not the inventory panel itself is open - ItemToast.tsx
+-- is its own always-mounted CEF overlay (like DutyIndicator/GroupInviteToast),
+-- not gated behind "inventory".
+addEvent(Events.ITEM_TOAST, true)
+addEventHandler(Events.ITEM_TOAST, root, function(data)
+    exports.core_ui:uiPushEvent(Events.PUSH_ITEM_TOAST, data)
+end)
+
 -- CEF -> client Lua (via MtaBridge.notify, relayed through core_ui's own
 -- ui:notify channel - see Transport.lua's module comment - so args arrive
 -- here already JSON-decoded back into their real types) - the panel's own

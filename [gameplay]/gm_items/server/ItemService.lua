@@ -70,6 +70,48 @@ function itemServiceHasVehicleKey(player, vehicleId)
 end
 
 --- @param player element
+-- @param kind string "gained" | "lost"
+-- @param schemeKey string
+-- @param amount number
+local function pushItemToast(player, kind, schemeKey, amount)
+    if not isElement(player) then
+        return
+    end
+    triggerClientEvent(player, Events.ITEM_TOAST, player, { kind = kind, schemeKey = schemeKey, amount = amount })
+end
+
+--- Fire-and-forget cross-resource wrapper for ItemService.give - a
+--- callback can never cross a resource boundary (see docs/Architecture.md's
+--- "the one hard rule"), so this notifies `player` itself directly rather
+--- than handing the caller a result to react to. A success pushes the
+--- same "gained" item toast pickup/give use (see pushItemToast/ItemToast.tsx) -
+--- a failure still goes through the plain native NotificationService
+--- (a rejection isn't a "gain", the toast has nothing to show for it).
+--- gm_vehicles' own VehicleCommands.lua calls this to hand a fresh
+--- private vehicle's owner their VEHICLE_KEY - see that file's own
+--- /createvehicle handler.
+-- @param player element
+-- @param schemeKey string
+-- @param amount number
+-- @param itemValues table|nil
+function itemServiceGiveItem(player, schemeKey, amount, itemValues)
+    if not isElement(player) then
+        return
+    end
+
+    ItemService.give(player, schemeKey, amount, itemValues, function(ok)
+        if not isElement(player) then
+            return
+        end
+        if ok then
+            pushItemToast(player, "gained", schemeKey, amount)
+        else
+            NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie udało się dodać przedmiotu (za duży ciężar lub błąd)." })
+        end
+    end)
+end
+
+--- @param player element
 -- @return number the current combined weight of player's carried items
 ItemService.weightOf = function(player)
     local weight = 0
@@ -390,6 +432,8 @@ ItemService.drop = function(player, itemId)
 
     table.remove(playerItems[player], index)
     ItemService.sync(player)
+
+    pushItemToast(player, "lost", item.schemeKey, item.amount)
 end
 
 --- Picks up world item `itemId` (its object must still exist) into
@@ -464,6 +508,7 @@ ItemService.pickup = function(player, itemId)
         playerItems[player] = items
 
         ItemService.sync(player)
+        pushItemToast(player, "gained", entry.item.schemeKey, entry.item.amount)
     end)
 
     return true

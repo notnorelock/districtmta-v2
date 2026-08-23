@@ -275,12 +275,30 @@ addEventHandler(Events.GROUP_UPDATE_RANK, root, function(data)
         return
     end
 
+    -- The leader's own rank (permissions.is_leader == true) can never have
+    -- its PERMISSIONS changed through this handler, server-enforced
+    -- regardless of what the panel sends - never trust the client's own
+    -- belief that RankEditor.tsx disabled that field (see that component's
+    -- own comment). Prevents a leader (accidentally or otherwise) demoting
+    -- themselves out of is_leader. hourly_reward is a NARROWER case: a
+    -- regular manage_ranks member (including the leader themselves) can't
+    -- touch the leader rank's own pay rate either, but a server admin
+    -- (Permissions.Bit.MANAGE_GROUPS) CAN - confirmed with the user: only
+    -- an administrator gets to decide a faction leader's own payout.
+    -- Name/skin/sort_order stay editable by manage_ranks either way.
+    local isLeaderRank = type(existingRank.permissions) == "table" and existingRank.permissions.is_leader == true
+    local isAdmin = (function()
+        local role = PlayerService.getRole(player)
+        return role ~= nil and Permissions.has(role, Permissions.Bit.MANAGE_GROUPS) == true
+    end)()
+    local canChangeHourlyReward = not isLeaderRank or isAdmin
+
     requirePermission(existingRank.group_id, player, "manage_ranks", function()
         GroupBridge.call("updateRank", { data.rankId, {
             name = data.name ~= nil and tostring(data.name) or existingRank.name,
             skin = data.skin ~= nil and tonumber(data.skin) or existingRank.skin,
-            hourly_reward = data.hourlyReward ~= nil and tonumber(data.hourlyReward) or existingRank.hourly_reward,
-            permissions = type(data.permissions) == "table" and data.permissions or existingRank.permissions,
+            hourly_reward = (canChangeHourlyReward and data.hourlyReward ~= nil) and tonumber(data.hourlyReward) or existingRank.hourly_reward,
+            permissions = (not isLeaderRank and type(data.permissions) == "table") and data.permissions or existingRank.permissions,
             sort_order = data.sortOrder ~= nil and tonumber(data.sortOrder) or existingRank.sort_order,
         } }, function(ok, affectedOrError)
             if not ok then

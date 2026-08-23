@@ -26,4 +26,5 @@
     <script src="client/InventoryState.lua" type="client" cache="false" />
 
     <export function="itemServiceHasVehicleKey" type="server" />
+    <export function="itemServiceGiveItem" type="server" />
 </meta>

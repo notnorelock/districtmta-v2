@@ -58,6 +58,21 @@ addCommandHandler("createvehicle", function(player, _, modelArg)
         warpPedIntoVehicle(player, vehicle)
         NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = "Stworzono pojazd prywatny: " .. (getVehicleNameFromModel(model) or tostring(model)) })
 
+        -- Ownership alone (owner_account_id) is the access check for a
+        -- PRIVATE vehicle, but the actual gates (canStartEngine,
+        -- hasVehicleKey) only ever check for a physical VEHICLE_KEY item -
+        -- without this, the very owner who just created the vehicle
+        -- couldn't start its engine or lock/unlock it themselves. Fire-
+        -- and-forget cross-resource call (see itemServiceGiveItem's own
+        -- module comment) - gm_items sends its own success/error
+        -- notification, this doesn't need to react to the result.
+        local vehicleId = VehicleService.idOf(vehicle)
+        if vehicleId then
+            pcall(function()
+                exports.gm_items:itemServiceGiveItem(player, "Kluczyki do pojazdu", 1, { vehicleId })
+            end)
+        end
+
         Logger.security("VehicleCommands", "Player created a private vehicle", {
             player = getPlayerName(player),
             model = model,

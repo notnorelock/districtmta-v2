@@ -9,6 +9,7 @@ import { ResourceCheckScreen } from "@/features/loading/ResourceCheckScreen";
 import { HudBar } from "@/features/hud/HudBar";
 import { VoiceIndicator } from "@/features/hud/VoiceIndicator";
 import { RadioCard } from "@/features/hud/RadioCard";
+import { ItemToast } from "@/features/hud/ItemToast";
 import { BlackoutOverlay } from "@/features/blackout/BlackoutOverlay";
 import { ScoreboardOverlay } from "@/features/scoreboard/ScoreboardOverlay";
 import { VehicleMenuOverlay } from "@/features/vehicleInteraction/VehicleMenuOverlay";
@@ -109,6 +110,11 @@ const AppContent: Component = () => {
           DutyIndicator above - an invite must surface even if the group
           panel itself is closed. */}
       <GroupInviteToast />
+      {/* Not gated behind any overlay key - always mounted, purely driven
+          by itemToast.store.ts, same reasoning as DutyIndicator/
+          GroupInviteToast above - an item gain/loss must surface even if
+          the inventory panel itself is closed. */}
+      <ItemToast />
     </div>
   );
 };

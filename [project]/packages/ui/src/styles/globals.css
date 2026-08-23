@@ -122,7 +122,16 @@
   --color-accent-indigo: #ffab48;
   --color-accent-violet: #dc604f;
 
-  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  /* font-sans now points at Titillium Web too (not Inter) - this project
+     doesn't actually load Inter anywhere (no @font-face for it, just a
+     browser-default fallback), and every panel is meant to use the same
+     Titillium Web look. Previously every new component needed an explicit
+     font-display class or it silently fell back to whatever system sans
+     font Chromium picked - see Tooltip.tsx's own comment on exactly that
+     bug. font-display stays defined (identical value) purely so existing
+     explicit font-display classes keep working, not because anything
+     still needs to distinguish the two. */
+  --font-sans: "Titillium Web", "Inter", "Segoe UI", system-ui, sans-serif;
   --font-display: "Titillium Web", "Inter", "Segoe UI", system-ui, sans-serif;
 
   --radius-sm: 0.25rem;

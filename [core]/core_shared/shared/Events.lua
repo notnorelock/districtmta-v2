@@ -542,6 +542,16 @@ Events = {
     -- (picked up/used/dropped/received) so the panel stays live while open.
     PUSH_INVENTORY_ITEMS = "inventory.items",
 
+    -- Server -> the affected player only: fired by ItemService.lua's own
+    -- pickup/give/drop (NOT use - that keeps its own scheme-specific
+    -- feedback, e.g. a vehicle lock toggle) - { kind, schemeKey, amount }
+    -- where kind is "gained" | "lost". Replaces the plain-text
+    -- NotificationService.send calls those three used to make - see
+    -- InventoryState.lua's own forwarding into a dedicated CEF toast
+    -- (ItemToast.tsx) instead of the native dxDraw notification system.
+    ITEM_TOAST = "items:toast",
+    PUSH_ITEM_TOAST = "items.toast",
+
     -- Client -> server: player chose "Użyj" on an item (its database row
     -- id) from the inventory panel. Server re-validates ownership and the
     -- item's own scheme before running its effect - never trusts the
