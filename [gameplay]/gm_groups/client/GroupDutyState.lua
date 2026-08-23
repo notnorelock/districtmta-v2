@@ -29,7 +29,13 @@ end
 
 addEvent(Events.GROUP_DUTY_STARTED, true)
 addEventHandler(Events.GROUP_DUTY_STARTED, root, function(data)
-    totalSeconds = type(data) == "table" and (data.totalSeconds or 0) or 0
+    -- data.totalSeconds here is member.stat_workduty_seconds - the
+    -- ALL-TIME accrued total /dutypayout pays out against, reset to 0
+    -- only on a successful payout, NOT per-session. The HUD's own clock
+    -- is a per-SESSION timer instead (confirmed with the user - it should
+    -- always start counting up from 00:00 on entering duty, the lifetime
+    -- total stays a database/payout-only concept, never shown here).
+    totalSeconds = 0
     exports.core_ui:uiPushEvent(Events.PUSH_GROUP_DUTY_STARTED, data)
     startTicker()
 end)

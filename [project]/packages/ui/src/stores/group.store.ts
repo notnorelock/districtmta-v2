@@ -124,7 +124,11 @@ mta.on("groups.members", (data) => {
 mta.on("groups.dutyStarted", (data) => {
   const payload = data as GroupDutyStartedPayload;
   setDutyInfo(payload);
-  setDutyTotalSeconds(payload.totalSeconds);
+  // Always starts the HUD clock at 0, even though payload.totalSeconds
+  // carries the member's all-time accrued total (what /dutypayout pays
+  // out against) - the clock is a per-SESSION timer, confirmed with the
+  // user, not a display of that lifetime total.
+  setDutyTotalSeconds(0);
   setDutyActive(true);
 });
 
