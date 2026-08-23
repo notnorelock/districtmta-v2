@@ -8,6 +8,14 @@
 VehicleStore = Model:extend("vehicle_stores", {
     { name = "id", type = "id", primaryKey = true },
     { name = "name", type = "string", length = 64, nullable = false },
+    -- Enums.VehicleStorePurpose - PRIVATE (default, existing behavior: any
+    -- owner's private vehicles, gm_vehicles/server/VehicleStorageService.lua's
+    -- own owned-or-has-key filter) or GROUP (dedicated to one group's own
+    -- vehicles, group_id below - filtered by group membership + rank
+    -- allowlist + duty-if-fraction instead).
+    { name = "purpose", type = "enum", values = { "private", "group" }, nullable = false, default = "private" },
+    -- Non-nil only for a GROUP-purpose lot.
+    { name = "group_id", type = "reference", nullable = true, references = { table = "groups", column = "id" } },
     -- { x, y, z } - marker a player walks into to open the retrieval
     -- panel (see gm_vehicles/server/VehicleStorageService.lua). Storing a
     -- vehicle is a SEPARATE marker (store_position, below) - the two used

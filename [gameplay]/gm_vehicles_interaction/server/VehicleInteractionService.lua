@@ -75,6 +75,20 @@ local function canStartEngine(player, vehicle)
         return true
     end
 
+    -- A GROUP-purpose vehicle doesn't use the VEHICLE_KEY item system at
+    -- all - access is membership + per-vehicle rank allowlist (+ on-duty
+    -- for a fraction-type group) instead, decided by gm_groups' own
+    -- groupServiceCanUseVehicle export (synchronous, backed by an
+    -- in-memory cache - see MembershipCache.lua's own module comment on
+    -- why this doesn't need a DB round trip here).
+    local groupId = getElementData(vehicle, ElementData.Vehicle.GROUP_ID)
+    if groupId then
+        local ok, allowed = pcall(function()
+            return exports.gm_groups:groupServiceCanUseVehicle(player, vehicleId, groupId)
+        end)
+        return ok and allowed == true
+    end
+
     local ok, hasKey = pcall(function()
         return exports.gm_items:itemServiceHasVehicleKey(player, vehicleId)
     end)

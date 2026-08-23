@@ -1,16 +1,17 @@
 import { type Component, For, Show, createEffect, createMemo, createSignal } from "solid-js";
-import { Plus, Shield, UserPlus, Users } from "lucide-solid";
+import { Car, Plus, Shield, UserPlus, Users } from "lucide-solid";
 import { Overlay } from "@/components/common/Overlay";
 import { Button } from "@/components/ui/Button";
 import { t } from "@/i18n";
 import { groupStore } from "@/stores/group.store";
-import type { GroupRank } from "@/types/group";
+import type { GroupRank, GroupVehicle } from "@/types/group";
 import { MemberRow } from "./MemberRow";
 import { RankEditor } from "./RankEditor";
 import { InviteMemberDialog } from "./InviteMemberDialog";
+import { VehicleRankEditor } from "./VehicleRankEditor";
 import styles from "./GroupPanelOverlay.module.scss";
 
-type PanelTab = "members" | "ranks";
+type PanelTab = "members" | "ranks" | "vehicles";
 
 /**
  * Group management panel (G) - side rail of the player's own groups
@@ -26,6 +27,7 @@ export const GroupPanelOverlay: Component = () => {
   const [tab, setTab] = createSignal<PanelTab>("members");
   const [editingRank, setEditingRank] = createSignal<GroupRank | "new" | null>(null);
   const [invitingMember, setInvitingMember] = createSignal(false);
+  const [editingVehicle, setEditingVehicle] = createSignal<GroupVehicle | null>(null);
 
   const memberships = groupStore.memberships;
 
@@ -46,14 +48,22 @@ export const GroupPanelOverlay: Component = () => {
 
   createEffect(() => {
     const groupId = selectedGroupId();
-    if (groupId !== null && tab() === "members") {
+    if (groupId === null) return;
+    if (tab() === "members") {
       groupStore.requestMembers(groupId);
+    } else if (tab() === "vehicles") {
+      groupStore.requestVehicles(groupId);
     }
   });
 
   const members = createMemo(() => {
     const groupId = selectedGroupId();
     return groupId !== null ? groupStore.membersFor(groupId) : [];
+  });
+
+  const vehicles = createMemo(() => {
+    const groupId = selectedGroupId();
+    return groupId !== null ? groupStore.vehiclesFor(groupId) : [];
   });
 
   const canManageMembers = createMemo(() => selected()?.permissions.manage_members === true || selected()?.permissions.is_leader === true);
@@ -103,6 +113,14 @@ export const GroupPanelOverlay: Component = () => {
                     >
                       <Shield size={14} />
                       {t()("groups.tab.ranks")}
+                    </button>
+                    <button
+                      type="button"
+                      class={`${styles.tabButton} ${tab() === "vehicles" ? styles.tabButtonActive : ""}`}
+                      onClick={() => setTab("vehicles")}
+                    >
+                      <Car size={14} />
+                      {t()("groups.tab.vehicles")}
                     </button>
                   </div>
                 </div>
@@ -156,6 +174,28 @@ export const GroupPanelOverlay: Component = () => {
                     </Show>
                   </div>
                 </Show>
+
+                <Show when={tab() === "vehicles"}>
+                  <div class={styles.listWrap}>
+                    <For each={vehicles()} fallback={<div class={styles.empty}>{t()("groups.vehicle.empty")}</div>}>
+                      {(vehicle) => (
+                        <button
+                          type="button"
+                          class={styles.rankRow}
+                          disabled={!canManageRanks()}
+                          onClick={() => canManageRanks() && setEditingVehicle(vehicle)}
+                        >
+                          <span class={styles.rankRowName}>{t()("groups.vehicle.model")} {vehicle.model}</span>
+                          <span class={styles.rankRowMeta}>
+                            {vehicle.allowedRankIds.length > 0
+                              ? `${vehicle.allowedRankIds.length} ${t()("groups.vehicle.ranksCount")}`
+                              : t()("groups.vehicle.noRanks")}
+                          </span>
+                        </button>
+                      )}
+                    </For>
+                  </div>
+                </Show>
               </div>
             )}
           </Show>
@@ -177,6 +217,9 @@ export const GroupPanelOverlay: Component = () => {
             </Show>
             <Show when={invitingMember()}>
               <InviteMemberDialog groupId={entry().group.id} onClose={() => setInvitingMember(false)} />
+            </Show>
+            <Show when={editingVehicle()}>
+              {(vehicle) => <VehicleRankEditor vehicle={vehicle()} ranks={entry().group.ranks} onClose={() => setEditingVehicle(null)} />}
             </Show>
           </>
         )}

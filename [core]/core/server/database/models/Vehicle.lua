@@ -1,5 +1,5 @@
--- Active Record model for the vehicles table - persistent PRIVATE
--- vehicles only (Enums.VehiclePurpose.PUBLIC is a purely scripted/
+-- Active Record model for the vehicles table - persistent PRIVATE and
+-- GROUP vehicles (Enums.VehiclePurpose.PUBLIC is a purely scripted/
 -- runtime concept, never written here - see gm_vehicles/server/
 -- PublicVehicles.lua). See docs/DatabaseContract.md's "Vehicles table"
 -- section for the full column reference.
@@ -14,7 +14,7 @@
 -- encoding/decoding; callers above it always see real Lua tables.
 Vehicle = Model:extend("vehicles", {
     { name = "id", type = "id", primaryKey = true },
-    { name = "purpose", type = "enum", values = { Enums.VehiclePurpose.PRIVATE }, nullable = false },
+    { name = "purpose", type = "enum", values = { Enums.VehiclePurpose.PRIVATE, Enums.VehiclePurpose.GROUP }, nullable = false },
     { name = "model", type = "integer", nullable = false },
     { name = "position", type = "text", nullable = false },
     { name = "rotation", type = "text", nullable = false },
@@ -22,7 +22,17 @@ Vehicle = Model:extend("vehicles", {
     { name = "mileage", type = "integer", nullable = false, default = 0 },
     { name = "fuel", type = "integer", nullable = false, default = 100 },
     { name = "max_fuel", type = "integer", nullable = false, default = 100 },
+    -- Set to the creating admin's account even for a GROUP-purpose vehicle
+    -- (audit trail only - use/access for a group vehicle is decided by
+    -- group_id + group_vehicle_ranks, NOT this column, see
+    -- gm_groups/server/GroupEndpoints.lua's own groupServiceCanUseVehicle export).
     { name = "owner_account_id", type = "reference", nullable = false, references = { table = "accounts", column = "id" } },
+    -- Non-nil = this vehicle belongs to a group (purpose = GROUP) -
+    -- who's actually allowed to use it is further restricted by the
+    -- group_vehicle_ranks join table (rank allowlist) and, for a
+    -- fraction-type group, on-duty status - see GroupCache.lua's own
+    -- vehicleRankAllowlist and groupServiceCanUseVehicle.
+    { name = "group_id", type = "reference", nullable = true, references = { table = "groups", column = "id" } },
     -- Non-nil = this vehicle is sitting in a storage lot (vehicle_stores
     -- row), NOT spawned in the world - see gm_vehicles/server/
     -- VehicleStorageService.lua. VehicleService.lua's own onResourceStart

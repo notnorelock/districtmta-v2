@@ -18,12 +18,18 @@ local METHODS = {
     findById = VehicleRepository.findById,
     findByOwnerAccountId = VehicleRepository.findByOwnerAccountId,
     findAllPrivate = VehicleRepository.findAllPrivate,
+    findAllGroupOwned = VehicleRepository.findAllGroupOwned,
     findByOwnerAndStoreId = VehicleRepository.findByOwnerAndStoreId,
     findByStoreId = VehicleRepository.findByStoreId,
+    findByGroupId = VehicleRepository.findByGroupId,
     create = VehicleRepository.create,
     update = VehicleRepository.update,
     delete = VehicleRepository.delete,
     findAllVehicleStores = VehicleStoreRepository.findAll,
+
+    findVehicleRanksByVehicleId = GroupVehicleRankRepository.findByVehicleId,
+    setVehicleRanks = GroupVehicleRankRepository.setForVehicle,
+    deleteVehicleRanksByVehicleId = GroupVehicleRankRepository.deleteByVehicleId,
 }
 
 addEvent(Events.VEHICLE_REPOSITORY_REQUEST, true)

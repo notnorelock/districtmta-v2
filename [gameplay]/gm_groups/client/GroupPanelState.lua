@@ -170,6 +170,21 @@ addEventHandler(Events.GROUP_DECLINE_INVITE, root, function(inviteId)
     triggerServerEvent(Events.GROUP_DECLINE_INVITE, resourceRoot, { inviteId = inviteId })
 end)
 
+addEvent(Events.GROUP_REQUEST_VEHICLES, true)
+addEventHandler(Events.GROUP_REQUEST_VEHICLES, root, function(groupId)
+    triggerServerEvent(Events.GROUP_REQUEST_VEHICLES, resourceRoot, { groupId = groupId })
+end)
+
+addEvent(Events.GROUP_VEHICLES_RECEIVED, true)
+addEventHandler(Events.GROUP_VEHICLES_RECEIVED, root, function(payload)
+    exports.core_ui:uiPushEvent(Events.PUSH_GROUP_VEHICLES, payload)
+end)
+
+addEvent(Events.GROUP_SET_VEHICLE_RANKS, true)
+addEventHandler(Events.GROUP_SET_VEHICLE_RANKS, root, function(data)
+    triggerServerEvent(Events.GROUP_SET_VEHICLE_RANKS, resourceRoot, data)
+end)
+
 addEventHandler("onClientResourceStop", resourceRoot, function()
     if panelOpen then
         closePanel()

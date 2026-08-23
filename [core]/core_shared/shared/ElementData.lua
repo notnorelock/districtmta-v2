@@ -62,8 +62,13 @@ ElementData = {
         ID = "vehicle:id",
         -- One of Enums.VehiclePurpose's values.
         PURPOSE = "vehicle:purpose",
-        -- accounts.id of this vehicle's owner.
+        -- accounts.id of this vehicle's owner (the CREATING admin for a
+        -- GROUP-purpose vehicle - audit trail only, not the access gate).
         OWNER_ACCOUNT_ID = "vehicle:ownerAccountId",
+        -- groups.id this vehicle belongs to - absent for a PRIVATE/PUBLIC
+        -- vehicle. See gm_groups' groupServiceCanUseVehicle export for the
+        -- actual access decision (membership + rank allowlist + duty-if-fraction).
+        GROUP_ID = "vehicle:groupId",
         -- Round-trip cache for the "upgrades" JSON column's non-parts
         -- fields (neons/paintjob/engine) between load and save - no
         -- in-game system reads/writes these yet (no tuning workshop),

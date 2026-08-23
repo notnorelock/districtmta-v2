@@ -174,7 +174,11 @@ InteractionRegistry.register("object:itemPickup", {
 -- is a read-only query export (plain data in/out, safe across the
 -- resource boundary per docs/Architecture.md's "the one hard rule"),
 -- pcall'd since gm_items could in principle be stopped/restarting
--- independently of gm_interactions.
+-- independently of gm_interactions. A GROUP-purpose vehicle doesn't use
+-- VEHICLE_KEY at all - same groupServiceCanUseVehicle branch
+-- VehicleInteractionService.lua's own canStartEngine uses, so a member
+-- allowed to drive a group vehicle can also lock/unlock it and open its
+-- hood/trunk, not just start the engine.
 -- @param player element
 -- @param vehicle vehicle
 -- @return boolean
@@ -183,6 +187,15 @@ local function hasVehicleKey(player, vehicle)
     if not vehicleId then
         return false
     end
+
+    local groupId = getElementData(vehicle, ElementData.Vehicle.GROUP_ID)
+    if groupId then
+        local ok, allowed = pcall(function()
+            return exports.gm_groups:groupServiceCanUseVehicle(player, vehicleId, groupId)
+        end)
+        return ok and allowed == true
+    end
+
     local ok, hasKey = pcall(function()
         return exports.gm_items:itemServiceHasVehicleKey(player, vehicleId)
     end)

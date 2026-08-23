@@ -394,6 +394,20 @@ Events = {
     -- distinction needed since either just removes the pending row).
     GROUP_DECLINE_INVITE = "groups:declineInvite",
 
+    -- Client -> server: { groupId } - any member (not just manage_ranks)
+    -- opening the "Pojazdy" tab wants the group's vehicle list.
+    GROUP_REQUEST_VEHICLES = "groups:requestVehicles",
+    -- Server -> requesting client only: response, { groupId, vehicles:
+    -- [{ id, model, allowedRankIds }] }.
+    GROUP_VEHICLES_RECEIVED = "groups:vehiclesReceived",
+    -- Pushed into the CEF panel once GROUP_VEHICLES_RECEIVED arrives, and
+    -- again after GROUP_SET_VEHICLE_RANKS succeeds.
+    PUSH_GROUP_VEHICLES = "groups.vehicles",
+
+    -- Client -> server: { vehicleId, rankIds } - manage_ranks/leader
+    -- member replacing a group vehicle's ENTIRE allowed-rank list.
+    GROUP_SET_VEHICLE_RANKS = "groups:setVehicleRanks",
+
     -- Client -> server: driver requested toggling one vehicle system
     -- (engine/lights/lock) from the radial interaction menu (see
     -- gm_vehicles/client/VehicleInteractionState.lua). `action` is one of

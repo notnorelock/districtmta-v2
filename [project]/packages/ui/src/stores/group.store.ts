@@ -6,6 +6,7 @@ import type {
   GroupMembership,
   GroupMembersPayload,
   GroupPermissions,
+  GroupVehiclesPayload,
   InvitablePlayersPayload,
 } from "@/types/group";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -17,6 +18,8 @@ const [membersByGroup, setMembersByGroup] = createStore<Record<number, GroupMemb
 const [invitablePlayersByGroup, setInvitablePlayersByGroup] = createStore<Record<number, InvitablePlayersPayload["players"]>>({});
 // The local player's own pending invites (received while online, or bulk-loaded on spawn) - drives GroupInviteToast.tsx.
 const [pendingInvites, setPendingInvites] = createStore<GroupInvite[]>([]);
+// keyed by groupId - only populated for whichever group is currently open in the panel's Vehicles tab
+const [vehiclesByGroup, setVehiclesByGroup] = createStore<Record<number, GroupVehiclesPayload["vehicles"]>>({});
 
 const [dutyActive, setDutyActive] = createSignal(false);
 const [dutyInfo, setDutyInfo] = createSignal<GroupDutyStartedPayload | null>(null);
@@ -72,11 +75,20 @@ function declineInvite(inviteId: number) {
   setPendingInvites((current) => current.filter((invite) => invite.inviteId !== inviteId));
 }
 
+function requestVehicles(groupId: number) {
+  mta.notify("groups:requestVehicles", groupId);
+}
+
+function setVehicleRanks(vehicleId: number, rankIds: number[]) {
+  mta.notify("groups:setVehicleRanks", { vehicleId, rankIds });
+}
+
 export const groupStore = {
   memberships: () => memberships,
   membersFor: (groupId: number) => membersByGroup[groupId] ?? [],
   invitablePlayersFor: (groupId: number) => invitablePlayersByGroup[groupId] ?? [],
   pendingInvites: () => pendingInvites,
+  vehiclesFor: (groupId: number) => vehiclesByGroup[groupId] ?? [],
   duty: {
     active: dutyActive,
     info: dutyInfo,
@@ -93,6 +105,8 @@ export const groupStore = {
   invitePlayer,
   acceptInvite,
   declineInvite,
+  requestVehicles,
+  setVehicleRanks,
 };
 
 mta.on("groups.mine", (data) => {
@@ -136,4 +150,9 @@ mta.on("groups.inviteReceived", (data) => {
 
 mta.on("groups.invites", (data) => {
   setPendingInvites(reconcile(data as GroupInvite[], { key: "inviteId" }));
+});
+
+mta.on("groups.vehicles", (data) => {
+  const payload = data as GroupVehiclesPayload;
+  setVehiclesByGroup(payload.groupId, payload.vehicles);
 });

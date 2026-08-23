@@ -305,7 +305,13 @@ GroupDutyService.reload = function(callback)
         end
         dutyTickTimer = setTimer(runDutyTick, DUTY_TICK_INTERVAL_MS, 0)
 
-        if callback then callback() end
+        -- Rebuilds AFTER GroupCache so it can read the fresh group id
+        -- list off GroupCache.all() - see MembershipCache.lua's own
+        -- module comment on why this stays a separate cache from
+        -- GroupCache's own deliberate "never cache members" stance.
+        MembershipCache.reload(function()
+            if callback then callback() end
+        end)
     end)
 end
 

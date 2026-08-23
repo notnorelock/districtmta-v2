@@ -169,4 +169,10 @@ export const en: Record<keyof typeof pl, string> = {
   "groups.invite.from": "Invited by: {name}",
   "groups.invite.accept": "Accept",
   "groups.invite.decline": "Decline",
+  "groups.tab.vehicles": "Vehicles",
+  "groups.vehicle.empty": "This group has no vehicles yet",
+  "groups.vehicle.model": "Model",
+  "groups.vehicle.ranksCount": "ranks have access",
+  "groups.vehicle.noRanks": "No access - click to set ranks",
+  "groups.vehicle.ranksTitle": "Ranks with vehicle access",
 };

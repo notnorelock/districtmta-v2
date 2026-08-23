@@ -48,18 +48,36 @@ Enums = {
     },
 
     -- gm_vehicles's Vehicle.purpose column (an "enum"-type Schema column,
-    -- see Vehicle.lua) - only PRIVATE is persisted to the database today;
+    -- see Vehicle.lua) - PRIVATE and GROUP are persisted to the database;
     -- PUBLIC vehicles are a purely scripted/runtime concept (a fixed list
     -- of spawn points in code, never written to the vehicles table - see
-    -- PublicVehicles.lua). GROUP/EVENT/EXCHANGE/SHOP/RENT don't exist in
-    -- this project yet (no faction/group, workshop, exchange, or shop
-    -- system to back them - same reasoning as gm_blackout's medic TODO)
-    -- and are deliberately NOT included here; add them only once the
-    -- system they depend on actually exists, per docs/Architecture.md's
-    -- "Adding a new system" section.
+    -- PublicVehicles.lua). EVENT/EXCHANGE/SHOP/RENT don't exist in this
+    -- project yet (no workshop/exchange/shop system to back them - same
+    -- reasoning as gm_blackout's medic TODO) and are deliberately NOT
+    -- included here; add them only once the system they depend on
+    -- actually exists, per docs/Architecture.md's "Adding a new system" section.
     VehiclePurpose = {
         PRIVATE = "private",
         PUBLIC = "public",
+        -- Owned by a group (Vehicle.group_id), not an account - access is
+        -- gated by group membership + a per-vehicle rank allowlist
+        -- (group_vehicle_ranks) and, for a fraction-type group, on-duty
+        -- status - see gm_groups/server/GroupEndpoints.lua's own
+        -- groupServiceCanUseVehicle export.
+        GROUP = "group",
+    },
+
+    -- vehicle_stores.purpose column - a storage lot is either a shared
+    -- pool of PRIVATE vehicles (any owner, existing behavior) or dedicated
+    -- to one GROUP's own vehicles (VehicleStore.group_id) - see
+    -- gm_vehicles/server/VehicleStorageService.lua's own purpose-aware
+    -- sendStoreItems/tryStoreVehicle branching. A separate enum from
+    -- VehiclePurpose above even though the string VALUES happen to
+    -- overlap - a store's purpose and a vehicle's purpose are conceptually
+    -- different axes (e.g. there's no "PUBLIC" storage lot concept).
+    VehicleStorePurpose = {
+        PRIVATE = "private",
+        GROUP = "group",
     },
 
     -- gm_items' item schemes (ItemSchemes.lua) each declare one of these -

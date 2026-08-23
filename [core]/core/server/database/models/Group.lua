@@ -24,3 +24,11 @@ Group = Model:extend("groups", {
 -- here without reordering the whole load chain.
 Group:belongsTo("leader", Account, "leader_account_id")
 Account:hasMany("ledGroups", Group, "leader_account_id")
+
+-- Vehicle.lua loads BEFORE this file (see core/meta.xml), so this
+-- direction of the relation is safe to declare here - the reverse
+-- (Vehicle:belongsTo("group", ...)) would reference a not-yet-loaded
+-- Group at Vehicle.lua's own load time, same reasoning as the
+-- ranks/members pair above.
+Group:hasMany("vehicles", Vehicle, "group_id")
+Vehicle:belongsTo("group", Group, "group_id")

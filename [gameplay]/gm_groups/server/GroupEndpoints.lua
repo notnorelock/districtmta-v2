@@ -399,6 +399,8 @@ addEventHandler(Events.GROUP_ASSIGN_MEMBER_RANK, root, function(data)
                     return
                 end
 
+                MembershipCache.set(targetMember.account_id, targetMember.group_id, data.rankId)
+
                 if isElement(player) then
                     NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = "Przydzielono rangę." })
                     sendMine(player)
@@ -461,6 +463,8 @@ addEventHandler(Events.GROUP_KICK_MEMBER, root, function(data)
                     return
                 end
 
+                MembershipCache.remove(targetMember.account_id, targetMember.group_id)
+
                 if isElement(player) then
                     NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = "Usunięto członka z grupy." })
                     sendMine(player)
@@ -503,6 +507,8 @@ addEventHandler(Events.GROUP_LEAVE, root, function(data)
                 Logger.error("GroupEndpoints", "Failed to leave group", { memberId = member.id, error = tostring(affectedOrError) })
                 return
             end
+
+            MembershipCache.remove(accountId, data.groupId)
 
             if isElement(player) then
                 NotificationService.send(player, { type = Enums.NotificationType.SUCCESS, message = "Opuszczono grupę." })
@@ -708,6 +714,8 @@ addEventHandler(Events.GROUP_ACCEPT_INVITE, root, function(data)
             end
 
             GroupBridge.call("deleteInvite", { data.inviteId }, function() end)
+
+            MembershipCache.set(accountId, invite.group_id, nil)
 
             if isElement(player) then
                 local group = GroupCache.get(invite.group_id)

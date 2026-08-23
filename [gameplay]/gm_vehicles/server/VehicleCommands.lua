@@ -65,3 +65,83 @@ addCommandHandler("createvehicle", function(player, _, modelArg)
         })
     end)
 end)
+
+--- @param player element
+-- @return boolean
+local function canManageGroups(player)
+    local role = PlayerService.getRole(player)
+    if role == nil then
+        return false
+    end
+    return Permissions.has(role, Permissions.Bit.MANAGE_GROUPS) == true
+end
+
+-- "/creategroupvehicle <nazwa grupy> <model>" - admin-only (MANAGE_GROUPS,
+-- same tier as /creategroup itself), spawns a GROUP-purpose vehicle owned
+-- by the named group at the admin's own position. Resolves the group by
+-- name via gm_groups' own groupServiceFindGroupIdByName export (plain
+-- data in/out, synchronous - GroupCache is fully in-memory there, see
+-- that export's own comment) rather than gm_vehicles needing any direct
+-- access to gm_groups' internal state.
+addCommandHandler("creategroupvehicle", function(player, _, groupNameArg, modelArg)
+    if not isElement(player) then
+        return
+    end
+
+    if not isReady(player) then
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Musisz być zalogowany i w grze, aby użyć tej komendy." })
+        return
+    end
+
+    if not canManageGroups(player) then
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie masz uprawnień do tej komendy." })
+        return
+    end
+
+    local groupName = tostring(groupNameArg or "")
+    local model = tonumber(modelArg) or getVehicleModelFromName(tostring(modelArg or ""))
+    if groupName == "" or not model or model < 400 or model > 611 then
+        NotificationService.send(player, { type = Enums.NotificationType.WARNING, message = "Użycie: /creategroupvehicle <nazwa grupy> <nazwa lub id modelu>" })
+        return
+    end
+
+    local groupOk, groupId = pcall(function() return exports.gm_groups:groupServiceFindGroupIdByName(groupName) end)
+    if not groupOk or not groupId then
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie znaleziono grupy o takiej nazwie." })
+        return
+    end
+
+    local accountId = PlayerService.getAccountId(player)
+    if not accountId then
+        NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie udało się ustalić Twojego konta." })
+        return
+    end
+
+    VehicleService.createGroupOwned(player, model, groupId, accountId, function(vehicle)
+        if not vehicle then
+            NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie udało się stworzyć pojazdu." })
+            return
+        end
+
+        warpPedIntoVehicle(player, vehicle)
+        NotificationService.send(player, {
+            type = Enums.NotificationType.SUCCESS,
+            message = "Stworzono pojazd grupowy dla '" .. groupName .. "': " .. (getVehicleNameFromModel(model) or tostring(model)),
+        })
+
+        Logger.security("VehicleCommands", "Admin created a group vehicle", {
+            player = getPlayerName(player),
+            model = model,
+            groupId = groupId,
+            groupName = groupName,
+        })
+
+        -- The vehicle just got a fresh vehicles.id it can't have had a
+        -- moment ago - gm_groups' own GroupCache.vehicles/vehicleRankAllowlist
+        -- needs to know it exists before groupServiceCanUseVehicle or the
+        -- CEF Vehicles tab can see it. No allowlist yet (empty), matching
+        -- a freshly-created rank having no members assigned to it either -
+        -- the leader sets one via the panel.
+        pcall(function() exports.gm_groups:groupServiceReloadVehicles(groupId) end)
+    end)
+end)

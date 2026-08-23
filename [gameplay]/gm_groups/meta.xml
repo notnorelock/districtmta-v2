@@ -12,12 +12,19 @@
 
     <script src="server/GlobalResources.lua" type="server" cache="false" />
     <script src="server/GroupBridge.lua" type="server" cache="false" />
+    <script src="server/GroupVehicleBridge.lua" type="server" cache="false" />
     <script src="server/GroupCache.lua" type="server" cache="false" />
+    <script src="server/MembershipCache.lua" type="server" cache="false" />
     <script src="server/GroupDutyService.lua" type="server" cache="false" />
     <script src="server/GroupEndpoints.lua" type="server" cache="false" />
+    <script src="server/GroupVehicleService.lua" type="server" cache="false" />
     <script src="server/GroupCommands.lua" type="server" cache="false" />
 
     <script src="client/GlobalResources.lua" type="client" cache="false" />
     <script src="client/GroupPanelState.lua" type="client" cache="false" />
     <script src="client/GroupDutyState.lua" type="client" cache="false" />
+
+    <export function="groupServiceCanUseVehicle" type="server" />
+    <export function="groupServiceFindGroupIdByName" type="server" />
+    <export function="groupServiceReloadVehicles" type="server" />
 </meta>

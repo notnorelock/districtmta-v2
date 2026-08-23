@@ -167,4 +167,10 @@ export const pl = {
   "groups.invite.from": "Zaprosił: {name}",
   "groups.invite.accept": "Akceptuj",
   "groups.invite.decline": "Odrzuć",
+  "groups.tab.vehicles": "Pojazdy",
+  "groups.vehicle.empty": "Grupa nie ma jeszcze pojazdów",
+  "groups.vehicle.model": "Model",
+  "groups.vehicle.ranksCount": "rang ma dostęp",
+  "groups.vehicle.noRanks": "Brak dostępu - kliknij, aby ustawić rangi",
+  "groups.vehicle.ranksTitle": "Rangi z dostępem do pojazdu",
 } as const;

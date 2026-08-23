@@ -374,6 +374,57 @@ CommandRegistry.register("createstore", Permissions.Bit.VEHICLE_ADMIN, function(
     end)
 end)
 
+-- Same as /createstore but GROUP-purpose: dedicated to one group's own
+-- vehicles (VehicleStorageService.lua's own purpose-aware sendStoreItems/
+-- tryStoreVehicle branching), not a shared PRIVATE pool. Resolves the
+-- group by name via gm_groups' groupServiceFindGroupIdByName export
+-- (plain data in/out, synchronous) - core has no other access to
+-- gm_groups' internal state, same cross-resource pattern
+-- gm_vehicles/server/VehicleCommands.lua's own /creategroupvehicle uses.
+CommandRegistry.register("creategroupstore", Permissions.Bit.MANAGE_GROUPS, function(player, groupName, name)
+    if CommandRegistry.isConsole(player) then
+        CommandRegistry.reply(player, "/creategroupstore można użyć tylko w grze", Enums.NotificationType.WARNING)
+        return
+    end
+
+    if type(groupName) ~= "string" or groupName == "" or type(name) ~= "string" or name == "" then
+        CommandRegistry.reply(player, "Użycie: /creategroupstore <nazwa grupy> <nazwa przechowalni>", Enums.NotificationType.WARNING)
+        return
+    end
+
+    local groupOk, groupId = pcall(function() return exports.gm_groups:groupServiceFindGroupIdByName(groupName) end)
+    if not groupOk or not groupId then
+        CommandRegistry.reply(player, "Nie znaleziono grupy o takiej nazwie.", Enums.NotificationType.ERROR)
+        return
+    end
+
+    local x, y, z = getElementPosition(player)
+    local _, _, heading = getElementRotation(player)
+
+    VehicleStoreRepository.create({
+        name = name,
+        purpose = Enums.VehicleStorePurpose.GROUP,
+        group_id = groupId,
+        enter_position = { x, y, z },
+        spawn_positions = { { x, y, z, heading, 0, 0 } },
+    }, function(ok, storeOrError)
+        if not ok then
+            CommandRegistry.reply(player, "Nie udało się stworzyć przechowalni: " .. tostring(storeOrError), Enums.NotificationType.ERROR)
+            return
+        end
+
+        Logger.security("AdminCommands", "Group vehicle store created", {
+            player = getPlayerName(player),
+            storeId = storeOrError.id,
+            name = name,
+            groupId = groupId,
+            groupName = groupName,
+        })
+        reloadVehicleStores()
+        CommandRegistry.reply(player, "Stworzono przechowalnię grupową '" .. name .. "' dla '" .. groupName .. "' (id " .. storeOrError.id .. ").", Enums.NotificationType.SUCCESS)
+    end)
+end)
+
 CommandRegistry.register("addstorespawn", Permissions.Bit.VEHICLE_ADMIN, function(player, target)
     if CommandRegistry.isConsole(player) then
         CommandRegistry.reply(player, "/addstorespawn można użyć tylko w grze", Enums.NotificationType.WARNING)

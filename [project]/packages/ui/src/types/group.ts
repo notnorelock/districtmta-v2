@@ -81,3 +81,16 @@ export interface GroupInvite {
   groupType: GroupType;
   invitedByName: string;
 }
+
+/** Mirrors GroupVehicleService.lua's own toVehicleEntries - one group-owned vehicle and which ranks may use it. */
+export interface GroupVehicle {
+  id: number;
+  model: number;
+  allowedRankIds: number[];
+}
+
+/** Mirrors GroupVehicleService.lua's own GROUP_VEHICLES_RECEIVED payload. */
+export interface GroupVehiclesPayload {
+  groupId: number;
+  vehicles: GroupVehicle[];
+}

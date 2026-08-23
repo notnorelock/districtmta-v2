@@ -134,6 +134,41 @@ VehicleRepository.findByStoreId = function(storeId, callback)
     end)
 end
 
+--- Every GROUP-purpose vehicle NOT sitting in storage (store_id IS NULL) -
+--- the group-owned analogue of findAllPrivate, for restoring the world at
+--- resource start.
+-- @param callback function(ok: boolean, vehiclesOrError: table|string)
+VehicleRepository.findAllGroupOwned = function(callback)
+    Vehicle:where("purpose", Enums.VehiclePurpose.GROUP):where("store_id", Model.NULL):get(function(ok, vehicles)
+        if not ok then
+            callback(false, vehicles)
+            return
+        end
+        for _, vehicle in ipairs(vehicles) do
+            decodeJsonColumns(vehicle)
+        end
+        callback(true, vehicles)
+    end)
+end
+
+--- Every vehicle belonging to a group, any store_id (both spawned in the
+--- world and sitting in a lot) - used by gm_groups' own CEF Vehicles tab
+--- listing and by VehicleStorageService.lua's group-lot filtering.
+-- @param groupId number
+-- @param callback function(ok: boolean, vehiclesOrError: table|string)
+VehicleRepository.findByGroupId = function(groupId, callback)
+    Vehicle:where("group_id", groupId):orderBy("created_at", "ASC"):get(function(ok, vehicles)
+        if not ok then
+            callback(false, vehicles)
+            return
+        end
+        for _, vehicle in ipairs(vehicles) do
+            decodeJsonColumns(vehicle)
+        end
+        callback(true, vehicles)
+    end)
+end
+
 --- @param attributes table column -> value (JSON columns as real Lua tables, not encoded)
 -- @param callback function(ok: boolean, vehicleOrError: table|string)
 VehicleRepository.create = function(attributes, callback)

@@ -49,6 +49,9 @@ local function spawnFromRow(row)
     setElementData(vehicle, ElementData.Vehicle.ID, row.id)
     setElementData(vehicle, ElementData.Vehicle.PURPOSE, row.purpose)
     setElementData(vehicle, ElementData.Vehicle.OWNER_ACCOUNT_ID, row.owner_account_id)
+    if row.group_id then
+        setElementData(vehicle, ElementData.Vehicle.GROUP_ID, row.group_id)
+    end
 
     setElementHealth(vehicle, math.max(1, row.health or DEFAULT_HEALTH))
     setVehicleLocked(vehicle, row.locked == true or row.locked == 1)
@@ -155,6 +158,45 @@ VehicleService.createPrivate = function(player, model, ownerAccountId, callback)
     }}, function(ok, rowOrError)
         if not ok then
             Logger.error("VehicleService", "Failed to create vehicle row", { error = tostring(rowOrError) })
+            callback(nil)
+            return
+        end
+
+        callback(spawnFromRow(rowOrError))
+    end)
+end
+
+--- @param player element standing where the vehicle should spawn
+-- @param model number
+-- @param groupId number
+-- @param creatorAccountId number the admin issuing /creategroupvehicle -
+--        stored as owner_account_id for audit trail only; actual access
+--        is decided by group_id + group_vehicle_ranks (+ duty for a
+--        fraction group), never this column - see
+--        gm_groups/server/GroupEndpoints.lua's own groupServiceCanUseVehicle.
+-- @param callback function(vehicle: vehicle|nil)
+VehicleService.createGroupOwned = function(player, model, groupId, creatorAccountId, callback)
+    local x, y, z = getElementPosition(player)
+    local rx, ry, rz = getElementRotation(player)
+
+    VehicleBridge.call("create", {{
+        purpose = Enums.VehiclePurpose.GROUP,
+        model = model,
+        position = { x, y, z },
+        rotation = { rx, ry, rz },
+        health = DEFAULT_HEALTH,
+        mileage = 0,
+        fuel = DEFAULT_FUEL,
+        max_fuel = DEFAULT_MAX_FUEL,
+        owner_account_id = creatorAccountId,
+        group_id = groupId,
+        locked = true,
+        handbrake = true,
+        interior = getElementInterior(player),
+        dimension = getElementDimension(player),
+    }}, function(ok, rowOrError)
+        if not ok then
+            Logger.error("VehicleService", "Failed to create group vehicle row", { error = tostring(rowOrError) })
             callback(nil)
             return
         end
@@ -360,6 +402,21 @@ addEventHandler("onResourceStart", resourceRoot, function()
         end)
     end
 
+    local function loadAllGroupOwned()
+        VehicleBridge.call("findAllGroupOwned", {}, function(ok, rowsOrError)
+            if not ok then
+                Logger.error("VehicleService", "Failed to load group vehicles", { error = tostring(rowsOrError) })
+                return
+            end
+
+            for _, row in ipairs(rowsOrError) do
+                spawnFromRow(row)
+            end
+
+            Logger.info("VehicleService", "Loaded group vehicles", { count = #rowsOrError })
+        end)
+    end
+
     -- Same DATABASE_READY/Schema.isMigrated() gotcha documented in
     -- docs/DatabaseContract.md - core (a resource that started earlier in
     -- core_bootstrap's chain) may still be mid-migration when THIS
@@ -367,9 +424,13 @@ addEventHandler("onResourceStart", resourceRoot, function()
     local migratedOk, migrated = pcall(function() return exports.core:schemaIsMigrated() end)
     if migratedOk and migrated then
         loadAllPrivate()
+        loadAllGroupOwned()
     else
         addEvent(Events.DATABASE_READY, true)
-        addEventHandler(Events.DATABASE_READY, root, loadAllPrivate)
+        addEventHandler(Events.DATABASE_READY, root, function()
+            loadAllPrivate()
+            loadAllGroupOwned()
+        end)
     end
 
     setTimer(VehicleService.saveAll, SAVE_INTERVAL_MS, 0)

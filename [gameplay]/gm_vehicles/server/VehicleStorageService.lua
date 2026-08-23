@@ -70,7 +70,11 @@ local vehiclesInStoreZoneSince = {}
 --- @param row table vehicles table row (id/model/mileage/... - as
 --        returned by VehicleRepository.findByStoreId, JSON columns
 --        already decoded)
--- @param owned boolean true if this is the requesting player's own vehicle
+-- @param owned boolean true if this is the requesting player's own PRIVATE
+--        vehicle, OR any group vehicle the player is currently allowed to
+--        use (see sendStoreItems' own GROUP-purpose branch) - purely a
+--        "no lock icon in the panel" display flag, not a literal
+--        ownership claim for the group case.
 -- @return table a plain-data entry safe to send to the CEF panel
 local function toEntry(row, owned)
     return {
@@ -100,6 +104,20 @@ local function playerHasKeyTo(player, vehicleId)
 end
 
 --- @param player element
+-- @param vehicleId number
+-- @param groupId number
+-- @return boolean true if `player` may use this group vehicle (membership
+--         + per-vehicle rank allowlist + on-duty-if-fraction) - same
+--         gm_groups export VehicleInteractionService.lua's own
+--         canStartEngine and gm_interactions' own hasVehicleKey use.
+local function playerCanUseGroupVehicle(player, vehicleId, groupId)
+    local ok, allowed = pcall(function()
+        return exports.gm_groups:groupServiceCanUseVehicle(player, vehicleId, groupId)
+    end)
+    return ok and allowed == true
+end
+
+--- @param player element
 -- @param store table the store row from enterMarkers
 local function sendStoreItems(player, store)
     local accountId = PlayerService.getAccountId(player)
@@ -107,11 +125,15 @@ local function sendStoreItems(player, store)
         return
     end
 
-    -- Every vehicle in this lot, any owner - own vehicles always show,
-    -- someone else's only shows if `player` is carrying a VEHICLE_KEY
-    -- item for that specific one (the same "you physically have the key"
-    -- gate gm_vehicles_interaction already uses to let a borrowed
-    -- vehicle's engine start - see playerHasKeyTo's own comment).
+    -- A GROUP-purpose lot lists every vehicle belonging to that group
+    -- (any "owner_account_id", it's the creating admin, not meaningful
+    -- for access - see Vehicle.lua's own group_id comment), filtered by
+    -- groupServiceCanUseVehicle instead of the owned-or-key check below.
+    -- A PRIVATE-purpose lot keeps its exact original behavior: own
+    -- vehicles always show, someone else's only shows if `player` is
+    -- carrying a VEHICLE_KEY item for that specific one (the same "you
+    -- physically have the key" gate gm_vehicles_interaction already uses
+    -- to let a borrowed vehicle's engine start - see playerHasKeyTo's own comment).
     VehicleBridge.call("findByStoreId", { store.id }, function(ok, rowsOrError)
         if not ok then
             Logger.error("VehicleStorageService", "Failed to load stored vehicles", { storeId = store.id, error = tostring(rowsOrError) })
@@ -125,9 +147,19 @@ local function sendStoreItems(player, store)
 
         local entries = {}
         for _, row in ipairs(rowsOrError) do
-            local owned = row.owner_account_id == accountId
-            if owned or playerHasKeyTo(player, row.id) then
-                entries[#entries + 1] = toEntry(row, owned)
+            if store.purpose == Enums.VehicleStorePurpose.GROUP then
+                if playerCanUseGroupVehicle(player, row.id, store.groupId) then
+                    -- "owned" here just means "no lock icon in the panel" -
+                    -- a group vehicle a member is allowed to use reads the
+                    -- same as an owned one client-side, see toEntry's own
+                    -- comment on that field's actual meaning.
+                    entries[#entries + 1] = toEntry(row, true)
+                end
+            else
+                local owned = row.owner_account_id == accountId
+                if owned or playerHasKeyTo(player, row.id) then
+                    entries[#entries + 1] = toEntry(row, owned)
+                end
             end
         end
 
@@ -202,14 +234,23 @@ addEventHandler(Events.VEHICLE_STORAGE_RETRIEVE, root, function(vehicleId)
             return
         end
 
-        local owned = row.owner_account_id == accountId
-        if not owned and not playerHasKeyTo(player, row.id) then
-            -- Re-validated server-side, same as above - never trusts the
-            -- panel's own belief that a borrowed vehicle is retrievable
-            -- (the client could ask for any id, whether or not it was
-            -- actually shown to it - see sendStoreItems' own filter).
-            NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie masz kluczyków do tego pojazdu." })
-            return
+        -- Re-validated server-side, same reasoning as the store_id check
+        -- above - never trusts the panel's own belief that a vehicle is
+        -- retrievable (the client could ask for any id, whether or not it
+        -- was actually shown to it - see sendStoreItems' own filter).
+        local owned
+        if store.purpose == Enums.VehicleStorePurpose.GROUP then
+            owned = playerCanUseGroupVehicle(player, row.id, store.groupId)
+            if not owned then
+                NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie masz dostępu do tego pojazdu." })
+                return
+            end
+        else
+            owned = row.owner_account_id == accountId
+            if not owned and not playerHasKeyTo(player, row.id) then
+                NotificationService.send(player, { type = Enums.NotificationType.ERROR, message = "Nie masz kluczyków do tego pojazdu." })
+                return
+            end
         end
 
         if not isElement(player) or playersInStore[player] ~= store then
@@ -274,16 +315,41 @@ local function tryStoreVehicle(vehicle, store)
     end
 
     local purpose = getElementData(vehicle, ElementData.Vehicle.PURPOSE)
-    if purpose ~= Enums.VehiclePurpose.PRIVATE then
-        NotificationService.send(driver, { type = Enums.NotificationType.ERROR, message = "Do przechowalni możesz schować tylko swój prywatny pojazd." })
-        return
-    end
 
-    local ownerAccountId = getElementData(vehicle, ElementData.Vehicle.OWNER_ACCOUNT_ID)
-    local accountId = PlayerService.getAccountId(driver)
-    if not accountId or ownerAccountId ~= accountId then
-        NotificationService.send(driver, { type = Enums.NotificationType.ERROR, message = "Do przechowalni możesz schować tylko twoje pojazdy." })
-        return
+    if store.purpose == Enums.VehicleStorePurpose.GROUP then
+        -- A GROUP-purpose lot only accepts a vehicle belonging to THAT
+        -- SAME group (not just any GROUP-purpose vehicle) - driven by
+        -- anyone currently allowed to use it, not a literal "owner" (a
+        -- group vehicle has no single owner - see Vehicle.lua's own
+        -- group_id comment).
+        if purpose ~= Enums.VehiclePurpose.GROUP then
+            NotificationService.send(driver, { type = Enums.NotificationType.ERROR, message = "Do tej przechowalni możesz schować tylko pojazdy grupy." })
+            return
+        end
+
+        local vehicleGroupId = getElementData(vehicle, ElementData.Vehicle.GROUP_ID)
+        if vehicleGroupId ~= store.groupId then
+            NotificationService.send(driver, { type = Enums.NotificationType.ERROR, message = "Ten pojazd nie należy do grupy tej przechowalni." })
+            return
+        end
+
+        local vehicleId = getElementData(vehicle, ElementData.Vehicle.ID)
+        if not playerCanUseGroupVehicle(driver, vehicleId, vehicleGroupId) then
+            NotificationService.send(driver, { type = Enums.NotificationType.ERROR, message = "Nie masz dostępu do tego pojazdu." })
+            return
+        end
+    else
+        if purpose ~= Enums.VehiclePurpose.PRIVATE then
+            NotificationService.send(driver, { type = Enums.NotificationType.ERROR, message = "Do przechowalni możesz schować tylko swój prywatny pojazd." })
+            return
+        end
+
+        local ownerAccountId = getElementData(vehicle, ElementData.Vehicle.OWNER_ACCOUNT_ID)
+        local accountId = PlayerService.getAccountId(driver)
+        if not accountId or ownerAccountId ~= accountId then
+            NotificationService.send(driver, { type = Enums.NotificationType.ERROR, message = "Do przechowalni możesz schować tylko twoje pojazdy." })
+            return
+        end
     end
 
     VehicleService.storeVehicle(vehicle, store.id, function(ok)
@@ -435,6 +501,8 @@ local function reload(callback)
                 local store = {
                     id = row.id,
                     name = row.name,
+                    purpose = row.purpose or Enums.VehicleStorePurpose.PRIVATE,
+                    groupId = row.group_id,
                     spawnPositions = {},
                 }
 
@@ -448,7 +516,13 @@ local function reload(callback)
                 if #store.spawnPositions == 0 then
                     Logger.warn("VehicleStorageService", "Vehicle store has no spawn positions, skipping", { id = row.id })
                 else
-                    local marker = createMarker(enter[1], enter[2], enter[3] - 0.9, "cylinder", 5, 52, 152, 219, 100)
+                    -- Gold for a GROUP-purpose lot, the existing blue for
+                    -- PRIVATE - purely cosmetic, lets a player tell the two
+                    -- apart at a glance before even walking up.
+                    local markerColor = store.purpose == Enums.VehicleStorePurpose.GROUP
+                        and { 242, 184, 74 }
+                        or { 52, 152, 219 }
+                    local marker = createMarker(enter[1], enter[2], enter[3] - 0.9, "cylinder", 5, markerColor[1], markerColor[2], markerColor[3], 100)
                     setElementData(marker, "text", row.name)
                     enterMarkers[marker] = store
 
