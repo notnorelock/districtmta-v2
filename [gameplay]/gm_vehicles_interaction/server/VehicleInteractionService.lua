@@ -95,6 +95,42 @@ local function canStartEngine(player, vehicle)
     return ok and hasKey == true
 end
 
+-- Blocks even GETTING IN as the driver of a group vehicle you have no
+-- access to - not just starting its engine (canStartEngine above already
+-- covers "got in some other way, e.g. an unlocked/already-open vehicle,
+-- climbed over from a passenger seat"). Passenger seats (seat ~= 0) are
+-- always left alone - a player with duty/rank access can be driven around
+-- by someone who lacks it, and someone with no access at all should still
+-- be able to ride along once already inside via a driver who does. Only
+-- affects gm_vehicles' own GROUP-purpose vehicles (ElementData.Vehicle.GROUP_ID) -
+-- everything else (private/public/temporary /veh spawns) is unrestricted here.
+addEventHandler("onVehicleStartEnter", root, function(enteringPlayer, seat)
+    if seat ~= 0 then
+        return
+    end
+
+    local vehicleId = getElementData(source, ElementData.Vehicle.ID)
+    local groupId = getElementData(source, ElementData.Vehicle.GROUP_ID)
+    if not vehicleId or not groupId then
+        return
+    end
+
+    local ok, allowed = pcall(function()
+        return exports.gm_groups:groupServiceCanUseVehicle(enteringPlayer, vehicleId, groupId)
+    end)
+    if ok and allowed == true then
+        return
+    end
+
+    local nameOk, groupName = pcall(function() return exports.gm_groups:groupServiceGetGroupName(groupId) end)
+    local label = (nameOk and groupName) and groupName or "grupy"
+    NotificationService.send(enteringPlayer, {
+        type = Enums.NotificationType.ERROR,
+        message = "Ten pojazd należy do grupy '" .. label .. "'. Nie masz uprawnień, aby nim kierować.",
+    })
+    cancelEvent()
+end)
+
 addEvent(Events.VEHICLE_INTERACTION_TOGGLE, true)
 addEventHandler(Events.VEHICLE_INTERACTION_TOGGLE, root, function(action)
     local player = client

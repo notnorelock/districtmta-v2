@@ -1,7 +1,11 @@
--- Group management panel (G) - a plain toggle (stays open, no need to
--- hold the key), right-click independently toggling cursor/browser focus
--- + movement lock to interact with it - exact same shape as
--- gm_items/client/InventoryState.lua's own module comment/pattern.
+-- Group management panel ("/groups") - a plain toggle (stays open, no
+-- need to hold anything), right-click independently toggling cursor/
+-- focus/movement-lock to interact with it - same overall shape as
+-- gm_items/client/InventoryState.lua's own module comment/pattern, but a
+-- CHAT COMMAND rather than a keybind: "G" is MTA's own native passenger-
+-- entry key (get in a vehicle's passenger seat), so binding it here would
+-- silently eat that native behavior every time a player tried to hop in
+-- as a passenger near their group's vehicle.
 GroupPanelState = GroupPanelState or {}
 
 local panelOpen = false
@@ -64,7 +68,7 @@ local function togglePanel()
 end
 
 addEventHandler("onClientResourceStart", resourceRoot, function()
-    bindKey("g", "down", togglePanel)
+    addCommandHandler("groups", togglePanel)
 
     -- Pending invites must reach the CEF prompt even if the group panel
     -- itself is never opened this session - request them once up front,

@@ -24,6 +24,15 @@ function groupServiceFindGroupIdByName(name)
     return false
 end
 
+--- @param groupId number
+-- @return string|false the group's name, or false if unknown - used by
+--         gm_vehicles_interaction's own onVehicleStartEnter block to name
+--         the group in its "this vehicle belongs to X" rejection message.
+function groupServiceGetGroupName(groupId)
+    local group = GroupCache.get(groupId)
+    return group and group.name or false
+end
+
 --- Refreshes GroupCache's own vehicles/vehicleRankAllowlist for one group
 --- from the database - gm_vehicles' own /creategroupvehicle calls this
 --- right after creating a new group vehicle so groupServiceCanUseVehicle

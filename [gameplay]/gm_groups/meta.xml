@@ -27,4 +27,5 @@
     <export function="groupServiceCanUseVehicle" type="server" />
     <export function="groupServiceFindGroupIdByName" type="server" />
     <export function="groupServiceReloadVehicles" type="server" />
+    <export function="groupServiceGetGroupName" type="server" />
 </meta>
