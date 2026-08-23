@@ -1,13 +1,16 @@
 import { type Component, For } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
 import { Package } from "lucide-solid";
+import { Marquee } from "@/components/common/Marquee";
 import { itemToastStore } from "@/stores/itemToast.store";
 import styles from "./ItemToast.module.scss";
 
 /**
- * Bottom-center "you gained/lost an item" toast stack, FiveM-style -
- * always mounted (not gated behind any Overlay key, same reasoning as
- * DutyIndicator.tsx/GroupInviteToast.tsx), purely driven by
+ * Bottom-center "you gained/lost an item" toast stack, FiveM-style - a
+ * small vertical card per item (big centered icon on top, name + amount
+ * stacked below it, not an icon-beside-text row) laid out side by side as
+ * more arrive. Always mounted (not gated behind any Overlay key, same
+ * reasoning as DutyIndicator.tsx/GroupInviteToast.tsx), purely driven by
  * itemToast.store.ts, which ItemService.lua's own pickup/give/drop push
  * via Events.ITEM_TOAST feeds (see that file's own pushItemToast comment
  * on why "use" deliberately does NOT go through this - a used item
@@ -31,11 +34,17 @@ export const ItemToast: Component = () => {
           {(card) => (
             <div class={`${styles.card} ${card.kind === "lost" ? styles.cardLost : styles.cardGained}`}>
               <div class={styles.icon}>
-                <Package size={18} />
+                <Package size={36} />
               </div>
-              <div class={styles.info}>
-                <span class={styles.name}>{card.schemeKey}</span>
-              </div>
+              {/* Item names ("Kluczyki do pojazdu") routinely overflow the
+                  card's own w-28 - Marquee scroll-bounces the text
+                  instead of silently clipping it (see that component's
+                  own module comment on why it previously had no visible
+                  effect anywhere it was used - the animations it
+                  references weren't defined yet, now fixed in globals.css). */}
+              <Marquee class={styles.name} durationSeconds={4}>
+                {card.schemeKey}
+              </Marquee>
               <span class={styles.amount}>
                 {card.kind === "gained" ? "+" : "-"}
                 {card.amount}
