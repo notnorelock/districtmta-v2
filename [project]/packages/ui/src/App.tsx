@@ -15,6 +15,7 @@ import { VehicleMenuOverlay } from "@/features/vehicleInteraction/VehicleMenuOve
 import { WorldInteractionOverlay } from "@/features/worldInteraction/WorldInteractionOverlay";
 import { InventoryOverlay } from "@/features/inventory/InventoryOverlay";
 import { VehicleStorageOverlay } from "@/features/vehicleStorage/VehicleStorageOverlay";
+import { WorldMapOverlay } from "@/features/worldMap/WorldMapOverlay";
 import { Watermark } from "@/components/common/Watermark";
 import { authStore } from "@/stores/auth.store";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -87,6 +88,10 @@ const AppContent: Component = () => {
           opened/closed by gm_vehicles while standing inside a storage
           lot's enter marker - see VehicleStorageOverlay.tsx's own comment. */}
       <VehicleStorageOverlay />
+      {/* Uses its own "worldMap" overlay key (Overlay name prop),
+          toggled by gm_worldmap while F11 is pressed - see
+          WorldMapOverlay.tsx's own comment. */}
+      <WorldMapOverlay />
     </div>
   );
 };

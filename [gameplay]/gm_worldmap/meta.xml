@@ -1,0 +1,19 @@
+<meta>
+    <info
+        author="norelock"
+        version="1.0.0"
+        type="script"
+    />
+    <download_priority_group>3</download_priority_group>
+
+    <include resource="core_shared" />
+    <include resource="core" />
+    <include resource="core_ui" />
+
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/VehicleStoreBridge.lua" type="server" cache="false" />
+    <script src="server/WorldMapService.lua" type="server" cache="false" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/WorldMapState.lua" type="client" cache="false" />
+</meta>

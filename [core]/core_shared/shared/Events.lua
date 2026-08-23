@@ -243,6 +243,23 @@ Events = {
     -- Pushed into the CEF overlay once SCOREBOARD_PLAYERS_RECEIVED arrives.
     PUSH_SCOREBOARD_PLAYERS = "scoreboard.players",
 
+    -- Client -> server: gm_worldmap/client/WorldMapState.lua asking for a
+    -- fresh snapshot of everything the F11 world map shows - same
+    -- request/response-while-open + refresh-timer shape as
+    -- SCOREBOARD_REQUEST_PLAYERS, for the same reason (player positions
+    -- go stale between refreshes, and there's no point broadcasting to
+    -- players who don't have the map open).
+    WORLDMAP_REQUEST_DATA = "worldmap:requestData",
+
+    -- Server -> requesting client only: response to WORLDMAP_REQUEST_DATA,
+    -- { players, stores } - see WorldMapService.lua's toPlayerEntry/
+    -- toStoreEntry for the exact shape of each. WorldMapState.lua forwards
+    -- it into the CEF overlay via PUSH_WORLDMAP_DATA.
+    WORLDMAP_DATA_RECEIVED = "worldmap:dataReceived",
+
+    -- Pushed into the CEF overlay once WORLDMAP_DATA_RECEIVED arrives.
+    PUSH_WORLDMAP_DATA = "worldmap.data",
+
     -- Server-to-server bridge between gm_vehicles (owns the handler
     -- closure/callback) and core (owns VehicleRepository/the database) -
     -- the same requestId-correlated request/response shape FetchBridge

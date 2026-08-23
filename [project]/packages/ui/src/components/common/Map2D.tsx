@@ -20,7 +20,7 @@ export interface MapPin {
 interface Map2DProps {
   pins: MapPin[];
   onPinClick?: (pin: MapPin) => void;
-  /** Disables pin hover/click entirely - for a future read-only F11 world map/legend that reuses this same component. */
+  /** Disables pin hover/click entirely - not currently used by any caller (WorldMapOverlay.tsx's own F11 map is read-only in the sense that pins don't trigger an action, but hover/click-to-focus still work there), kept for a possible future non-interactive legend/minimap use. */
   interactive?: boolean;
   class?: string;
   minZoom?: number;

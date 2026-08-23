@@ -126,4 +126,13 @@ export const en: Record<keyof typeof pl, string> = {
   "hud.thirst.tooltip": "Thirst",
   "hud.oxygen.tooltip": "Oxygen",
   "hud.voice.tooltip": "Voice mode (B to change)",
+
+  "worldMap.title": "World map",
+  "worldMap.subtitle": "Legend and live player positions",
+  "worldMap.legend.heading": "Legend",
+  "worldMap.legend.players": "Players online",
+  "worldMap.legend.stores": "Vehicle storage",
+  "worldMap.controls.heading": "Controls",
+  "worldMap.controls.text": "Scroll wheel - zoom in/out\nLeft mouse button - drag the map",
+  "worldMap.closeHint": "Press F11 to close",
 };

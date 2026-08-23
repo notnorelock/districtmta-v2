@@ -1,7 +1,11 @@
 @reference "../../styles/globals.css";
 
+// No bg-black here - transparent, so a caller's own background (e.g.
+// SpawnSelectView.tsx's bg-black root, or WorldMapOverlay.module.scss's
+// own .mapWrap tint) shows through wherever the canvas itself is empty
+// (outside the drawn map.png texture, or before it's finished loading).
 .root {
-  @apply relative h-full w-full overflow-hidden rounded-xl border border-border bg-black;
+  @apply relative h-full w-full overflow-hidden rounded-xl border border-border;
 }
 
 .canvas {

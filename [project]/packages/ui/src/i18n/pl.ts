@@ -124,4 +124,13 @@ export const pl = {
   "hud.thirst.tooltip": "Pragnienie",
   "hud.oxygen.tooltip": "Tlen",
   "hud.voice.tooltip": "Tryb głosu (B, aby zmienić)",
+
+  "worldMap.title": "Mapa świata",
+  "worldMap.subtitle": "Legenda i pozycje graczy na żywo",
+  "worldMap.legend.heading": "Legenda",
+  "worldMap.legend.players": "Gracze online",
+  "worldMap.legend.stores": "Przechowalnie pojazdów",
+  "worldMap.controls.heading": "Sterowanie",
+  "worldMap.controls.text": "Rolka myszy - przybliżanie/oddalanie\nLewy przycisk myszy - przeciąganie mapy",
+  "worldMap.closeHint": "Naciśnij F11, aby zamknąć",
 } as const;

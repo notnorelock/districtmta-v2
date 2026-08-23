@@ -1,0 +1,72 @@
+@reference "../../styles/globals.css";
+
+.root {
+  @apply fixed inset-0 z-30 flex overflow-hidden font-display;
+}
+
+// Same shape as AuthCard.tsx's own left column - an opaque panel taking
+// its own column width, map filling the rest (see .mapWrap). No smoke
+// here (unlike the login screen) - see WorldMapOverlay.tsx's own comment.
+.sidebar {
+  @apply flex w-full max-w-md flex-col bg-black/60 px-10 py-10;
+}
+
+.sidebarContent {
+  @apply flex h-full flex-col gap-8;
+}
+
+.title {
+  @apply text-2xl font-bold uppercase tracking-wide text-foreground;
+}
+
+.subtitle {
+  @apply mt-1 text-sm text-muted-foreground;
+}
+
+.legend {
+  @apply flex flex-col gap-1;
+}
+
+.legendHeading {
+  @apply mb-1 font-mono text-xs font-bold uppercase tracking-widest text-accent-indigo/70;
+}
+
+.legendItem {
+  @apply flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm text-foreground transition-opacity hover:bg-secondary;
+}
+
+.legendItemDimmed {
+  @apply opacity-40 hover:opacity-70;
+}
+
+.legendLabel {
+  @apply min-w-0 flex-1 truncate;
+}
+
+.legendCount {
+  @apply text-xs tabular-nums text-muted-foreground;
+}
+
+.controls {
+  @apply mt-auto flex flex-col gap-1;
+}
+
+.controlsHeading {
+  @apply font-mono text-xs font-bold uppercase tracking-widest text-accent-indigo/70;
+}
+
+.controlsText {
+  @apply whitespace-pre-line text-xs text-muted-foreground;
+}
+
+.closeHint {
+  @apply text-xs text-muted-foreground;
+}
+
+.mapWrap {
+  @apply relative flex-1 overflow-hidden bg-black/40;
+}
+
+.map {
+  @apply h-full w-full rounded-none border-none;
+}

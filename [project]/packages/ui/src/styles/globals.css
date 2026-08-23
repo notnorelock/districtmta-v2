@@ -378,3 +378,20 @@
   opacity: 0;
   transform: scale(0.98);
 }
+
+/*
+  World map overlay (features/worldMap/WorldMapOverlay.tsx) - full-screen,
+  toggled by F11 (WorldMapState.lua). Same plain fade+scale as the other
+  overlays above, and same reason this block must exist at all - see
+  vehicleStorage's own comment on the missing-CSS-class gotcha.
+*/
+.worldMap-enter-active,
+.worldMap-exit-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.worldMap-enter-from,
+.worldMap-exit-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
