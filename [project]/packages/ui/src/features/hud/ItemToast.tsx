@@ -1,9 +1,18 @@
-import { type Component, For } from "solid-js";
+import { type Component, For, Show } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
 import { Package } from "lucide-solid";
 import { Marquee } from "@/components/common/Marquee";
 import { itemToastStore } from "@/stores/itemToast.store";
 import styles from "./ItemToast.module.scss";
+
+// Above this length, even wrapped onto two lines a name like "Kluczyki do
+// pojazdu" (20 chars, fits comfortably) starts running past the card's
+// own w-28 - Marquee only kicks in past that point. Below it, the name
+// just wraps onto its own two lines (styles.name's own line-clamp-2) with
+// no animation at all - confirmed with the user: scroll-bouncing a name
+// that only barely overflowed one line read as unnecessary/distracting,
+// wrapping is legible on its own for anything this short.
+const MARQUEE_THRESHOLD_CHARS = 22;
 
 /**
  * Bottom-center "you gained/lost an item" toast stack, FiveM-style - a
@@ -36,15 +45,14 @@ export const ItemToast: Component = () => {
               <div class={styles.icon}>
                 <Package size={36} />
               </div>
-              {/* Item names ("Kluczyki do pojazdu") routinely overflow the
-                  card's own w-28 - Marquee scroll-bounces the text
-                  instead of silently clipping it (see that component's
-                  own module comment on why it previously had no visible
-                  effect anywhere it was used - the animations it
-                  references weren't defined yet, now fixed in globals.css). */}
-              <Marquee class={styles.name} durationSeconds={4}>
-                {card.schemeKey}
-              </Marquee>
+              <Show
+                when={card.schemeKey.length > MARQUEE_THRESHOLD_CHARS}
+                fallback={<span class={styles.name}>{card.schemeKey}</span>}
+              >
+                <Marquee class={styles.nameMarquee} durationSeconds={4}>
+                  {card.schemeKey}
+                </Marquee>
+              </Show>
               <span class={styles.amount}>
                 {card.kind === "gained" ? "+" : "-"}
                 {card.amount}
