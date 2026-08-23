@@ -39,6 +39,14 @@ interface Map2DProps {
 // blips, vehicle store positions) plots correctly without a separate
 // conversion table.
 const WORLD_SIZE = 6000;
+// Pan is clamped to this - dragging/focusing past the edge of the actual
+// game world just showed empty black canvas forever in every direction,
+// since nothing stops targetCenterX/Y from growing unbounded otherwise.
+const WORLD_BOUND = WORLD_SIZE / 2;
+
+function clampToWorld(value: number): number {
+  return Math.min(WORLD_BOUND, Math.max(-WORLD_BOUND, value));
+}
 
 // Not 0 - a min zoom of 0 makes the map shrink toward nothing near the
 // bottom of the range instead of stopping at "the whole map is visible",
@@ -215,8 +223,8 @@ export const Map2D: Component<Map2DProps> = (props) => {
     const target = props.focusTarget;
     if (!target) return;
 
-    targetCenterX = target.x;
-    targetCenterY = target.y;
+    targetCenterX = clampToWorld(target.x);
+    targetCenterY = clampToWorld(target.y);
     if (target.zoom !== undefined) {
       targetZoom = Math.min(maxZoom(), Math.max(minZoom(), target.zoom));
     }
@@ -258,8 +266,8 @@ export const Map2D: Component<Map2DProps> = (props) => {
       const dom = canvas?.getBoundingClientRect();
       if (dom) {
         const mapSize = Math.max(dom.width, dom.height) * displayedZoom;
-        targetCenterX -= (deltaX / mapSize) * WORLD_SIZE;
-        targetCenterY += (deltaY / mapSize) * WORLD_SIZE;
+        targetCenterX = clampToWorld(targetCenterX - (deltaX / mapSize) * WORLD_SIZE);
+        targetCenterY = clampToWorld(targetCenterY + (deltaY / mapSize) * WORLD_SIZE);
         // 1:1 with the cursor while actively dragging - no easing lag
         // fighting the mouse - only wheel-zoom (and drag release, since
         // displayed already equals target by then) gets the eased glide.
