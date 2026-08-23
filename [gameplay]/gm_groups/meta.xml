@@ -1,0 +1,23 @@
+<meta>
+    <info
+        author="norelock"
+        version="1.0.0"
+        type="script"
+    />
+    <download_priority_group>3</download_priority_group>
+
+    <include resource="core_shared" />
+    <include resource="core" />
+    <include resource="core_ui" />
+
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/GroupBridge.lua" type="server" cache="false" />
+    <script src="server/GroupCache.lua" type="server" cache="false" />
+    <script src="server/GroupDutyService.lua" type="server" cache="false" />
+    <script src="server/GroupEndpoints.lua" type="server" cache="false" />
+    <script src="server/GroupCommands.lua" type="server" cache="false" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/GroupPanelState.lua" type="client" cache="false" />
+    <script src="client/GroupDutyState.lua" type="client" cache="false" />
+</meta>

@@ -30,6 +30,12 @@ Permissions.Bit = {
     -- VEHICLE_ADMIN's own "grant something without going through the
     -- normal in-world way to get it".
     GIVE_ITEM = 131072,
+    -- gm_groups' "/creategroup", "/deletegroup", "/setgroupduty" admin
+    -- commands - creating/removing/relocating a faction/gang/organization
+    -- is a curated, admin-adjudicated action in v1 (no player-initiated
+    -- group creation flow exists), same tier as SPAWN_VEHICLE/GIVE_ITEM's
+    -- own "grant something outside the normal player flow".
+    MANAGE_GROUPS = 262144,
 }
 
 local function bitOr(...)
@@ -56,7 +62,7 @@ local MODERATOR_PERMISSIONS = bitOr(
     Permissions.Bit.VEHICLE_ADMIN,
     Permissions.Bit.GIVE_ITEM
 )
-local ADMINISTRATOR_PERMISSIONS = bitOr(MODERATOR_PERMISSIONS, Permissions.Bit.BAN, Permissions.Bit.REVOKE_PENALTY)
+local ADMINISTRATOR_PERMISSIONS = bitOr(MODERATOR_PERMISSIONS, Permissions.Bit.BAN, Permissions.Bit.REVOKE_PENALTY, Permissions.Bit.MANAGE_GROUPS)
 -- VIEW_STATS is RCON+/BOARD-only, deliberately not in ADMINISTRATOR_PERMISSIONS.
 local RCON_PERMISSIONS = bitOr(ADMINISTRATOR_PERMISSIONS, Permissions.Bit.SET_ROLE, Permissions.Bit.VIEW_STATS)
 

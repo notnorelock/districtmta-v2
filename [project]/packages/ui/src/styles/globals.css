@@ -395,3 +395,21 @@
   opacity: 0;
   transform: scale(0.98);
 }
+
+/*
+  Group management panel (features/groups/GroupPanelOverlay.tsx) -
+  centered panel toggled by G (GroupPanelState.lua). Same plain
+  fade+scale as vehicleStorage/worldMap above, and same reason this block
+  must exist at all - see vehicleStorage's own comment on the missing-CSS-
+  class gotcha.
+*/
+.groupPanel-enter-active,
+.groupPanel-exit-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.groupPanel-enter-from,
+.groupPanel-exit-to {
+  opacity: 0;
+  transform: scale(0.98);
+}

@@ -276,6 +276,124 @@ Events = {
     VEHICLE_REPOSITORY_REQUEST = "core:vehicleRepositoryRequest",
     VEHICLE_REPOSITORY_RESPONSE = "vehicles:vehicleRepositoryResponse",
 
+    -- Server-to-server bridge between gm_groups (owns the handler
+    -- closure/callback) and core (owns GroupRepository/GroupRankRepository/
+    -- GroupMemberRepository/the database) - same requestId-correlated
+    -- request/response shape as VEHICLE_REPOSITORY_REQUEST/_RESPONSE above,
+    -- covering all three group repositories through one whitelist (see
+    -- core/server/GroupService.lua's own METHODS table), same as that pair
+    -- already covers both VehicleRepository and VehicleStoreRepository.
+    -- Both fire via plain triggerEvent (server-side Lua talking to
+    -- server-side Lua in a different resource, no player/client involved).
+    GROUP_REPOSITORY_REQUEST = "core:groupRepositoryRequest",
+    GROUP_REPOSITORY_RESPONSE = "groups:groupRepositoryResponse",
+
+    -- Server -> localPlayer: fired by gm_groups/server/GroupDutyService.lua's
+    -- enterDuty/exitDuty when the player walks into/out of their group's
+    -- duty marker.
+    GROUP_DUTY_STARTED = "groups:dutyStarted",
+    GROUP_DUTY_ENDED = "groups:dutyEnded",
+    -- Server -> localPlayer: periodic duty tick sync (see
+    -- GroupDutyService.lua's own module comment on the tick interval),
+    -- carries { totalSeconds } - the CEF duty indicator always shows a
+    -- server-confirmed running total, not a purely client-side guess.
+    GROUP_DUTY_SYNC = "groups:dutySync",
+
+    -- Pushed into the CEF duty indicator once GROUP_DUTY_STARTED/_ENDED/_SYNC arrive.
+    PUSH_GROUP_DUTY_STARTED = "groups.dutyStarted",
+    PUSH_GROUP_DUTY_ENDED = "groups.dutyEnded",
+    PUSH_GROUP_DUTY_SYNC = "groups.dutySync",
+
+    -- Client -> server: player opened the group management panel, wants a
+    -- fresh snapshot of every group they belong to (ranks + own
+    -- memberships) - request/response (like INVENTORY_REQUEST_ITEMS)
+    -- rather than an unprompted push, re-requested on every open.
+    GROUP_REQUEST_MINE = "groups:requestMine",
+
+    -- Server -> requesting client only: response to GROUP_REQUEST_MINE -
+    -- see GroupEndpoints.lua's own toMinePayload for the exact shape.
+    -- GroupPanelState.lua forwards it into the CEF panel via PUSH_GROUP_MINE.
+    GROUP_MINE_RECEIVED = "groups:mineReceived",
+
+    -- Pushed into the CEF panel once GROUP_MINE_RECEIVED arrives, and
+    -- again any time the server changes something about the player's own
+    -- group membership/ranks (rank edited, member assigned/kicked) so the
+    -- panel stays live while open - same "re-push after every mutation"
+    -- shape PUSH_INVENTORY_ITEMS already uses.
+    PUSH_GROUP_MINE = "groups.mine",
+
+    -- Client -> server: player selected one of their groups' "Members" tab
+    -- in the panel, wants the full roster - { groupId }. Server only
+    -- answers if the requester is actually a member of that group.
+    GROUP_REQUEST_MEMBERS = "groups:requestMembers",
+    -- Server -> requesting client only: response to GROUP_REQUEST_MEMBERS,
+    -- { groupId, members }. GroupPanelState.lua forwards it via PUSH_GROUP_MEMBERS.
+    GROUP_MEMBERS_RECEIVED = "groups:membersReceived",
+    -- Pushed into the CEF panel once GROUP_MEMBERS_RECEIVED arrives, and
+    -- again after any member-affecting mutation (rank assign/kick) for
+    -- whichever group is currently open in the Members tab.
+    PUSH_GROUP_MEMBERS = "groups.members",
+
+    -- Client -> server: leader/manage_ranks member creating a new rank on
+    -- one of their groups - { groupId, name, skin, hourlyReward,
+    -- permissions, sortOrder }. Server re-derives the requester's own
+    -- permission from their group_members row, never trusts the panel.
+    GROUP_CREATE_RANK = "groups:createRank",
+    -- Client -> server: { rankId, name, skin, hourlyReward, permissions, sortOrder }.
+    GROUP_UPDATE_RANK = "groups:updateRank",
+    -- Client -> server: { rankId } - rejected server-side if any member
+    -- currently holds it or it's the group's only rank.
+    GROUP_DELETE_RANK = "groups:deleteRank",
+    -- Client -> server: { memberId, rankId } - requester's own rank must
+    -- be more senior (lower sort_order) than both the target's current
+    -- and new rank.
+    GROUP_ASSIGN_MEMBER_RANK = "groups:assignMemberRank",
+    -- Client -> server: { memberId } - cannot target the group's own leader.
+    GROUP_KICK_MEMBER = "groups:kickMember",
+    -- Client -> server: { groupId } - self-service leave; the leader must
+    -- transfer leadership first (no UI for that in v1, command-only via an
+    -- admin if ever needed).
+    GROUP_LEAVE = "groups:leave",
+
+    -- Client -> server: { groupId } - manage_members member opening the
+    -- "Add member" picker wants the list of online players not already in
+    -- this group. Server re-derives the requester's own permission.
+    GROUP_REQUEST_INVITABLE_PLAYERS = "groups:requestInvitablePlayers",
+    -- Server -> requesting client only: response, { groupId, players:
+    -- [{ accountId, name }] }.
+    GROUP_INVITABLE_PLAYERS_RECEIVED = "groups:invitablePlayersReceived",
+    PUSH_GROUP_INVITABLE_PLAYERS = "groups.invitablePlayers",
+
+    -- Client -> server: manage_members member picked a player from the
+    -- invite picker - { groupId, accountId }. Rejected if already a
+    -- member, already has a pending invite, or the target isn't online.
+    GROUP_INVITE_PLAYER = "groups:invitePlayer",
+
+    -- Server -> the INVITED player only, fired the moment an invite is
+    -- created - { inviteId, groupId, groupName, groupType, invitedByName }.
+    -- GroupPanelState.lua forwards it into a small standalone CEF prompt
+    -- (own "groupInvite" overlay, NOT gated behind the main group panel
+    -- being open) via PUSH_GROUP_INVITE_RECEIVED.
+    GROUP_INVITE_RECEIVED = "groups:inviteReceived",
+    PUSH_GROUP_INVITE_RECEIVED = "groups.inviteReceived",
+
+    -- Client -> server: invitee requests their own current pending
+    -- invites (panel/prompt bootstrap on login/resource start) - no payload.
+    GROUP_REQUEST_INVITES = "groups:requestInvites",
+    -- Server -> requesting client only: response, an array of the same
+    -- shape GROUP_INVITE_RECEIVED pushes per-invite.
+    GROUP_INVITES_RECEIVED = "groups:invitesReceived",
+    PUSH_GROUP_INVITES = "groups.invites",
+
+    -- Client -> server: { inviteId } - invitee accepting; server
+    -- re-verifies the invite still belongs to the requester's own account
+    -- before creating the group_members row (rank_id = nil).
+    GROUP_ACCEPT_INVITE = "groups:acceptInvite",
+    -- Client -> server: { inviteId } - invitee declining (or the
+    -- inviter/a manage_members member revoking - same delete, no
+    -- distinction needed since either just removes the pending row).
+    GROUP_DECLINE_INVITE = "groups:declineInvite",
+
     -- Client -> server: driver requested toggling one vehicle system
     -- (engine/lights/lock) from the radial interaction menu (see
     -- gm_vehicles/client/VehicleInteractionState.lua). `action` is one of

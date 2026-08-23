@@ -1,0 +1,138 @@
+@reference "../../styles/globals.css";
+
+.root {
+  @apply pointer-events-none fixed inset-0 z-40 flex items-center justify-center;
+}
+
+.panel {
+  @apply pointer-events-auto flex h-[70vh] max-h-[560px] w-125 max-w-[92vw] overflow-hidden rounded-xl border border-border bg-popover/95 font-display shadow-lg;
+}
+
+// Left rail listing every group the player belongs to (multi-membership
+// is allowed - see GroupMember.lua's own module comment) - a name label,
+// not just an icon like VehicleStorageOverlay.tsx's own .tabs, since
+// there's no fixed small icon set for arbitrary group names.
+.groupRail {
+  @apply flex w-32 shrink-0 flex-col gap-1 overflow-y-auto border-r border-border bg-secondary/20 p-2;
+}
+
+.groupTab {
+  @apply flex items-center gap-2 rounded-lg px-2 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+}
+
+.groupTabActive {
+  @apply bg-primary/15 text-primary hover:bg-primary/15 hover:text-primary;
+}
+
+.groupTabDot {
+  @apply size-2 shrink-0 rounded-full;
+  background-color: var(--group-color);
+}
+
+.groupTabLabel {
+  @apply truncate;
+}
+
+.main {
+  @apply flex min-w-0 flex-1 flex-col;
+}
+
+.mainEmpty {
+  @apply flex flex-1 items-center justify-center px-4 py-8 text-center text-sm text-muted-foreground;
+}
+
+.header {
+  @apply flex items-center justify-between gap-2 border-b border-border px-4 py-3;
+}
+
+.headerInfo {
+  @apply flex min-w-0 flex-col;
+}
+
+.title {
+  @apply truncate text-sm font-semibold text-foreground;
+}
+
+.subtitle {
+  @apply text-xs text-muted-foreground;
+}
+
+.tabs {
+  @apply flex shrink-0 gap-1;
+}
+
+.tabButton {
+  @apply flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+}
+
+.tabButtonActive {
+  @apply bg-primary/15 text-primary hover:bg-primary/15 hover:text-primary;
+}
+
+.listWrap {
+  @apply flex-1 overflow-y-auto p-2;
+}
+
+.empty {
+  @apply px-4 py-8 text-center text-sm text-muted-foreground;
+}
+
+.memberRow {
+  @apply flex w-full items-center gap-2.5 rounded-lg border-b border-border/40 px-2.5 py-2.5 text-left last:border-b-0 hover:bg-secondary/40;
+}
+
+.memberInfo {
+  @apply flex min-w-0 flex-1 flex-col gap-0.5;
+}
+
+.memberName {
+  @apply flex items-center gap-1.5 truncate text-sm text-foreground;
+}
+
+.memberSelfBadge {
+  @apply rounded-sm bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary;
+}
+
+.memberStat {
+  @apply text-xs text-muted-foreground;
+}
+
+.memberRankText {
+  @apply shrink-0 text-xs text-muted-foreground;
+}
+
+.rankSelect {
+  @apply h-8 shrink-0 rounded-md border border-input bg-transparent px-2 text-xs text-foreground;
+}
+
+.kickButton {
+  @apply flex size-7 shrink-0 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/15;
+}
+
+.rankRow {
+  @apply flex w-full items-center justify-between gap-2 rounded-lg border-b border-border/40 px-2.5 py-2.5 text-left last:border-b-0 hover:bg-secondary/40 disabled:cursor-default disabled:hover:bg-transparent;
+}
+
+.rankRowName {
+  @apply text-sm text-foreground;
+}
+
+.rankRowMeta {
+  @apply text-xs text-muted-foreground;
+}
+
+.addRankButton {
+  @apply mt-2 w-full;
+}
+
+.addMemberButton {
+  @apply mb-2 w-full;
+}
+
+.playerRow {
+  @apply flex w-full items-center justify-between gap-2 rounded-lg border-b border-border/40 px-2.5 py-2.5 text-left last:border-b-0 hover:bg-secondary/40;
+}
+
+.playerRowName {
+  @apply text-sm text-foreground;
+}

@@ -1,0 +1,13 @@
+@reference "../../styles/globals.css";
+
+.form {
+  @apply flex flex-col gap-4;
+}
+
+.row {
+  @apply grid grid-cols-3 gap-2;
+}
+
+.permissions {
+  @apply flex flex-col gap-2 rounded-md border border-border p-3;
+}

@@ -16,6 +16,9 @@ import { WorldInteractionOverlay } from "@/features/worldInteraction/WorldIntera
 import { InventoryOverlay } from "@/features/inventory/InventoryOverlay";
 import { VehicleStorageOverlay } from "@/features/vehicleStorage/VehicleStorageOverlay";
 import { WorldMapOverlay } from "@/features/worldMap/WorldMapOverlay";
+import { GroupPanelOverlay } from "@/features/groups/GroupPanelOverlay";
+import { DutyIndicator } from "@/features/groups/DutyIndicator";
+import { GroupInviteToast } from "@/features/groups/GroupInviteToast";
 import { Watermark } from "@/components/common/Watermark";
 import { authStore } from "@/stores/auth.store";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -56,6 +59,11 @@ const AppContent: Component = () => {
         <div class="pointer-events-none fixed inset-0">
           <HudBar />
           <VoiceIndicator />
+          {/* Docked above HudBar's own row (see DutyIndicator.module.scss) -
+              rendered here, inside the same "hud" Overlay, so it slides
+              in/out together with the rest of the HUD instead of using
+              its own separate transition. */}
+          <DutyIndicator />
         </div>
       </Overlay>
 
@@ -92,6 +100,15 @@ const AppContent: Component = () => {
           toggled by gm_worldmap while F11 is pressed - see
           WorldMapOverlay.tsx's own comment. */}
       <WorldMapOverlay />
+      {/* Uses its own "groupPanel" overlay key (Overlay name prop),
+          toggled by gm_groups while G is pressed - see
+          GroupPanelOverlay.tsx's own comment. */}
+      <GroupPanelOverlay />
+      {/* Not gated behind any overlay key - always mounted, purely driven
+          by group.store.ts's pendingInvites slice, same reasoning as
+          DutyIndicator above - an invite must surface even if the group
+          panel itself is closed. */}
+      <GroupInviteToast />
     </div>
   );
 };

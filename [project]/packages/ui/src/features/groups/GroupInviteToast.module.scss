@@ -1,0 +1,53 @@
+@reference "../../styles/globals.css";
+
+.dock {
+  @apply pointer-events-none fixed left-1/2 top-6 z-40 flex -translate-x-1/2 flex-col items-center gap-2;
+}
+
+.card {
+  @apply pointer-events-auto flex w-80 items-center gap-3 rounded-xl border border-border bg-popover/95 px-3 py-2.5 font-display shadow-lg;
+}
+
+.icon {
+  @apply flex size-9 shrink-0 items-center justify-center rounded-lg text-primary-foreground;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent-violet));
+}
+
+.info {
+  @apply flex min-w-0 flex-1 flex-col;
+}
+
+.title {
+  @apply truncate text-sm font-semibold text-foreground;
+}
+
+.subtitle {
+  @apply truncate text-xs text-muted-foreground;
+}
+
+.actions {
+  @apply flex shrink-0 items-center gap-1.5;
+}
+
+.acceptButton {
+  @apply flex size-7 items-center justify-center rounded-md bg-primary/15 text-primary transition-colors hover:bg-primary/25;
+}
+
+.declineButton {
+  @apply flex size-7 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/15;
+}
+
+.cardMove {
+  transition: transform 0.25s ease;
+}
+
+.cardEnterActive,
+.cardExitActive {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.cardEnterFrom,
+.cardExitTo {
+  opacity: 0;
+  transform: translateY(-12px);
+}

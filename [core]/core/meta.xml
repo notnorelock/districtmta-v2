@@ -33,6 +33,10 @@
     <script src="server/database/models/Vehicle.lua" type="server" cache="false" />
     <script src="server/database/models/VehicleStore.lua" type="server" cache="false" />
     <script src="server/database/models/Item.lua" type="server" cache="false" />
+    <script src="server/database/models/Group.lua" type="server" cache="false" />
+    <script src="server/database/models/GroupRank.lua" type="server" cache="false" />
+    <script src="server/database/models/GroupMember.lua" type="server" cache="false" />
+    <script src="server/database/models/GroupInvite.lua" type="server" cache="false" />
     <script src="server/database/repositories/AccountRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/AccountPenaltyRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/ReportRepository.lua" type="server" cache="false" />
@@ -40,6 +44,10 @@
     <script src="server/database/repositories/VehicleRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/VehicleStoreRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/ItemRepository.lua" type="server" cache="false" />
+    <script src="server/database/repositories/GroupRepository.lua" type="server" cache="false" />
+    <script src="server/database/repositories/GroupRankRepository.lua" type="server" cache="false" />
+    <script src="server/database/repositories/GroupMemberRepository.lua" type="server" cache="false" />
+    <script src="server/database/repositories/GroupInviteRepository.lua" type="server" cache="false" />
     <script src="server/database/adapters/MySqlAdapter.lua" type="server" cache="false" />
     <script src="server/database/adapters/MySqlAdapterBootstrap.lua" type="server" cache="false" />
 
@@ -47,6 +55,7 @@
     <script src="server/PlayerService.lua" type="server" cache="false" />
     <script src="server/VehicleService.lua" type="server" cache="false" />
     <script src="server/ItemService.lua" type="server" cache="false" />
+    <script src="server/GroupService.lua" type="server" cache="false" />
     <script src="server/SecurityService.lua" type="server" cache="false" />
     <script src="server/SessionKeyService.lua" type="server" cache="false" />
 
