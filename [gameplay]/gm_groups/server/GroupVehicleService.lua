@@ -112,8 +112,11 @@ function groupServiceGetMembershipStatus(player, groupId)
         return "no_rank"
     end
 
+    -- The leader's own allowlist bypass in groupServiceCanUseVehicle is
+    -- ONLY that - the allowlist - never the on-duty requirement itself,
+    -- so this check must NOT exempt the leader here either.
     local group = GroupCache.get(groupId)
-    if group and group.type == "fraction" and group.leaderAccountId ~= accountId then
+    if group and group.type == "fraction" then
         local status = GroupDutyService.getMemberDutyStatus(player)
         if not status or status.groupId ~= groupId then
             return "not_on_duty"

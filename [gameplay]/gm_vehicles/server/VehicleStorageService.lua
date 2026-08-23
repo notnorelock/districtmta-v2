@@ -417,7 +417,7 @@ local function onEnterStore(store, player)
     end
 
     playersInStore[player] = store
-    triggerClientEvent(player, Events.VEHICLE_STORAGE_OPEN, resourceRoot, store.id, store.name)
+    triggerClientEvent(player, Events.VEHICLE_STORAGE_OPEN, resourceRoot, store.id, store.name, store.purpose)
     sendStoreItems(player, store)
 end
 
