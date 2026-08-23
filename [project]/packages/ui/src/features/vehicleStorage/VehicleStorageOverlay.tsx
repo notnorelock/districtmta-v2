@@ -30,12 +30,14 @@ const CATEGORY_TABS: { id: CategoryTab; icon: Component<LucideProps>; labelKey: 
  * at all because the server already filtered it in for exactly that
  * reason, so every non-owned entry here is shared by definition.
  *
- * "Udostępnione" only makes sense for a PRIVATE-purpose lot (the VEHICLE_KEY
- * concept a shared vehicle relies on doesn't exist for GROUP-purpose ones -
- * every vehicle inside is already "the group's", no individual owner/key
- * to borrow from - see VehicleStorageService.lua's own group-purpose
- * sendStoreItems branch, which always reports `owned: true`) - hidden
- * entirely for a group lot rather than shown-but-always-empty.
+ * The entire rail is hidden for a GROUP-purpose lot (not just
+ * "Udostępnione") - "owned"/"shared" are PRIVATE-lot-only concepts
+ * (VEHICLE_KEY doesn't exist for group vehicles; every vehicle inside a
+ * group lot already reports `owned: true` regardless of who's actually
+ * driving it home, see VehicleStorageService.lua's own group-purpose
+ * sendStoreItems branch), so "Moje pojazdy" there would just be a
+ * confusing synonym for "Wszystkie" - the whole distinction the rail
+ * exists to draw doesn't apply, so the rail itself doesn't either.
  *
  * Retrieving a vehicle is a click here (VEHICLE_STORAGE_RETRIEVE,
  * server re-validates ownership/key possession/lot membership - see
@@ -51,12 +53,12 @@ export const VehicleStorageOverlay: Component = () => {
 
   const isGroupLot = createMemo(() => vehicleStorageStore.storePurpose() === "group");
 
-  const visibleTabs = createMemo(() => (isGroupLot() ? CATEGORY_TABS.filter((tab) => tab.id !== "shared") : CATEGORY_TABS));
-
   const visibleVehicles = createMemo(() => {
-    const tab = isGroupLot() && activeTab() === "shared" ? "all" : activeTab();
     const all = vehicleStorageStore.vehicles();
+    // No owned/shared distinction for a group lot - always the full list.
+    if (isGroupLot()) return all;
 
+    const tab = activeTab();
     if (tab === "all") return all;
     if (tab === "owned") return all.filter((vehicle) => vehicle.owned);
     return all.filter((vehicle) => !vehicle.owned);
@@ -66,27 +68,29 @@ export const VehicleStorageOverlay: Component = () => {
     <Overlay name="vehicleStorage" transitionName="vehicleStorage">
       <div class={styles.root}>
         <div class={styles.panel}>
-          <div class={styles.tabs}>
-            <For each={visibleTabs()}>
-              {(tab) => {
-                const Icon = tab.icon;
-                const active = () => activeTab() === tab.id;
-                return (
-                  <Tooltip placement="left">
-                    <TooltipTrigger
-                      as="button"
-                      type="button"
-                      class={`${styles.tab} ${active() ? styles.tabActive : ""}`}
-                      onClick={() => setActiveTab(tab.id)}
-                    >
-                      <Icon size={18} />
-                    </TooltipTrigger>
-                    <TooltipContent>{t()(tab.labelKey)}</TooltipContent>
-                  </Tooltip>
-                );
-              }}
-            </For>
-          </div>
+          <Show when={!isGroupLot()}>
+            <div class={styles.tabs}>
+              <For each={CATEGORY_TABS}>
+                {(tab) => {
+                  const Icon = tab.icon;
+                  const active = () => activeTab() === tab.id;
+                  return (
+                    <Tooltip placement="left">
+                      <TooltipTrigger
+                        as="button"
+                        type="button"
+                        class={`${styles.tab} ${active() ? styles.tabActive : ""}`}
+                        onClick={() => setActiveTab(tab.id)}
+                      >
+                        <Icon size={18} />
+                      </TooltipTrigger>
+                      <TooltipContent>{t()(tab.labelKey)}</TooltipContent>
+                    </Tooltip>
+                  );
+                }}
+              </For>
+            </div>
+          </Show>
 
           <div class={styles.main}>
             <div class={styles.header}>
