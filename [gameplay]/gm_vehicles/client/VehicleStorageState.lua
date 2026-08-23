@@ -13,6 +13,11 @@ VehicleStorageState = VehicleStorageState or {}
 local storageOpen = false
 local cursorActive = false
 local currentStoreId = nil
+-- Enums.VehicleStorePurpose of the currently-open lot - re-sent alongside
+-- every VEHICLE_STORAGE_ITEMS_RECEIVED push too (not just here at open
+-- time) so the CEF panel never has to guess it from the vehicle list
+-- alone (an empty-for-this-player GROUP lot has no vehicles to infer it from).
+local currentStorePurpose = nil
 
 local function onRightClick(key, state)
     if key ~= "mouse2" or not state then
@@ -24,14 +29,15 @@ local function onRightClick(key, state)
     exports.core_ui:uiFocusBrowser(cursorActive)
 end
 
-local function openStorage(storeId, storeName)
+local function openStorage(storeId, storeName, storePurpose)
     currentStoreId = storeId
+    currentStorePurpose = storePurpose
     if not storageOpen then
         storageOpen = true
         addEventHandler("onClientKey", root, onRightClick)
     end
 
-    exports.core_ui:uiPushEvent(Events.PUSH_VEHICLE_STORAGE_ITEMS, { storeId = storeId, storeName = storeName, vehicles = {} })
+    exports.core_ui:uiPushEvent(Events.PUSH_VEHICLE_STORAGE_ITEMS, { storeId = storeId, storeName = storeName, purpose = storePurpose, vehicles = {} })
     exports.core_ui:uiShowOverlay("vehicleStorage")
 end
 
@@ -41,6 +47,7 @@ local function closeStorage()
     end
     storageOpen = false
     currentStoreId = nil
+    currentStorePurpose = nil
 
     removeEventHandler("onClientKey", root, onRightClick)
     if cursorActive then
@@ -63,7 +70,7 @@ addEventHandler(Events.VEHICLE_STORAGE_ITEMS_RECEIVED, root, function(storeId, v
     if storeId ~= currentStoreId then
         return
     end
-    exports.core_ui:uiPushEvent(Events.PUSH_VEHICLE_STORAGE_ITEMS, { storeId = storeId, vehicles = vehicles })
+    exports.core_ui:uiPushEvent(Events.PUSH_VEHICLE_STORAGE_ITEMS, { storeId = storeId, purpose = currentStorePurpose, vehicles = vehicles })
 end)
 
 -- CEF -> client Lua (via MtaBridge.notify, relayed through core_ui's own

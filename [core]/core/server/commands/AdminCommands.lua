@@ -357,7 +357,11 @@ CommandRegistry.register("createstore", Permissions.Bit.VEHICLE_ADMIN, function(
         -- zero spawn positions is skipped entirely by
         -- VehicleStorageService.lua's own loader (logged as a warning),
         -- so this avoids creating a lot nothing can ever be retrieved from.
-        spawn_positions = { { x, y, z, heading, 0, 0 } },
+        -- { x, y, z, rx, ry, rz } - heading goes on rz (rotation around
+        -- the vertical axis), NOT rx (that tips a spawned vehicle onto
+        -- its side/roof instead of just turning it - confirmed live via
+        -- a screenshot of exactly that happening before this fix).
+        spawn_positions = { { x, y, z, 0, 0, heading } },
     }, function(ok, storeOrError)
         if not ok then
             CommandRegistry.reply(player, "Nie udało się stworzyć przechowalni: " .. tostring(storeOrError), Enums.NotificationType.ERROR)
@@ -406,7 +410,9 @@ CommandRegistry.register("creategroupstore", Permissions.Bit.MANAGE_GROUPS, func
         purpose = Enums.VehicleStorePurpose.GROUP,
         group_id = groupId,
         enter_position = { x, y, z },
-        spawn_positions = { { x, y, z, heading, 0, 0 } },
+        -- { x, y, z, rx, ry, rz } - see /createstore's own comment on why
+        -- heading goes on rz, not rx.
+        spawn_positions = { { x, y, z, 0, 0, heading } },
     }, function(ok, storeOrError)
         if not ok then
             CommandRegistry.reply(player, "Nie udało się stworzyć przechowalni: " .. tostring(storeOrError), Enums.NotificationType.ERROR)
@@ -446,8 +452,10 @@ CommandRegistry.register("addstorespawn", Permissions.Bit.VEHICLE_ADMIN, functio
         local x, y, z = getElementPosition(player)
         local _, _, heading = getElementRotation(player)
 
+        -- { x, y, z, rx, ry, rz } - see /createstore's own comment on why
+        -- heading goes on rz, not rx.
         local spawnPositions = storeOrError.spawn_positions or {}
-        spawnPositions[#spawnPositions + 1] = { x, y, z, heading, 0, 0 }
+        spawnPositions[#spawnPositions + 1] = { x, y, z, 0, 0, heading }
 
         VehicleStoreRepository.update(id, { spawn_positions = spawnPositions }, function(updateOk, affectedOrError)
             if not updateOk then

@@ -30,6 +30,13 @@ const CATEGORY_TABS: { id: CategoryTab; icon: Component<LucideProps>; labelKey: 
  * at all because the server already filtered it in for exactly that
  * reason, so every non-owned entry here is shared by definition.
  *
+ * "Udostępnione" only makes sense for a PRIVATE-purpose lot (the VEHICLE_KEY
+ * concept a shared vehicle relies on doesn't exist for GROUP-purpose ones -
+ * every vehicle inside is already "the group's", no individual owner/key
+ * to borrow from - see VehicleStorageService.lua's own group-purpose
+ * sendStoreItems branch, which always reports `owned: true`) - hidden
+ * entirely for a group lot rather than shown-but-always-empty.
+ *
  * Retrieving a vehicle is a click here (VEHICLE_STORAGE_RETRIEVE,
  * server re-validates ownership/key possession/lot membership - see
  * VehicleStorageService.lua). Storing a vehicle has no button/keypress at
@@ -42,8 +49,12 @@ const CATEGORY_TABS: { id: CategoryTab; icon: Component<LucideProps>; labelKey: 
 export const VehicleStorageOverlay: Component = () => {
   const [activeTab, setActiveTab] = createSignal<CategoryTab>("all");
 
+  const isGroupLot = createMemo(() => vehicleStorageStore.storePurpose() === "group");
+
+  const visibleTabs = createMemo(() => (isGroupLot() ? CATEGORY_TABS.filter((tab) => tab.id !== "shared") : CATEGORY_TABS));
+
   const visibleVehicles = createMemo(() => {
-    const tab = activeTab();
+    const tab = isGroupLot() && activeTab() === "shared" ? "all" : activeTab();
     const all = vehicleStorageStore.vehicles();
 
     if (tab === "all") return all;
@@ -56,7 +67,7 @@ export const VehicleStorageOverlay: Component = () => {
       <div class={styles.root}>
         <div class={styles.panel}>
           <div class={styles.tabs}>
-            <For each={CATEGORY_TABS}>
+            <For each={visibleTabs()}>
               {(tab) => {
                 const Icon = tab.icon;
                 const active = () => activeTab() === tab.id;

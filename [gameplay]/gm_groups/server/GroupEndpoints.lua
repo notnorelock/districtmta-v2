@@ -518,6 +518,16 @@ addEventHandler(Events.GROUP_LEAVE, root, function(data)
     end)
 end)
 
+-- Only players within this many world units of the inviting player show
+-- up in the "Add member" picker - confirmed with the user: someone
+-- inviting a nearby player is the whole point (they can actually see who
+-- they're picking), not a server-wide roster. Re-checked fresh on every
+-- GROUP_REQUEST_INVITABLE_PLAYERS request (the client re-requests this on
+-- its own short interval while the dialog is open, see
+-- GroupPanelState.lua's own comment) rather than cached, since "who's
+-- nearby" changes as players walk around.
+local INVITABLE_PLAYER_RANGE = 20
+
 addEvent(Events.GROUP_REQUEST_INVITABLE_PLAYERS, true)
 addEventHandler(Events.GROUP_REQUEST_INVITABLE_PLAYERS, root, function(data)
     if type(data) ~= "table" or type(data.groupId) ~= "number" then
@@ -527,6 +537,11 @@ addEventHandler(Events.GROUP_REQUEST_INVITABLE_PLAYERS, root, function(data)
     local groupId = data.groupId
 
     requirePermission(groupId, player, "manage_members", function()
+        if not isElement(player) then
+            return
+        end
+        local px, py, pz = getElementPosition(player)
+
         GroupBridge.call("findMembersByGroupId", { groupId }, function(membersOk, membersOrError)
             if not membersOk or not isElement(player) then
                 return
@@ -550,8 +565,11 @@ addEventHandler(Events.GROUP_REQUEST_INVITABLE_PLAYERS, root, function(data)
                 local players = {}
                 for _, target in ipairs(getElementsByType("player")) do
                     local targetAccountId = PlayerService.getAccountId(target)
-                    if targetAccountId and not existingAccountIds[targetAccountId] and not pendingAccountIds[targetAccountId] then
-                        players[#players + 1] = { accountId = targetAccountId, name = getPlayerName(target) }
+                    if targetAccountId and target ~= player and not existingAccountIds[targetAccountId] and not pendingAccountIds[targetAccountId] then
+                        local tx, ty, tz = getElementPosition(target)
+                        if getDistanceBetweenPoints3D(px, py, pz, tx, ty, tz) <= INVITABLE_PLAYER_RANGE then
+                            players[#players + 1] = { accountId = targetAccountId, name = getPlayerName(target) }
+                        end
                     end
                 end
 

@@ -9,9 +9,14 @@ export interface StoredVehicle {
   owned: boolean;
 }
 
+/** Mirrors Enums.VehicleStorePurpose in core_shared/shared/Enums.lua. */
+export type VehicleStorePurpose = "private" | "group";
+
 /** Mirrors VehicleStorageState.lua's own PUSH_VEHICLE_STORAGE_ITEMS payload shape. */
 export interface VehicleStorageSnapshot {
   storeId: number;
   storeName?: string;
+  /** Absent only on a pre-existing push that predates this field - treat as "private" if so. */
+  purpose?: VehicleStorePurpose;
   vehicles: StoredVehicle[];
 }
