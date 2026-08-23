@@ -90,6 +90,39 @@ function groupServiceCanUseVehicle(player, vehicleId, groupId)
     return vehicleInfo.allowlist[rankId] == true
 end
 
+--- Coarser than groupServiceCanUseVehicle - reports WHY a player has no
+--- access to a group's vehicles in general (not tied to any one specific
+--- vehicle's rank allowlist), for gm_vehicles' own VehicleStorageService.lua
+--- to notify a player walking into an empty-for-them GROUP-purpose lot
+--- with a specific reason instead of a silent empty panel.
+-- @param player element
+-- @param groupId number
+-- @return string one of "ok" | "not_member" | "no_rank" | "not_on_duty"
+function groupServiceGetMembershipStatus(player, groupId)
+    local accountId = PlayerService.getAccountId(player)
+    if not accountId then
+        return "not_member"
+    end
+
+    local isMember, rankId = MembershipCache.get(accountId, groupId)
+    if not isMember then
+        return "not_member"
+    end
+    if not rankId then
+        return "no_rank"
+    end
+
+    local group = GroupCache.get(groupId)
+    if group and group.type == "fraction" and group.leaderAccountId ~= accountId then
+        local status = GroupDutyService.getMemberDutyStatus(player)
+        if not status or status.groupId ~= groupId then
+            return "not_on_duty"
+        end
+    end
+
+    return "ok"
+end
+
 --- @param group table cached group entry (GroupCache shape)
 -- @return table[] plain-data vehicle entries for the CEF panel
 local function toVehicleEntries(group)

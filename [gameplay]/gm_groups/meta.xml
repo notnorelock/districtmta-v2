@@ -28,4 +28,5 @@
     <export function="groupServiceFindGroupIdByName" type="server" />
     <export function="groupServiceReloadVehicles" type="server" />
     <export function="groupServiceGetGroupName" type="server" />
+    <export function="groupServiceGetMembershipStatus" type="server" />
 </meta>

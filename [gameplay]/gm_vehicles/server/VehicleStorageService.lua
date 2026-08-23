@@ -377,7 +377,45 @@ local function tryStoreVehicle(vehicle, store)
     end)
 end
 
+--- Gate for a GROUP-purpose lot's enter marker - the panel never opens at
+--- all for someone with no access (not just an empty/filtered list once
+--- it's already open), same "the marker acts like a wall" behavior
+--- confirmed with the user. Sends the specific reason as a notification
+--- either way - "not in this group at all" reads very differently from
+--- "in the group but not currently on duty".
+-- @param player element
+-- @param store table
+-- @return boolean true if the panel should open
+local function checkGroupAccess(player, store)
+    local ok, status = pcall(function()
+        return exports.gm_groups:groupServiceGetMembershipStatus(player, store.groupId)
+    end)
+    if not ok then
+        -- gm_groups unreachable - fail closed (deny), matching every other
+        -- pcall'd cross-resource access check in this project (e.g.
+        -- playerCanUseGroupVehicle's own `ok and allowed == true`).
+        return false
+    end
+
+    if status == "ok" then
+        return true
+    end
+
+    if status == "not_member" then
+        NotificationService.send(player, { type = Enums.NotificationType.WARNING, message = "Nie należysz do grupy, do której należy ta przechowalnia." })
+    elseif status == "no_rank" then
+        NotificationService.send(player, { type = Enums.NotificationType.WARNING, message = "Lider nie ustawił tobie rangi w tej grupie." })
+    elseif status == "not_on_duty" then
+        NotificationService.send(player, { type = Enums.NotificationType.WARNING, message = "Musisz być na służbie, aby korzystać z pojazdów tej grupy." })
+    end
+    return false
+end
+
 local function onEnterStore(store, player)
+    if store.purpose == Enums.VehicleStorePurpose.GROUP and not checkGroupAccess(player, store) then
+        return
+    end
+
     playersInStore[player] = store
     triggerClientEvent(player, Events.VEHICLE_STORAGE_OPEN, resourceRoot, store.id, store.name)
     sendStoreItems(player, store)

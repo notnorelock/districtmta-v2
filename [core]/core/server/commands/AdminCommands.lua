@@ -594,10 +594,20 @@ CommandRegistry.register("stores", Permissions.Bit.VEHICLE_ADMIN, function(playe
             return
         end
 
+        -- GROUP-purpose rows need their owning group's NAME, not just the
+        -- raw group_id - resolved via gm_groups' own
+        -- groupServiceGetGroupName export (plain data in/out, synchronous,
+        -- same cross-resource pattern /creategroupstore already uses) so
+        -- the list reads e.g. "[SAPD]" instead of a bare numeric id.
         local lines = {}
         for _, store in ipairs(storesOrError) do
             local spawnCount = type(store.spawn_positions) == "table" and #store.spawn_positions or 0
-            lines[#lines + 1] = ("[%d] %s (%d pkt. odbioru)"):format(store.id, store.name, spawnCount)
+            local purposeLabel = ""
+            if store.purpose == Enums.VehicleStorePurpose.GROUP then
+                local nameOk, groupName = pcall(function() return exports.gm_groups:groupServiceGetGroupName(store.group_id) end)
+                purposeLabel = " [grupa: " .. ((nameOk and groupName) and groupName or ("id " .. tostring(store.group_id))) .. "]"
+            end
+            lines[#lines + 1] = ("[%d] %s (%d pkt. odbioru)%s"):format(store.id, store.name, spawnCount, purposeLabel)
         end
         CommandRegistry.reply(player, table.concat(lines, "\n"), Enums.NotificationType.INFO)
     end)
