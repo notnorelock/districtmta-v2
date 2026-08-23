@@ -76,6 +76,17 @@ function groupServiceCanUseVehicle(player, vehicleId, groupId)
         return false
     end
 
+    -- The fraction's own leader always has access to every one of the
+    -- group's vehicles, bypassing the per-vehicle rank allowlist entirely
+    -- (they still had to pass the on-duty check above like anyone else -
+    -- this only skips the allowlist, not duty) - confirmed with the user:
+    -- fraction leaders shouldn't need to remember to add their own rank
+    -- to every vehicle they create. Gang/organization leaders get no such
+    -- bypass - only fraction, matching the duty-gate's own type == "fraction" scope.
+    if group.type == "fraction" and group.leaderAccountId == accountId then
+        return true
+    end
+
     return vehicleInfo.allowlist[rankId] == true
 end
 

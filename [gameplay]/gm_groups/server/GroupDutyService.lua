@@ -151,6 +151,20 @@ local function enterDuty(player, group)
             lastTickAt = getTickCount(),
         }
 
+        -- Presence-check convention, same as ElementData.Player.ADMIN -
+        -- read as `type(getElementData(...)) == "table"`, never `~= nil`.
+        -- gm_scoreboard/gm_nametags read this directly (no cross-resource
+        -- call into gm_groups needed) to compose their own status text.
+        -- Copies just the fields needed into fresh { group = {...}, rank
+        -- = {...} } tables rather than storing `group`/`rank` themselves
+        -- by reference - those are GroupCache's own internal tables,
+        -- wholesale-replaced on every GroupCache.reload(), which would
+        -- leave this ElementData pointing at a stale/orphaned table.
+        setElementData(player, ElementData.Player.GROUP_DUTY, {
+            group = { id = group.id, name = group.name, type = group.type },
+            rank = { id = rank.id, name = rank.name },
+        })
+
         NotificationService.send(player, {
             type = Enums.NotificationType.INFO,
             message = (group.type == "gang" and "Podejmujesz działalność przestępczą: " or "Podejmujesz służbę: ") .. group.name,
@@ -177,6 +191,8 @@ GroupDutyService.exitDuty = function(player, reason)
     dutySessions[player] = nil
 
     if isElement(player) then
+        removeElementData(player, ElementData.Player.GROUP_DUTY)
+
         local preDutySkin = preDutySkins[player]
         if preDutySkin then
             setElementModel(player, preDutySkin)

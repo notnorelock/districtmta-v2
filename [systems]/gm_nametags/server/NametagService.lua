@@ -28,8 +28,35 @@ local REPORT_INTERVAL_MS = 1000
 -- nametag at that range.
 local REPORT_RANGE = 40
 
+local GROUP_DUTY_COLOR_BY_TYPE = {
+    gang = "#e74c3c",
+    organization = "#3498db",
+    fraction = "#f2b84a",
+}
+
 --- @param player element
--- @return table { role, onDuty, color, afk, muted, premium, level }
+-- @return table|nil { groupName, groupType, rankName, color } if
+--         currently on GROUP duty (gm_groups/server/GroupDutyService.lua's
+--         own ElementData.Player.GROUP_DUTY, a { group = { id, name,
+--         type }, rank = { id, name } } table), nil otherwise. Flattened
+--         here (not passed through as-is) since NametagState.lua's own
+--         subLabelOf/drawNametag only ever need these four scalars.
+local function groupDutyDataFor(player)
+    local groupDuty = getElementData(player, ElementData.Player.GROUP_DUTY)
+    if type(groupDuty) ~= "table" or type(groupDuty.group) ~= "table" or type(groupDuty.rank) ~= "table" then
+        return nil
+    end
+
+    return {
+        groupName = groupDuty.group.name,
+        groupType = groupDuty.group.type,
+        rankName = groupDuty.rank.name,
+        color = GROUP_DUTY_COLOR_BY_TYPE[groupDuty.group.type] or GROUP_DUTY_COLOR_BY_TYPE.organization,
+    }
+end
+
+--- @param player element
+-- @return table { role, onDuty, color, afk, muted, premium, level, groupDuty }
 local function nametagDataFor(player)
     local role = PlayerService.getRole(player)
     local onDuty = PlayerService.isOnDuty(player)
@@ -42,6 +69,7 @@ local function nametagDataFor(player)
         muted = type(getElementData(player, ElementData.Account.MUTE)) == "table",
         premium = getElementData(player, ElementData.Account.PREMIUM) == true,
         level = PLACEHOLDER_LEVEL,
+        groupDuty = groupDutyDataFor(player),
     }
 end
 

@@ -44,6 +44,20 @@ ElementData = {
         -- convention as ADMIN), so whatever future system sets it doesn't
         -- need to also touch the nametag code.
         AFK = "player:afk",
+
+        -- Holds a table ({ group = { id, name, type }, rank = { id, name } })
+        -- or is absent while not on group duty - same presence-check
+        -- convention as ADMIN above (`type(...) == "table"`, never `~= nil` -
+        -- getElementData returns false, not real nil, for an unset key).
+        -- Set/cleared by gm_groups/server/GroupDutyService.lua's own
+        -- enterDuty/exitDuty (a SEPARATE resource from core, same as
+        -- BLACKOUT_UNTIL is set by gm_blackout - MTA's setElementData/
+        -- getElementData work across the resource boundary on any
+        -- element regardless of which resource created it, no export
+        -- needed). Exists so gm_scoreboard can read a player's group duty
+        -- status directly, the same zero-dependency way it already reads
+        -- ADMIN, instead of needing a cross-resource call into gm_groups.
+        GROUP_DUTY = "player:groupDuty",
     },
     Account = {
         PREMIUM = "account:premium",

@@ -50,6 +50,21 @@ local function isOnDuty(player)
 end
 
 --- @param player element
+-- @return string|false the group name if currently on GROUP duty
+--         (gm_groups/server/GroupDutyService.lua's own ElementData.Player.GROUP_DUTY,
+--         a { group = { id, name, type }, rank = { id, name } } table
+--         while on duty, absent otherwise - same presence-check
+--         convention as ADMIN above, read directly with zero cross-
+--         resource dependency on gm_groups itself), false otherwise.
+local function groupDutyNameOf(player)
+    local groupDuty = getElementData(player, ElementData.Player.GROUP_DUTY)
+    if type(groupDuty) == "table" and type(groupDuty.group) == "table" and type(groupDuty.group.name) == "string" then
+        return groupDuty.group.name
+    end
+    return false
+end
+
+--- @param player element
 -- @return table plain-data entry for the CEF scoreboard - login/role/
 --         faction are explicitly `false` (NOT bare nil - a table field
 --         set to nil never creates the key at all, so toJSON would omit
@@ -84,11 +99,11 @@ local function toEntry(player)
         login = (ok and login) or false,
         role = role,
         nameColor = nameColor,
-        -- No faction/group system exists yet in this project (see
-        -- gm_blackout/server/BlackoutService.lua's own TODO on the same
-        -- gap) - false today, a placeholder column on the frontend until
-        -- one exists to actually populate it.
-        faction = false,
+        -- Group name if currently on GROUP duty (any type - gang/
+        -- organization/fraction), false otherwise. Composed into the
+        -- status parenthetical client-side alongside `role`'s own "Zarząd"
+        -- label - see ScoreboardOverlay.tsx's own statusText.
+        faction = groupDutyNameOf(player),
         status = statusOf(player),
         ping = getPlayerPing(player),
     }

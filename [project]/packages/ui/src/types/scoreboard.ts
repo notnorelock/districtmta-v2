@@ -16,7 +16,7 @@ export interface ScoreboardPlayer {
   name: string;
   login: string | null;
   role: AccountRole | null;
-  /** No faction/group system exists yet in this project - always null today, a placeholder column until one does. */
+  /** Group name if currently on GROUP duty (gang/organization/fraction), null otherwise - see ScoreboardService.lua's own groupDutyNameOf. */
   faction: string | null;
   /** #RRGGBB from getPlayerNametagColor - null while unauthenticated (before PlayerService.refreshNametagColor has ever run for this player). */
   nameColor: string | null;

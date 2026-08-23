@@ -75,6 +75,7 @@ export const en: Record<keyof typeof pl, string> = {
   "scoreboard.status.authenticating": "Logging in",
   "scoreboard.status.selectingSpawn": "Selecting spawn",
   "scoreboard.status.inGame": "In game",
+  "scoreboard.status.onGroupDuty": "On duty",
   "scoreboard.empty": "No players match your search",
   "scoreboard.hint": "Press right mouse button to show cursor",
   "scoreboard.count.tooltip": "Players online",

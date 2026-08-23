@@ -94,7 +94,16 @@ export const ScoreboardOverlay: Component = () => {
   const statusText = (player: ScoreboardPlayer) => {
     const status = t()(STATUS_LABEL_KEY[player.status]);
     const roleLabel = player.role !== null ? ROLE_LABEL[player.role] : undefined;
-    return roleLabel ? `${status} (${roleLabel})` : status;
+    // "Zarząd" (admin duty) and "Służba <grupa>" (group duty) share ONE
+    // parenthetical, comma-separated, in that order - "W grze (Zarząd,
+    // Służba SAPD)" for an admin on group duty, "W grze (Służba SAPD)"
+    // for a non-admin one, "W grze (Zarząd)"/"W grze" unchanged when the
+    // other is absent. `faction` doubles as the group-duty name here (see
+    // ScoreboardService.lua's own groupDutyNameOf) - the separate badge
+    // further down the row still renders it too, this is purely the
+    // status-line composition the user specifically asked for.
+    const parts = [roleLabel, player.faction ? `${t()("scoreboard.status.onGroupDuty")} ${player.faction}` : undefined].filter(Boolean);
+    return parts.length > 0 ? `${status} (${parts.join(", ")})` : status;
   };
 
   return (

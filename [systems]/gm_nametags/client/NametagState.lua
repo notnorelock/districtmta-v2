@@ -47,9 +47,35 @@ local function drawLeftText(text, x, y, scale, textFont, color, alpha)
     dxDrawText(text, x, y, x, y, tocolor(color[1], color[2], color[3], alpha), scale, textFont, "left", "center", false, false, false, true)
 end
 
-local function drawNametag(data, sx, sy, alpha, textScale)
-    local dutyColor = (data.onDuty and data.color or data.premium and PREMIUM_COLOR or data.color) or DEFAULT_COLOR
+--- @param data table this player's own streamedPlayers entry (see addNametag/NAMETAG_DATA_RECEIVED)
+-- @return string|nil the second line of text under the player's name -
+--         "Zarząd" (admin duty) and "Służba: <grupa> (<ranga>)" (group
+--         duty) share this ONE line, joined by " | " when both are
+--         present, so a fraction admin on duty in BOTH at once still
+--         reads as one clean nametag instead of stacking a third row.
+local function subLabelOf(data)
     local roleName = data.onDuty and ROLE_DISPLAY_NAME[data.role] or nil
+    local groupDutyLabel = data.groupDuty and ("Służba: " .. data.groupDuty.groupName .. " (" .. data.groupDuty.rankName .. ")") or nil
+
+    if roleName and groupDutyLabel then
+        return roleName .. " | " .. groupDutyLabel
+    end
+    return roleName or groupDutyLabel
+end
+
+local function drawNametag(data, sx, sy, alpha, textScale)
+    -- Admin duty's role color wins if present (unchanged from before),
+    -- then the group's own type color (gang/organization/fraction - see
+    -- NametagService.lua's own GROUP_DUTY_COLOR_BY_TYPE) for someone on
+    -- group duty but not admin duty, then premium, then plain white -
+    -- shared by BOTH the "rank" status icon and the sub-label text below,
+    -- so a group-duty-only player's ID badge/icon isn't left white while
+    -- their sub-label text is colored.
+    local dutyColor = (data.onDuty and data.color)
+        or (data.groupDuty and { rgbFromHex(data.groupDuty.color) })
+        or (data.premium and PREMIUM_COLOR)
+        or DEFAULT_COLOR
+    local subLabel = subLabelOf(data)
 
     local statusIcons = {}
     if data.afk then
@@ -58,7 +84,7 @@ local function drawNametag(data, sx, sy, alpha, textScale)
     if data.muted then
         statusIcons[#statusIcons + 1] = { key = "mute", color = MUTE_COLOR }
     end
-    if data.onDuty then
+    if data.onDuty or data.groupDuty then
         statusIcons[#statusIcons + 1] = { key = "rank", color = dutyColor }
     end
     if data.premium then
@@ -67,9 +93,9 @@ local function drawNametag(data, sx, sy, alpha, textScale)
 
     local idIconSize = 44 * textScale
     local textGap = 4 * textScale
-    local nameScale = roleName and textScale or textScale * 1.35
+    local nameScale = subLabel and textScale or textScale * 1.35
     local nameText = data.name
-    local nameWidth = dxGetTextWidth(nameText, nameScale, roleName and font or fontBold)
+    local nameWidth = dxGetTextWidth(nameText, nameScale, subLabel and font or fontBold)
     local blockWidth = idIconSize + textGap + nameWidth
     local leftX = sx - blockWidth / 2
 
@@ -95,11 +121,11 @@ local function drawNametag(data, sx, sy, alpha, textScale)
 
     local textX = leftX + idIconSize + textGap
 
-    if roleName then
+    if subLabel then
         local nameY = blockCenterY - 8 * textScale
-        local roleY = blockCenterY + 8 * textScale
+        local subLabelY = blockCenterY + 8 * textScale
         drawLeftText(nameText, textX, nameY, nameScale, fontBold, DEFAULT_COLOR, alpha)
-        drawLeftText(roleName, textX, roleY, textScale - 0.08, fontBold, data.color, alpha)
+        drawLeftText(subLabel, textX, subLabelY, textScale - 0.08, fontBold, dutyColor, alpha)
     else
         drawLeftText(nameText, textX, blockCenterY, nameScale - 0.18, fontBold, DEFAULT_COLOR, alpha)
     end
@@ -145,6 +171,7 @@ local function addNametag(player)
         afk = false,
         muted = false,
         premium = false,
+        groupDuty = nil,
     }
     requestNametagData(player)
 
@@ -180,6 +207,7 @@ addEventHandler(Events.NAMETAG_DATA_RECEIVED, root, function(player, data)
     entry.muted = data.muted == true
     entry.premium = data.premium == true
     entry.level = data.level
+    entry.groupDuty = type(data.groupDuty) == "table" and data.groupDuty or nil
 end)
 
 addEventHandler("onClientElementStreamIn", root, function()

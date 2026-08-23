@@ -73,6 +73,7 @@ export const pl = {
   "scoreboard.status.authenticating": "Loguje się",
   "scoreboard.status.selectingSpawn": "Wybiera spawn",
   "scoreboard.status.inGame": "W grze",
+  "scoreboard.status.onGroupDuty": "Służba",
   "scoreboard.empty": "Brak graczy spełniających kryteria",
   "scoreboard.hint": "Naciśnij prawy przycisk myszy, aby pokazać kursor",
   "scoreboard.count.tooltip": "Liczba graczy online",
