@@ -84,7 +84,7 @@ local function drawNametag(data, sx, sy, alpha, textScale)
     if data.muted then
         statusIcons[#statusIcons + 1] = { key = "mute", color = MUTE_COLOR }
     end
-    if data.onDuty or data.groupDuty then
+    if data.onDuty then
         statusIcons[#statusIcons + 1] = { key = "rank", color = dutyColor }
     end
     if data.premium then
