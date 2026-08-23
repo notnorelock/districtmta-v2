@@ -276,7 +276,7 @@ GroupDutyService.reload = function(callback)
                 local marker = createMarker(position.x, position.y, position.z - 0.9, "cylinder", 2, color[1], color[2], color[3], 100)
                 setElementInterior(marker, position.interior or 0)
                 setElementDimension(marker, position.dimension or 0)
-                setElementData(marker, "text", group.name)
+                setElementData(marker, "text", group.type == "fraction" and string.format("Służba %s", group.name) or "Duty")
                 dutyZones[marker] = group
 
                 local col = createColSphere(position.x, position.y, position.z, 1.5)
