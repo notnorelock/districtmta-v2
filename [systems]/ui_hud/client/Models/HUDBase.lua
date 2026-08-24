@@ -71,7 +71,7 @@ HUDBase.new = function()
         end
     end
 
-    addEventHandler("onClientRender", root, handleClientRender)
+    addEventHandler("onClientRender", root, handleClientRender, true, 'high+9999')
     addEventHandler("onClientPreRender", root, handleClientPreRender)
 
     function self:destroy()

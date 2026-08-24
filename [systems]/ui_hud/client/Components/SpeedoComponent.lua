@@ -13,7 +13,7 @@ local function readEngineState(vehicle)
         return exports.bengines:getVehicleRPM(vehicle), exports.bengines:getVehicleGear(vehicle)
     end)
     if not ok then
-        return nil, nil
+        return 0, 0
     end
     return rpm, gear
 end
@@ -130,7 +130,7 @@ SpeedoComponent.new = function()
             return
         end
 
-        local rawRpm, gear = readEngineState(vehicle) or 0, 0
+        local rawRpm, gear = readEngineState(vehicle)
         local rpm = math.max(-165, math.min(90, math.max(0, math.min(310, ((rawRpm or 0) / 9000) * 310)) - 165))
 
         local speed = math.floor((Vector3(getElementVelocity(vehicle)) * 170).length)
