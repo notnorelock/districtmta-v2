@@ -144,15 +144,8 @@ SpeedoComponent.new = function()
             return
         end
 
-        local rawRpm, gear = readEngineState(vehicle)
-        -- bengines not running (or not yet streamed this vehicle in) -
-        -- falls back to a resting needle/neutral gear rather than
-        -- erroring or hiding the whole dial, matching how every other
-        -- optional-cross-resource read in this project degrades (see
-        -- e.g. HUDState.lua's own voiceState() falling back to a
-        -- default level when gm_voice isn't running).
+        local rawRpm, gear = readEngineState(vehicle) or 0, 0
         local rpm = math.max(-165, math.min(90, math.max(0, math.min(310, ((rawRpm or 0) / 9000) * 310)) - 165))
-        gear = gear or 0
 
         local speed = math.floor((Vector3(getElementVelocity(vehicle)) * 170).length)
 
@@ -162,14 +155,6 @@ SpeedoComponent.new = function()
         dxDrawImage(x, y, w, h, self.textures.bars, 0, 0, 0, tocolor(255, 255, 255, alphaByte))
         dxDrawImage(x, y, w, h, self.textures.numbers, 0, 0, 0, tocolor(255, 255, 255, alphaByte))
 
-        -- pointer.png is a tall, narrow needle (84x664 native) - matches
-        -- an older, unrelated project's own "compact" speedo pointer
-        -- convention (dxDrawImage(sx - w/2, sy - h/2, w, h, texture,
-        -- rotation, 0, 0) - drawn at native size with rotation around
-        -- the image's OWN center, offsets 0,0, not a shifted hinge
-        -- point), confirmed by the user against that reference script's
-        -- own gauge.png draw call. Positioned so the image's center
-        -- lands on the dial's own geometric center (x+w/2, y+h/2).
         local pointerW, pointerH = 40 / zoom, 320 / zoom
         local dialCenterX, dialCenterY = x + w / 2, y + h / 2
         dxDrawImage(
@@ -178,14 +163,6 @@ SpeedoComponent.new = function()
             tocolor(255, 255, 255, alphaByte)
         )
 
-        -- Anchored off the SAME dialCenterX/dialCenterY the needle uses
-        -- above (not the old x+185.7/zoom, y-19.5/zoom offset, which was
-        -- tuned for the previous full-rectangle pointer layout and no
-        -- longer lines up now that the needle is centered on the dial) -
-        -- sits above the needle's own hub instead of overlapping it.
-        -- "center"/"center" alignment with nil width/height (matching
-        -- the speed/km/h text below) means dialCenterX IS the text's own
-        -- horizontal center, no extra half-width math needed.
         dxDrawText(gear, dialCenterX, dialCenterY, nil, nil, tocolor(255, 100, 100, alphaByte), 1 / zoom, self.fonts.gears, "center", "center")
         dxDrawText(string.format("%03.f", speed), x + 245 / zoom, y + 180 / zoom, w + x, h + y, tocolor(255, 255, 255, alphaByte), 1.2 / zoom, self.fonts.speed, "left", "center")
         dxDrawText("km/h", x + 246 / zoom, y + 240 / zoom, w + x, h + y, tocolor(255, 255, 255, alphaByte), 0.75 / zoom, self.fonts.unit, "left", "center")
