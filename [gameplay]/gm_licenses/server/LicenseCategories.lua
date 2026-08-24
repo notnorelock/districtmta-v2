@@ -8,17 +8,42 @@
 -- LicenseExamService.lua's marker-creation loop simply skips spawning a
 -- marker for them until real coordinates + a route are added - no code
 -- changes needed later, just filling in this table.
+-- Per-category "which real vehicles does this cover" list, used ONLY by
+-- gm_vehicles_interaction's own license-category gate (via this
+-- resource's licenseServiceGetRequiredCategory export) to decide what a
+-- player needs to hold before sitting in the driver seat of a given
+-- vehicle MODEL out in the world - unrelated to vehicleModel above
+-- (which is only ever the specific exam car spawned FOR that category's
+-- own practical test). Two matching strategies, whichever fits the
+-- category better:
+--   vehicleTypes - a set of MTA getVehicleType() strings (broad classes:
+--                  "Automobile", "Bike", "Quad", ...) - fits A/B, which
+--                  are genuinely broad classes of vehicle.
+--   vehicleModels - an explicit set of model IDs - fits C/D, since MTA's
+--                  own getVehicleType() can't tell a truck or a bus
+--                  apart from a plain "Automobile".
+-- A model matching NEITHER any category's vehicleTypes NOR vehicleModels
+-- requires no license at all (e.g. bicycles, boats, aircraft - none of
+-- A/B/C/D cover those in this project, see Enums.lua's own LicenseCategory
+-- comment: A=motorcycle, B=car, C=truck, D=bus only).
 LicenseCategories = {
     [Enums.LicenseCategory.A] = {
         name = "Prawo jazdy kat. A (Motocykl)",
         vehicleModel = 461,
         fee = 500,
         route = nil,
+        vehicleTypes = { Bike = true, BMX = true, Quad = true },
     },
     [Enums.LicenseCategory.B] = {
         name = "Prawo jazdy kat. B (Samochód)",
         vehicleModel = 602, -- PLACEHOLDER: generic sedan, swap for the real driving-school car model
         fee = 0,            -- category B is free, matching the reference script
+        vehicleTypes = { Automobile = true },
+        -- PLACEHOLDER: category C/D's own vehicleModels (below) are
+        -- Automobile-type too, so they're excluded here explicitly -
+        -- licenseServiceGetRequiredCategory checks C/D's vehicleModels
+        -- BEFORE falling through to B's broader vehicleTypes match, see
+        -- that function's own comment in LicenseExamService.lua.
         route = {
             -- PLACEHOLDER COORDINATES - TODO: replace with real map
             -- positions before shipping. Every position below is a small
@@ -54,11 +79,17 @@ LicenseCategories = {
         vehicleModel = 403,
         fee = 750,
         route = nil,
+        -- PLACEHOLDER: 403 (Linerunner) only - expand with the project's
+        -- actual truck models (Roadtrain/Packer/Hauler/DFT-30/etc.) once decided.
+        vehicleModels = { [403] = true },
     },
     [Enums.LicenseCategory.D] = {
         name = "Prawo jazdy kat. D (Autobus)",
         vehicleModel = 437,
         fee = 1000,
         route = nil,
+        -- PLACEHOLDER: 437 (RoadTrain? bus) only - expand with the
+        -- project's actual bus models (Coach/Bus/Tram/etc.) once decided.
+        vehicleModels = { [437] = true },
     },
 }

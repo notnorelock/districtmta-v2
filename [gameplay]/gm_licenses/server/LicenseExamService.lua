@@ -112,6 +112,43 @@ function licenseServiceHasLicense(player, category)
     return false
 end
 
+-- Category resolution order: C/D's own vehicleModels (explicit model-ID
+-- lists) are checked BEFORE any category's vehicleTypes (broad class
+-- match) - C/D's own real vehicles (trucks/buses) are still
+-- getVehicleType() == "Automobile" same as any car, so checking B's
+-- broader vehicleTypes first would misclassify every truck/bus as a
+-- plain category-B car. See LicenseCategories.lua's own module comment.
+local CATEGORY_CHECK_ORDER = { Enums.LicenseCategory.C, Enums.LicenseCategory.D, Enums.LicenseCategory.A, Enums.LicenseCategory.B }
+
+--- @param model number a vehicle model id (getElementModel(vehicle))
+-- @return string|nil the Enums.LicenseCategory this model requires to
+--         drive, nil if it isn't covered by any category (e.g. a
+--         bicycle/boat/aircraft - none of A/B/C/D apply, see
+--         LicenseCategories.lua's own module comment) and therefore
+--         needs no license at all.
+function licenseServiceGetRequiredCategory(model)
+    if type(model) ~= "number" then
+        return nil
+    end
+
+    for _, category in ipairs(CATEGORY_CHECK_ORDER) do
+        local config = LicenseCategories[category]
+        if config then
+            if config.vehicleModels and config.vehicleModels[model] then
+                return category
+            end
+            if config.vehicleTypes then
+                local ok, vehicleType = pcall(getVehicleTypeFromModel, model)
+                if ok and vehicleType and config.vehicleTypes[vehicleType] then
+                    return category
+                end
+            end
+        end
+    end
+
+    return nil
+end
+
 --- Re-fetches every LicenseGrant for this account, filters out any
 --- category with an active suspension, and mirrors the result into
 --- ElementData.Player.LICENSES - see that key's own comment for the
@@ -594,6 +631,7 @@ local function beginPracticalExam(player, category, categoryConfig, route)
     end
 
     setElementFrozen(vehicle, true)
+    setElementData(vehicle, ElementData.Vehicle.EXAM_VEHICLE, true)
     applyExamHandling(vehicle)
     warpPedIntoVehicle(player, vehicle, 0)
 

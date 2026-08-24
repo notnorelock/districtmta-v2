@@ -107,6 +107,13 @@ ElementData = {
         -- Round-trip cache for "last_drivers" between load and save -
         -- same reasoning as UPGRADES_CACHE above.
         LAST_DRIVERS_CACHE = "vehicle:lastDriversCache",
+        -- gm_licenses: true on a temporary practical-exam vehicle
+        -- (LicenseExamService.lua's own createVehicle call) - exam
+        -- vehicles are how a player WITHOUT a license learns to drive
+        -- one, so gm_vehicles_interaction's own license-category gate
+        -- (onVehicleStartEnter) must skip them rather than locking the
+        -- examinee out of their own exam.
+        EXAM_VEHICLE = "vehicle:examVehicle",
     },
     -- gm_items: a world-dropped item's own "object" element (not the
     -- world root element gm_interactions targets) mirrors these - see

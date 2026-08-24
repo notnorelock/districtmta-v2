@@ -95,15 +95,52 @@ local function canStartEngine(player, vehicle)
     return ok and hasKey == true
 end
 
+-- Category-B/A/C/D license gate - separate from the GROUP_ID check below
+-- (a group vehicle's access is membership/rank/duty, not a license) and
+-- from canStartEngine's own VEHICLE_KEY check (a license is about being
+-- LEGALLY ALLOWED to drive this class of vehicle at all, independent of
+-- who owns the specific one). gm_licenses' own practical-exam vehicle is
+-- explicitly exempted via ElementData.Vehicle.EXAM_VEHICLE - it's the
+-- vehicle a player WITHOUT the license drives to take the exam in the
+-- first place, so gating it would make the license uncompletable.
+-- @param enteringPlayer element
+-- @param vehicle vehicle
+-- @return boolean true if enteringPlayer may sit in the driver seat
+local function canDriveWithLicense(enteringPlayer, vehicle)
+    if getElementData(vehicle, ElementData.Vehicle.EXAM_VEHICLE) == true then
+        return true
+    end
+
+    local model = getElementModel(vehicle)
+    local ok, category = pcall(function()
+        return exports.gm_licenses:licenseServiceGetRequiredCategory(model)
+    end)
+    if not ok or not category then
+        return true
+    end
+
+    local hasOk, hasLicense = pcall(function()
+        return exports.gm_licenses:licenseServiceHasLicense(enteringPlayer, category)
+    end)
+    if hasOk and hasLicense == true then
+        return true
+    end
+
+    NotificationService.send(enteringPlayer, {
+        type = Enums.NotificationType.ERROR,
+        message = "Nie posiadasz prawa jazdy kategorii " .. category .. ", aby prowadzić ten pojazd.",
+    })
+    return false
+end
+
 -- Blocks even GETTING IN as the driver of a group vehicle you have no
--- access to - not just starting its engine (canStartEngine above already
+-- access to, or any vehicle whose class you lack the license category
+-- for - not just starting its engine (canStartEngine above already
 -- covers "got in some other way, e.g. an unlocked/already-open vehicle,
 -- climbed over from a passenger seat"). Passenger seats (seat ~= 0) are
--- always left alone - a player with duty/rank access can be driven around
--- by someone who lacks it, and someone with no access at all should still
--- be able to ride along once already inside via a driver who does. Only
--- affects gm_vehicles' own GROUP-purpose vehicles (ElementData.Vehicle.GROUP_ID) -
--- everything else (private/public/temporary /veh spawns) is unrestricted here.
+-- always left alone in BOTH cases - someone lacking access/a license
+-- should still be able to ride along as a passenger driven by someone
+-- who has it.
 addEventHandler("onVehicleStartEnter", root, function(enteringPlayer, seat)
     if seat ~= 0 then
         return
@@ -111,24 +148,27 @@ addEventHandler("onVehicleStartEnter", root, function(enteringPlayer, seat)
 
     local vehicleId = getElementData(source, ElementData.Vehicle.ID)
     local groupId = getElementData(source, ElementData.Vehicle.GROUP_ID)
-    if not vehicleId or not groupId then
+    if vehicleId and groupId then
+        local ok, allowed = pcall(function()
+            return exports.gm_groups:groupServiceCanUseVehicle(enteringPlayer, vehicleId, groupId)
+        end)
+        if ok and allowed == true then
+            return
+        end
+
+        local nameOk, groupName = pcall(function() return exports.gm_groups:groupServiceGetGroupName(groupId) end)
+        local label = (nameOk and groupName) and groupName or "grupy"
+        NotificationService.send(enteringPlayer, {
+            type = Enums.NotificationType.ERROR,
+            message = "Ten pojazd należy do grupy '" .. label .. "'. Nie masz uprawnień, aby nim kierować.",
+        })
+        cancelEvent()
         return
     end
 
-    local ok, allowed = pcall(function()
-        return exports.gm_groups:groupServiceCanUseVehicle(enteringPlayer, vehicleId, groupId)
-    end)
-    if ok and allowed == true then
-        return
+    if not canDriveWithLicense(enteringPlayer, source) then
+        cancelEvent()
     end
-
-    local nameOk, groupName = pcall(function() return exports.gm_groups:groupServiceGetGroupName(groupId) end)
-    local label = (nameOk and groupName) and groupName or "grupy"
-    NotificationService.send(enteringPlayer, {
-        type = Enums.NotificationType.ERROR,
-        message = "Ten pojazd należy do grupy '" .. label .. "'. Nie masz uprawnień, aby nim kierować.",
-    })
-    cancelEvent()
 end)
 
 addEvent(Events.VEHICLE_INTERACTION_TOGGLE, true)

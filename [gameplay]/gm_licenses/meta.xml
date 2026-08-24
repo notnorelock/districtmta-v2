@@ -21,4 +21,5 @@
     <script src="client/LicenseExamState.lua" type="client" cache="false" />
 
     <export function="licenseServiceHasLicense" type="server" />
+    <export function="licenseServiceGetRequiredCategory" type="server" />
 </meta>
