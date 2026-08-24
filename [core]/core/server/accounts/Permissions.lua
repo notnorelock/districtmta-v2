@@ -36,6 +36,11 @@ Permissions.Bit = {
     -- group creation flow exists), same tier as SPAWN_VEHICLE/GIVE_ITEM's
     -- own "grant something outside the normal player flow".
     MANAGE_GROUPS = 262144,
+    -- gm_licenses' "/suspendlicense", "/unsuspendlicense" admin commands -
+    -- suspending/restoring a player's driving license category is a
+    -- staff-adjudicated action outside the normal exam flow, same tier
+    -- as MANAGE_GROUPS's own "curated, admin-adjudicated action".
+    MANAGE_LICENSES = 524288,
 }
 
 local function bitOr(...)
@@ -62,7 +67,7 @@ local MODERATOR_PERMISSIONS = bitOr(
     Permissions.Bit.VEHICLE_ADMIN,
     Permissions.Bit.GIVE_ITEM
 )
-local ADMINISTRATOR_PERMISSIONS = bitOr(MODERATOR_PERMISSIONS, Permissions.Bit.BAN, Permissions.Bit.REVOKE_PENALTY, Permissions.Bit.MANAGE_GROUPS)
+local ADMINISTRATOR_PERMISSIONS = bitOr(MODERATOR_PERMISSIONS, Permissions.Bit.BAN, Permissions.Bit.REVOKE_PENALTY, Permissions.Bit.MANAGE_GROUPS, Permissions.Bit.MANAGE_LICENSES)
 -- VIEW_STATS is RCON+/BOARD-only, deliberately not in ADMINISTRATOR_PERMISSIONS.
 local RCON_PERMISSIONS = bitOr(ADMINISTRATOR_PERMISSIONS, Permissions.Bit.SET_ROLE, Permissions.Bit.VIEW_STATS)
 

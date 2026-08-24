@@ -276,6 +276,97 @@ Events = {
     VEHICLE_REPOSITORY_REQUEST = "core:vehicleRepositoryRequest",
     VEHICLE_REPOSITORY_RESPONSE = "vehicles:vehicleRepositoryResponse",
 
+    -- Server-to-server bridge between gm_licenses (owns the handler
+    -- closure/callback) and core (owns LicenseRepository/the database) -
+    -- same requestId-correlated request/response shape as
+    -- VEHICLE_REPOSITORY_REQUEST/_RESPONSE above (see core/server/
+    -- LicenseService.lua's own METHODS table). Both fire via plain
+    -- triggerEvent (server-side Lua talking to server-side Lua in a
+    -- different resource, no player/client involved).
+    LICENSE_REPOSITORY_REQUEST = "core:licenseRepositoryRequest",
+    LICENSE_REPOSITORY_RESPONSE = "licenses:licenseRepositoryResponse",
+
+    -- Server -> localPlayer: gm_licenses/server/LicenseExamService.lua's
+    -- own exam session lifecycle, pushed into the CEF HUD by
+    -- gm_licenses/client/LicenseExamState.lua. Carries full route/
+    -- category info on start, just the current-objective text (plus an
+    -- optional remaining distance during the free-driving finish
+    -- segment) on each objective change, and a pass/fail verdict +
+    -- reason on end.
+    LICENSE_EXAM_STARTED = "licenses:examStarted",
+    LICENSE_EXAM_OBJECTIVE_UPDATED = "licenses:examObjectiveUpdated",
+    LICENSE_EXAM_ENDED = "licenses:examEnded",
+
+    -- Server -> client only (NOT CEF-bound, no PUSH_ counterpart) - purely
+    -- cosmetic camera fade around LicenseExamService.lua's own finishExam
+    -- return-teleport. See client/LicenseExamState.lua's own handlers.
+    LICENSE_EXAM_RETURN_FADE_OUT = "licenses:examReturnFadeOut",
+    LICENSE_EXAM_RETURN_FADE_IN = "licenses:examReturnFadeIn",
+
+    -- Server -> client only (NOT CEF-bound, no PUSH_ counterpart) - the
+    -- practical exam's CURRENT checkpoint target changed (activated, or
+    -- the exam ended/aborted). client/LicenseExamState.lua owns
+    -- creating/destroying the actual createMarker/createBlip pair from
+    -- this, so it's private to the examinee only (a server-created
+    -- marker has no visibility-scoping parameter, unlike createBlip's
+    -- own visibleTo - see LicenseExamService.lua's own module comment).
+    -- Hit detection stays entirely server-side
+    -- (LicenseExamService.lua's own colshape + onColShapeHit) - this
+    -- event is PURE display data, never trusted for anything gating
+    -- progress/pass-fail.
+    LICENSE_EXAM_CHECKPOINT_ACTIVATED = "licenses:examCheckpointActivated",
+    LICENSE_EXAM_CHECKPOINT_CLEARED = "licenses:examCheckpointCleared",
+
+    -- Pushed into the CEF HUD once the three exam-lifecycle events above arrive.
+    PUSH_LICENSE_EXAM_STARTED = "licenses.examStarted",
+    PUSH_LICENSE_EXAM_OBJECTIVE_UPDATED = "licenses.examObjectiveUpdated",
+    PUSH_LICENSE_EXAM_ENDED = "licenses.examEnded",
+
+    -- Server -> client: marker-hit opens the info+quiz CEF dialog (name/
+    -- fee/description/cooldown); leaving the marker before paying, or a
+    -- quiz fail, closes it. Mirrors VEHICLE_STORAGE_OPEN/_CLOSE exactly.
+    LICENSE_EXAM_DIALOG_OPEN = "licenses:examDialogOpen",
+    LICENSE_EXAM_DIALOG_CLOSE = "licenses:examDialogClose",
+    PUSH_LICENSE_EXAM_DIALOG_OPEN = "licenses.examDialogOpen",
+    -- CEF -> client Lua only: player clicked "Zamknij" on the info
+    -- screen (before paying/starting the quiz - the quiz screen itself
+    -- has no close button, see LicenseExamDialog.tsx's own comment).
+    -- Never reaches the server - nothing server-side has committed yet
+    -- at this point (playersInMarker[player] simply stays set; walking
+    -- into the marker again re-opens the same info screen). Purely a
+    -- client-side uiHideOverlay, same mta.notify()-fires-a-plain-Lua-
+    -- event mechanism as LICENSE_EXAM_DIALOG_START below.
+    LICENSE_EXAM_DIALOG_DISMISS = "licenses:examDialogDismiss",
+
+    -- CEF -> client Lua -> server: player clicked "Rozpocznij" (pays the
+    -- fee, receives a sampled quiz question set back) and, separately,
+    -- submitted quiz answers. mta.notify() on the CEF side fires a plain
+    -- client-side Lua event of this exact name (see
+    -- gm_licenses/client/LicenseExamState.lua's own comment) - not a Lua
+    -- export function call.
+    LICENSE_EXAM_DIALOG_START = "licenses:examDialogStart",
+    -- One question at a time (step-by-step quiz, not a batch) - payload
+    -- carries questionNumber/totalQuestions/question/remainingSeconds,
+    -- see LicenseExamService.lua's own LICENSE_QUIZ_ANSWER handler.
+    LICENSE_QUIZ_QUESTIONS_RECEIVED = "licenses:quizQuestionsReceived",
+    PUSH_LICENSE_QUIZ_QUESTIONS = "licenses.quizQuestionsReceived",
+    -- Client -> server: the player answered the CURRENT question only
+    -- (category, answerIndex) - not a batch submit. Extends the shared
+    -- quiz clock and advances to the next question, or grades the full
+    -- set if this was the last one. See LicenseExamService.lua's own
+    -- pendingQuiz.deadlineTick comment for the server-authoritative
+    -- countdown this drives.
+    LICENSE_QUIZ_ANSWER = "licenses:quizAnswer",
+    LICENSE_QUIZ_RESULT = "licenses:quizResult",
+    PUSH_LICENSE_QUIZ_RESULT = "licenses.quizResult",
+    -- Client-Lua-only local ticker push (LicenseExamState.lua's own
+    -- startQuizTicker) - display-only smoothing between real server
+    -- pushes, exact GroupDutyState.lua/PUSH_GROUP_DUTY_SYNC shape. Never
+    -- crosses back to the server - the server's own pendingQuiz.deadlineTick
+    -- is the sole timeout authority, this can drift freely and
+    -- self-corrects on the next real question push.
+    PUSH_LICENSE_QUIZ_TICK = "licenses.quizTick",
+
     -- Server-to-server bridge between gm_groups (owns the handler
     -- closure/callback) and core (owns GroupRepository/GroupRankRepository/
     -- GroupMemberRepository/the database) - same requestId-correlated

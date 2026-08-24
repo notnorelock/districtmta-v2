@@ -58,6 +58,21 @@ ElementData = {
         -- status directly, the same zero-dependency way it already reads
         -- ADMIN, instead of needing a cross-resource call into gm_groups.
         GROUP_DUTY = "player:groupDuty",
+
+        -- Holds an array of granted license category strings (e.g.
+        -- {"A","B"}, Enums.LicenseCategory values) the player currently
+        -- holds AND is not suspended from, or is absent entirely if none
+        -- granted - same presence-check convention as GROUP_DUTY above
+        -- (type(x) == "table", never ~= nil). A category can be granted
+        -- but currently suspended - suspended categories are OMITTED
+        -- from this array while the suspension is active
+        -- (gm_licenses/server/LicenseExamService.lua's resyncElementData
+        -- re-syncs this on login/grant/suspend/unsuspend), so any other
+        -- resource reading this key directly (e.g. a future
+        -- gm_vehicles_interaction "needs license to drive" gate) never
+        -- needs to know suspension exists as its own concept - "in this
+        -- array" already means "currently allowed to drive this category".
+        LICENSES = "player:licenses",
     },
     Account = {
         PREMIUM = "account:premium",

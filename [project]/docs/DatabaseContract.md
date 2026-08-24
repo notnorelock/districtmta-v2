@@ -485,6 +485,57 @@ with the existing `gm_vehicles`) exist today - a fishing-rod-style
 ported since it depended on a job/fishing system this project doesn't
 have, per `Architecture.md`'s "Adding a new system" section.
 
+### License grants / suspensions tables
+
+```
+license_grants
+  id                     BIGINT AUTO_INCREMENT primary key
+  account_id             BIGINT not null references accounts(id)
+  category               ENUM('A','B','C','D') not null
+  granted_at             TIMESTAMP default CURRENT_TIMESTAMP
+
+license_suspensions
+  id                       BIGINT AUTO_INCREMENT primary key
+  account_id               BIGINT not null references accounts(id)
+  category                 ENUM('A','B','C','D') not null
+  reason                   VARCHAR(255) nullable
+  issued_by_account_id     BIGINT nullable references accounts(id)
+  expires_at               TIMESTAMP nullable   -- NULL = indefinite, until manually revoked
+  revoked_at               TIMESTAMP nullable   -- non-NULL = an admin lifted it early via /unsuspendlicense
+  created_at               TIMESTAMP default CURRENT_TIMESTAMP
+```
+
+Owned by `gm_licenses` (a `[gameplay]/` resource), NOT `core` - same
+"`core` only holds the model/repository, the owning resource reaches it
+through an event bridge" split `vehicles`/`items` above use. `core/
+server/LicenseService.lua` is the bridge dispatcher (mirrors `core/
+server/VehicleService.lua` exactly); `gm_licenses/server/LicenseBridge.lua`
+is the calling side.
+
+`license_grants` is one row per `(account_id, category)` the account has
+passed the driving exam for - no DB-level UNIQUE constraint (`Schema.lua`'s
+column DSL has no concept of one), so re-granting an already-held
+category is rejected at the service layer (`LicenseExamService.lua`'s own
+eligibility check before an exam can even start), never here.
+
+`license_suspensions` mirrors `account_penalties`' own shape exactly
+(`reason`/`issued_by_account_id`/`expires_at`/`revoked_at`) - a
+suspension is never hard-deleted (audit trail), `revoked_at` marks an
+early admin lift the same way `account_penalties.revoked_at` does for a
+ban/mute. A category can have more than one suspension row over time,
+but at most one ACTIVE one in practice (not revoked, not naturally
+expired) - `LicenseRepository.findActiveSuspensions` fetches every
+non-revoked row for an account+category and filters expiry in Lua,
+mirroring `AccountPenaltyRepository.findActiveByType`'s own idiom.
+
+A player's currently-usable categories are mirrored into
+`ElementData.Player.LICENSES` (an array of granted-AND-not-suspended
+category strings) on login, grant, suspend, and unsuspend
+(`LicenseExamService.lua`'s `resyncElementData`) - any resource can read
+a player's licenses directly with no cross-resource call, the same
+zero-dependency pattern `ElementData.Player.GROUP_DUTY` already
+establishes for group duty status.
+
 ## What a new adapter must NOT do (if the backend ever changes again)
 
 - Must not change any repository/model's SQL expectations (`?`-style

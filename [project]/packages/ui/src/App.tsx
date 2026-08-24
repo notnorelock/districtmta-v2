@@ -20,6 +20,8 @@ import { WorldMapOverlay } from "@/features/worldMap/WorldMapOverlay";
 import { GroupPanelOverlay } from "@/features/groups/GroupPanelOverlay";
 import { DutyIndicator } from "@/features/groups/DutyIndicator";
 import { GroupInviteToast } from "@/features/groups/GroupInviteToast";
+import { LicenseExamHud } from "@/features/licenses/LicenseExamHud";
+import { LicenseExamDialog } from "@/features/licenses/LicenseExamDialog";
 import { Watermark } from "@/components/common/Watermark";
 import { authStore } from "@/stores/auth.store";
 import { mta } from "@/lib/mta/MtaBridge";
@@ -65,6 +67,10 @@ const AppContent: Component = () => {
               in/out together with the rest of the HUD instead of using
               its own separate transition. */}
           <DutyIndicator />
+          {/* Docked in the SAME bottom-right corner as HudBar/DutyIndicator
+              (stacked one step further up) - bottom-left was overlapping
+              MTA's own minimap, see LicenseExamHud.module.scss's own comment. */}
+          <LicenseExamHud />
         </div>
       </Overlay>
 
@@ -105,6 +111,13 @@ const AppContent: Component = () => {
           toggled by gm_groups while G is pressed - see
           GroupPanelOverlay.tsx's own comment. */}
       <GroupPanelOverlay />
+      {/* Uses its own "licenseExam" overlay key (Overlay name prop),
+          opened/closed by gm_licenses while standing inside a driving
+          license category's marker - see LicenseExamDialog.tsx's own
+          comment. Not to be confused with LicenseExamHud above, which is
+          always-mounted and only activates once the PRACTICAL exam
+          (after this dialog's own quiz is passed) begins driving. */}
+      <LicenseExamDialog />
       {/* Not gated behind any overlay key - always mounted, purely driven
           by group.store.ts's pendingInvites slice, same reasoning as
           DutyIndicator above - an invite must surface even if the group

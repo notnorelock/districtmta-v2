@@ -176,4 +176,16 @@ export const en: Record<keyof typeof pl, string> = {
   "groups.vehicle.ranksCount": "ranks have access",
   "groups.vehicle.noRanks": "No access - click to set ranks",
   "groups.vehicle.ranksTitle": "Ranks with vehicle access",
+
+  "licenses.dialog.defaultTitle": "Driver's License Exam",
+  "licenses.dialog.description": "To earn this license, you must first pass the written test, then the driving test.",
+  "licenses.dialog.fee": "Exam fee",
+  "licenses.dialog.feeFree": "Free",
+  "licenses.dialog.cooldown": "You failed the last test. Try again in {time}.",
+  "licenses.dialog.cooldownMinute": "1 minute",
+  "licenses.dialog.cooldownMinutes": "{count} minutes",
+  "licenses.dialog.start": "Start",
+  "licenses.dialog.close": "Close",
+  "licenses.dialog.next": "Next",
+  "licenses.dialog.questionProgress": "Question {current} of {total}",
 };

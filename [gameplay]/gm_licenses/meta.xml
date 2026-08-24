@@ -1,0 +1,24 @@
+<meta>
+    <info
+        author="norelock"
+        version="1.0.0"
+        type="script"
+    />
+    <download_priority_group>3</download_priority_group>
+
+    <include resource="core_shared" />
+    <include resource="core" />
+    <include resource="core_ui" />
+
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/LicenseBridge.lua" type="server" cache="false" />
+    <script src="server/LicenseCategories.lua" type="server" cache="false" />
+    <script src="server/LicenseQuizzes.lua" type="server" cache="false" />
+    <script src="server/LicenseExamService.lua" type="server" cache="false" />
+    <script src="server/LicenseCommands.lua" type="server" cache="false" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/LicenseExamState.lua" type="client" cache="false" />
+
+    <export function="licenseServiceHasLicense" type="server" />
+</meta>

@@ -44,7 +44,7 @@ export const HudBar: Component = () => {
   onCleanup(() => window.clearTimeout(hideTimer));
 
   return (
-    <div class={styles.bar}>
+    <div class={styles.bar} style={{ bottom: `calc(1rem + ${hudStore.speedoLiftPx()}px)` }}>
       {/* Every icon lives inside this one TransitionGroup, each wrapped in
           its own <Show> - not just the drowning icon - so any icon that
           starts/stops being conditionally shown (now or later) gets the

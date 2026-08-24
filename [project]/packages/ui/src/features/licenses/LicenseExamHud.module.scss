@@ -1,0 +1,53 @@
+@reference "../../styles/globals.css";
+
+// SAME corner as the rest of the HUD cluster (HudBar's own bottom-4
+// right-4, DutyIndicator's own bottom-18 right-4) - bottom-LEFT (an
+// earlier position here) is where MTA's own minimap renders, which this
+// was overlapping.
+//
+// Two variants, picked in LicenseExamHud.tsx by whether DutyIndicator is
+// also showing (groupStore.duty.active()):
+//   .dock        - directly above HudBar's own row (bottom-18, exactly
+//                  where DutyIndicator itself would sit) - used when
+//                  DutyIndicator is ABSENT, so this card doesn't float
+//                  above an empty gap.
+//   .dockRaised  - one step further up (DutyIndicator's own bottom-18 +
+//                  its pill+hint height) - used when DutyIndicator IS
+//                  showing, so the two stack without overlapping.
+.dock {
+  @apply pointer-events-none fixed bottom-18 right-4 z-40 flex flex-col items-end gap-1;
+  // bottom-18/.dockRaised's own bottom-32 are restated as the inline
+  // style's own base in LicenseExamHud.tsx (calc(4.5rem|8rem + liftPx))
+  // - see HudBar.module.scss's own .bar comment for why this transition
+  // exists.
+  transition: bottom 0.3s ease;
+}
+
+.dockRaised {
+  @apply pointer-events-none fixed bottom-32 right-4 z-40 flex flex-col items-end gap-1;
+  transition: bottom 0.3s ease;
+}
+
+.card {
+  @apply pointer-events-auto flex max-w-72 items-center gap-2 rounded-xl border border-white/10 bg-popover px-2.5 py-1.5 font-display shadow-lg;
+}
+
+.icon {
+  @apply flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-white;
+}
+
+.info {
+  @apply flex min-w-0 flex-col leading-tight;
+}
+
+.categoryName {
+  @apply max-w-56 truncate text-xs font-semibold text-foreground;
+}
+
+.objective {
+  @apply max-w-56 truncate text-[10px] text-muted-foreground;
+}
+
+.remaining {
+  @apply shrink-0 border-l border-white/10 pl-2 font-mono text-xs font-semibold text-foreground;
+}

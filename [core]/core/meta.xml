@@ -6,6 +6,8 @@
         type="script"
     />
 
+    <script src="gp.lua" type="shared" />>
+
     <include resource="core_shared" />
 
     <settings>
@@ -38,6 +40,8 @@
     <script src="server/database/models/GroupMember.lua" type="server" cache="false" />
     <script src="server/database/models/GroupInvite.lua" type="server" cache="false" />
     <script src="server/database/models/GroupVehicleRank.lua" type="server" cache="false" />
+    <script src="server/database/models/LicenseGrant.lua" type="server" cache="false" />
+    <script src="server/database/models/LicenseSuspension.lua" type="server" cache="false" />
     <script src="server/database/repositories/AccountRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/AccountPenaltyRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/ReportRepository.lua" type="server" cache="false" />
@@ -50,6 +54,7 @@
     <script src="server/database/repositories/GroupMemberRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/GroupInviteRepository.lua" type="server" cache="false" />
     <script src="server/database/repositories/GroupVehicleRankRepository.lua" type="server" cache="false" />
+    <script src="server/database/repositories/LicenseRepository.lua" type="server" cache="false" />
     <script src="server/database/adapters/MySqlAdapter.lua" type="server" cache="false" />
     <script src="server/database/adapters/MySqlAdapterBootstrap.lua" type="server" cache="false" />
 
@@ -58,6 +63,7 @@
     <script src="server/VehicleService.lua" type="server" cache="false" />
     <script src="server/ItemService.lua" type="server" cache="false" />
     <script src="server/GroupService.lua" type="server" cache="false" />
+    <script src="server/LicenseService.lua" type="server" cache="false" />
     <script src="server/SecurityService.lua" type="server" cache="false" />
     <script src="server/SessionKeyService.lua" type="server" cache="false" />
 

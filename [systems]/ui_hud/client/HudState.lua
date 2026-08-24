@@ -54,6 +54,12 @@ local lastOxygenPercent = 100
 local lastInWater = false
 local lastVoiceActive = false
 local lastVoiceLevel = DEFAULT_VOICE_LEVEL
+-- ui_hud's own native SpeedoComponent visibility (isSpeedoVisible is
+-- Bootstrap.lua's own global, same resource) - lets the CEF HUD stack
+-- (HudBar/DutyIndicator/LicenseExamHud) shift above the dial exactly
+-- while it's showing, same role radarVisible/radarPosition already play
+-- for VoiceIndicator.tsx's own dock position.
+local lastSpeedoVisible = false
 local lastUpdateTick = 0
 -- Tick of the last actual uiPushEvent (not the last trackStateChanged()
 -- detection) - see MIN_PUSH_INTERVAL_MS's own comment.
@@ -113,6 +119,7 @@ local function resetTrackedState()
     lastInWater = false
     lastVoiceActive = false
     lastVoiceLevel = DEFAULT_VOICE_LEVEL
+    lastSpeedoVisible = false
 end
 
 local function trackStateChanged()
@@ -120,9 +127,11 @@ local function trackStateChanged()
     local oxygenPct = oxygenPercent()
     local inWater = isElementInWater(localPlayer)
     local voiceActive, voiceLevel = voiceState()
+    local speedoVisible = isSpeedoVisible()
 
     if health == lastHealth and oxygenPct == lastOxygenPercent and inWater == lastInWater
-        and voiceActive == lastVoiceActive and voiceLevel == lastVoiceLevel then
+        and voiceActive == lastVoiceActive and voiceLevel == lastVoiceLevel
+        and speedoVisible == lastSpeedoVisible then
         return false
     end
 
@@ -131,6 +140,7 @@ local function trackStateChanged()
     lastInWater = inWater
     lastVoiceActive = voiceActive
     lastVoiceLevel = voiceLevel
+    lastSpeedoVisible = speedoVisible
     return true
 end
 
@@ -142,6 +152,7 @@ HUD.pushHudState = function(force)
         lastOxygenPercent = oxygenPercent()
         lastInWater = isElementInWater(localPlayer)
         lastVoiceActive, lastVoiceLevel = voiceState()
+        lastSpeedoVisible = isSpeedoVisible()
         lastUpdateTick = getTickCount()
     end
 
@@ -173,6 +184,13 @@ HUD.pushHudState = function(force)
         -- "false means not ready" convention getRadarPosition() itself uses.
         radarVisible = isRadarVisible(),
         radarPosition = radarX and { x = radarX, y = radarY, w = radarW, h = radarH } or false,
+        speedoVisible = lastSpeedoVisible,
+        -- Zoom-adjusted px, same "real dxDraw px, CEF renders 1:1"
+        -- convention radarPosition's w/h already use - always sent (not
+        -- gated behind speedoVisible) so the CEF side has a real number
+        -- to animate the offset TO before the field flips true, avoiding
+        -- a 0->390 snap on the same frame visibility turns on.
+        speedoHeight = getSpeedoHeight(),
     })
 end
 

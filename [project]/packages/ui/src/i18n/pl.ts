@@ -174,4 +174,16 @@ export const pl = {
   "groups.vehicle.ranksCount": "rang ma dostęp",
   "groups.vehicle.noRanks": "Brak dostępu - kliknij, aby ustawić rangi",
   "groups.vehicle.ranksTitle": "Rangi z dostępem do pojazdu",
+
+  "licenses.dialog.defaultTitle": "Egzamin na prawo jazdy",
+  "licenses.dialog.description": "Aby otrzymać to prawo jazdy, musisz najpierw zaliczyć test teoretyczny, a następnie zdać egzamin praktyczny.",
+  "licenses.dialog.fee": "Koszt egzaminu",
+  "licenses.dialog.feeFree": "Bezpłatnie",
+  "licenses.dialog.cooldown": "Nie zdałeś ostatniego testu. Spróbuj ponownie za {time}.",
+  "licenses.dialog.cooldownMinute": "1 minutę",
+  "licenses.dialog.cooldownMinutes": "{count} minut",
+  "licenses.dialog.start": "Rozpocznij",
+  "licenses.dialog.close": "Zamknij",
+  "licenses.dialog.next": "Dalej",
+  "licenses.dialog.questionProgress": "Pytanie {current} z {total}",
 } as const;

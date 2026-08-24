@@ -2,6 +2,7 @@ import { type Component, Show } from "solid-js";
 import { Shield } from "lucide-solid";
 import { t } from "@/i18n";
 import { groupStore } from "@/stores/group.store";
+import { hudStore } from "@/stores/hud.store";
 import styles from "./DutyIndicator.module.scss";
 
 const TYPE_COLOR: Record<string, string> = {
@@ -33,7 +34,13 @@ export const DutyIndicator: Component = () => {
   return (
     <Show when={groupStore.duty.active() && groupStore.duty.info()}>
       {(info) => (
-        <div class={styles.dock} style={{ "--duty-color": TYPE_COLOR[info().groupType] ?? TYPE_COLOR.organization }}>
+        <div
+          class={styles.dock}
+          style={{
+            "--duty-color": TYPE_COLOR[info().groupType] ?? TYPE_COLOR.organization,
+            bottom: `calc(4.5rem + ${hudStore.speedoLiftPx()}px)`,
+          }}
+        >
           <div class={styles.pill}>
             <div class={styles.icon}>
               <Shield size={16} />

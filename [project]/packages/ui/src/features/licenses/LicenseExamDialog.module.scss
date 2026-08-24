@@ -1,0 +1,76 @@
+@reference "../../styles/globals.css";
+
+// Same centered-panel idiom as VehicleStorageOverlay.module.scss's own
+// .root/.panel - pointer-events-none on root so clicks only reach the
+// panel itself.
+.root {
+  @apply pointer-events-none fixed inset-0 z-40 flex items-center justify-center;
+}
+
+.panel {
+  @apply pointer-events-auto flex max-h-[80vh] w-110 max-w-[92vw] flex-col overflow-hidden rounded-xl border border-border bg-popover/95 font-display shadow-lg;
+}
+
+.header {
+  @apply flex items-center justify-between gap-2 border-b border-border px-4 py-3 text-foreground;
+}
+
+.headerTitle {
+  @apply flex items-center gap-2;
+}
+
+.title {
+  @apply text-sm font-semibold;
+}
+
+.closeButton {
+  @apply flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+}
+
+.body {
+  @apply flex flex-1 flex-col gap-3 overflow-y-auto p-4;
+}
+
+.description {
+  @apply text-sm text-muted-foreground;
+}
+
+.feeRow {
+  @apply flex items-center justify-between rounded-lg border border-border bg-secondary/20 px-3 py-2 text-sm text-foreground;
+}
+
+.feeValue {
+  @apply font-mono font-semibold;
+}
+
+.cooldown {
+  @apply text-xs text-destructive;
+}
+
+.startButton {
+  @apply mt-1 w-full;
+}
+
+.quizProgressRow {
+  @apply flex items-center justify-between text-xs text-muted-foreground;
+}
+
+.quizProgress {
+  @apply font-medium;
+}
+
+.quizClock {
+  @apply font-mono text-sm font-bold text-foreground;
+}
+
+.question {
+  @apply flex flex-col gap-2;
+}
+
+.questionText {
+  @apply text-sm font-medium text-foreground;
+}
+
+.answerList {
+  @apply flex flex-col gap-1.5 pl-1;
+}

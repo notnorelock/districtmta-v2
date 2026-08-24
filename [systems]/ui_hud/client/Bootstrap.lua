@@ -12,6 +12,7 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
     hud:addComponent(FPSComponent.new())
     hud:addComponent(RadarComponent.new())
     hud:addComponent(NotificationsComponent.new())
+    hud:addComponent(SpeedoComponent.new())
 end)
 
 addEventHandler("onClientResourceStop", resourceRoot, function()
@@ -81,4 +82,25 @@ function getRadarPosition()
     if not radar then return false end
 
     return radar:getPosition()
+end
+
+--- @return boolean
+function isSpeedoVisible()
+    if not hud then return false end
+    local speedo = hud:getComponent("SpeedoComponent")
+    if not speedo then return false end
+
+    return speedo:isVisible()
+end
+
+--- @return number the speedo's own configured height (px, zoom-adjusted -
+--         see SpeedoComponent.lua's own self.height) - 0 if the
+--         component isn't ready yet, so a caller can safely use this as
+--         an offset without a separate nil-check.
+function getSpeedoHeight()
+    if not hud then return 0 end
+    local speedo = hud:getComponent("SpeedoComponent")
+    if not speedo then return 0 end
+
+    return speedo.height
 end

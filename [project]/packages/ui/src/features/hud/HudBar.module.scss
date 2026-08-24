@@ -6,6 +6,13 @@
 
 .bar {
   @apply pointer-events-none fixed bottom-4 right-4 z-40 flex items-center gap-2;
+  // bottom-4's own value (1rem) is restated as the inline style's own
+  // base in HudBar.tsx (calc(1rem + liftPx)) - this Tailwind utility
+  // still supplies the DEFAULT before the inline style is computed on
+  // first paint, the transition here is what makes that inline override
+  // (see HudBar.tsx's own hudStore.speedoLiftPx()) glide smoothly
+  // instead of snapping when the speedo shows/hides.
+  transition: bottom 0.3s ease;
 }
 
 // .bar itself stays pointer-events-none (a HUD element floating over

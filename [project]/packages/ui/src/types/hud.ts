@@ -26,4 +26,8 @@ export interface HudStats {
   radarVisible: boolean;
   /** false whenever the native RadarComponent isn't ready yet - same "false means not ready" convention Bootstrap.lua's own getRadarPosition() uses */
   radarPosition: RadarPosition | false;
+  /** ui_hud's native SpeedoComponent visibility (shows only while the local player is in a vehicle) - lets the bottom-right CEF stack (HudBar/DutyIndicator/LicenseExamHud) shift above it */
+  speedoVisible: boolean;
+  /** The speedo dial's own real height in px (zoom-adjusted, same 1:1 dxDraw-to-CEF-px convention radarPosition already uses) - sent even while speedoVisible is false, so the offset can animate smoothly to/from a real number instead of snapping */
+  speedoHeight: number;
 }

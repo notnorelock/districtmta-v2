@@ -12,7 +12,7 @@ import styles from "./ItemToast.module.scss";
 // no animation at all - confirmed with the user: scroll-bouncing a name
 // that only barely overflowed one line read as unnecessary/distracting,
 // wrapping is legible on its own for anything this short.
-const MARQUEE_THRESHOLD_CHARS = 22;
+const MARQUEE_THRESHOLD_CHARS = 32;
 
 /**
  * Bottom-center "you gained/lost an item" toast stack, FiveM-style - a

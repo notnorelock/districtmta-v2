@@ -56,6 +56,19 @@ Enums = {
     -- reasoning as gm_blackout's medic TODO) and are deliberately NOT
     -- included here; add them only once the system they depend on
     -- actually exists, per docs/Architecture.md's "Adding a new system" section.
+    -- Driving license categories (gm_licenses) - A=motorcycle, B=car,
+    -- C=truck, D=bus. Persisted as LicenseGrant.category/
+    -- LicenseSuspension.category, mirrored into ElementData.Player.LICENSES
+    -- as an array of these strings. Per-category fee/vehicle/route config
+    -- is NOT here - resource-local to gm_licenses (see its own
+    -- server/LicenseCategories.lua module comment for why).
+    LicenseCategory = {
+        A = "A",
+        B = "B",
+        C = "C",
+        D = "D",
+    },
+
     VehiclePurpose = {
         PRIVATE = "private",
         PUBLIC = "public",
