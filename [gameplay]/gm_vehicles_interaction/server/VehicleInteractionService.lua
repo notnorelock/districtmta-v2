@@ -142,7 +142,12 @@ end
 -- should still be able to ride along as a passenger driven by someone
 -- who has it.
 addEventHandler("onVehicleStartEnter", root, function(enteringPlayer, seat)
-    if seat ~= 0 then
+    if seat ~= 0 and isVehicleLocked(source) then
+        NotificationService.send(enteringPlayer, {
+            type = Enums.NotificationType.ERROR,
+            message = "Pojazd jest zamknięty.",
+        })
+        cancelEvent()
         return
     end
 
@@ -161,6 +166,15 @@ addEventHandler("onVehicleStartEnter", root, function(enteringPlayer, seat)
         NotificationService.send(enteringPlayer, {
             type = Enums.NotificationType.ERROR,
             message = "Ten pojazd należy do grupy '" .. label .. "'. Nie masz uprawnień, aby nim kierować.",
+        })
+        cancelEvent()
+        return
+    end
+
+    if isVehicleLocked(source) then
+        NotificationService.send(enteringPlayer, {
+            type = Enums.NotificationType.ERROR,
+            message = "Pojazd jest zamknięty. Użyj kluczyka aby go otworzyć i wsiąść.",
         })
         cancelEvent()
         return
