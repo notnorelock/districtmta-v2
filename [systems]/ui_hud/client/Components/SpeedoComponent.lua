@@ -65,6 +65,14 @@ SpeedoComponent.new = function()
 
     self.fading = nil
 
+    -- Set only by Bootstrap.lua's own setSpeedoVisible(false) (e.g.
+    -- gm_worldmap's openMap() hiding the whole HUD) - update() below
+    -- self-drives visibility from vehicle occupancy every frame, which
+    -- would otherwise immediately re-show() the dial the very next
+    -- frame after an external hide() call, since being in a vehicle
+    -- doesn't change just because the world map opened on top of it.
+    self.suppressed = false
+
     function self:show(duration)
         self.visible = true
 
@@ -99,6 +107,10 @@ SpeedoComponent.new = function()
     end
 
     function self:update()
+        if self.suppressed then
+            return
+        end
+
         local vehicle = getPedOccupiedVehicle(localPlayer)
 
         if vehicle and not self.visible and self.fading ~= "in" then

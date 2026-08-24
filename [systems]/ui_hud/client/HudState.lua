@@ -202,6 +202,7 @@ HUD.start = function()
     -- radar this replaces, so without this call there would be no radar
     -- at all after spawning.
     setRadarVisible(true)
+    setSpeedoVisible(true)
     if active then return end
 
     for _, v in ipairs(GTA_COMPONENTS) do
@@ -215,6 +216,7 @@ end
 
 HUD.stop = function()
     setRadarVisible(false)
+    setSpeedoVisible(false)
     if not active then return end
 
     exports.core_ui:uiHideOverlay(HUD_OVERLAY)

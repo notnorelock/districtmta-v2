@@ -48,7 +48,7 @@ addEventHandler(Events.NOTIFICATION_SHOW, resourceRoot, function(notificationTyp
     triggerEvent("onClientShowNotification", root, category, message or title, { title = title })
 end)
 
-local DEFAULT_TOGGLE_DURATION = 500
+local DEFAULT_TOGGLE_DURATION = 200
 
 --- @param visible boolean
 -- @return boolean the radar's new visibility (false if the radar component isn't ready yet)
@@ -89,6 +89,35 @@ function isSpeedoVisible()
     if not hud then return false end
     local speedo = hud:getComponent("SpeedoComponent")
     if not speedo then return false end
+
+    return speedo:isVisible()
+end
+
+-- Unlike setRadarVisible, "visible" here is only ever a permission to
+-- show the dial, not a command to - the dial's own update() self-drives
+-- moment-to-moment visibility from vehicle occupancy every frame (see
+-- SpeedoComponent.lua's own update()), which would otherwise immediately
+-- undo an external hide() the very next frame (e.g. gm_worldmap's
+-- openMap() -> setHUDVisible(false) -> HUD.stop() -> setSpeedoVisible(false),
+-- while the player is still sitting in a vehicle behind the map). Setting
+-- speedo.suppressed makes update() stand down entirely while the caller
+-- wants it hidden; visible=true clears the suppression and lets update()
+-- resume deciding for itself from vehicle occupancy, rather than forcing
+-- the dial on for a player who isn't even driving.
+function setSpeedoVisible(visible)
+    if not hud then return false end
+    local speedo = hud:getComponent("SpeedoComponent")
+    if not speedo then return false end
+
+    if visible then
+        speedo.suppressed = false
+        if getPedOccupiedVehicle(localPlayer) then
+            speedo:show(DEFAULT_TOGGLE_DURATION)
+        end
+    else
+        speedo.suppressed = true
+        speedo:hide(DEFAULT_TOGGLE_DURATION)
+    end
 
     return speedo:isVisible()
 end
