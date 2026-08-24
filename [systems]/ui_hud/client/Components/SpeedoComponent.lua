@@ -1,17 +1,3 @@
--- Vehicle speedometer/tachometer dial (bars/numbers/pointer texture
--- stack + gear/speed text + engine/handbrake/lights status icons) -
--- ported from an older, unrelated project's own reference speedo.lua
--- (raw onClientRender/onClientResourceStart handlers, no component
--- shape at all) into this project's own HUDComponent/HUDBase pattern
--- (see HUDComponent.lua's own module comment) so it fades in/out and
--- gets driven by HUDBase's render()/update() loop exactly like every
--- other dxDraw HUD piece. RPM comes from [community]/bengines' own
--- getVehicleRPM/getVehicleGear exports (a real engine-simulation
--- resource already present in this project, unlike the reference
--- script's own environment where these two were assumed to just exist)
--- - both fire-and-forget cross-resource reads, same pcall-wrapped
--- "resource might not be running" guard every other cross-resource
--- export call in this project uses.
 SpeedoComponent = SpeedoComponent or {}
 
 local function getUIScale()
@@ -22,8 +8,6 @@ local function getUIFont(name)
     return exports.core_ui:getUIFont(name)
 end
 
---- @param vehicle vehicle
--- @return number|nil rpm, number|nil gear - nil, nil if bengines isn't running
 local function readEngineState(vehicle)
     local ok, rpm, gear = pcall(function()
         return exports.bengines:getVehicleRPM(vehicle), exports.bengines:getVehicleGear(vehicle)
@@ -79,18 +63,8 @@ SpeedoComponent.new = function()
         }
     end
 
-    -- Tracks whether a show()/hide() fade is currently in flight, SEPARATE
-    -- from self.visible (which only flips to false once a hide() fade
-    -- actually finishes, see hide()'s own onEnd) - update() below needs
-    -- this to only ever call show()/hide() ONCE per vehicle enter/exit,
-    -- not every single frame while the fade is still running (self.alpha
-    -- alone can't distinguish "still fading" from "should start fading").
     self.fading = nil
 
-    -- Overrides HUDComponent's own plain field-set setVisible - matches
-    -- RadarComponent's own show/hide(duration) convention (fade via
-    -- AnimationManager, not an instant flag flip) rather than
-    -- HUDComponent's own default setAlpha-less setVisible.
     function self:show(duration)
         self.visible = true
 
