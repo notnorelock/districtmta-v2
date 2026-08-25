@@ -367,6 +367,46 @@ Events = {
     -- self-corrects on the next real question push.
     PUSH_LICENSE_QUIZ_TICK = "licenses.quizTick",
 
+    -- Server-to-server bridge between gm_settings (owns the handler
+    -- closure/callback) and core (owns SettingsRepository/the database) -
+    -- same requestId-correlated request/response shape as
+    -- LICENSE_REPOSITORY_REQUEST/_RESPONSE above (see core/server/
+    -- SettingsService.lua's own METHODS table). Both fire via plain
+    -- triggerEvent (server-side Lua talking to server-side Lua in a
+    -- different resource, no player/client involved).
+    SETTINGS_REPOSITORY_REQUEST = "core:settingsRepositoryRequest",
+    SETTINGS_REPOSITORY_RESPONSE = "settings:settingsRepositoryResponse",
+
+    -- Client -> server: player toggled one setting (checkbox flip) in the
+    -- CEF panel - { id, enabled }. Server re-validates `id` against
+    -- gm_settings/server/SettingsRegistry.lua's own known-id whitelist
+    -- (never trusts an arbitrary string from the panel), applies the
+    -- matching client-side effect (see SETTINGS_APPLY below) via a
+    -- targeted triggerClientEvent, and writes the full updated
+    -- enabled-id list through to the database immediately (write-through,
+    -- no flush tick - a settings toggle is a discrete, infrequent user
+    -- action, not continuously-accruing state like GROUP_DUTY's own
+    -- elapsed-seconds tick).
+    SETTINGS_TOGGLE = "settings:toggle",
+
+    -- Server -> localPlayer only: the player's full current enabled-id
+    -- list, sent once on login/resync (SettingsService.lua's own
+    -- PLAYER_ACCOUNT_RESOLVED handler) and again after every successful
+    -- SETTINGS_TOGGLE - the CEF panel's own source of truth, same
+    -- server-confirms-the-applied-state-back shape as
+    -- PUSH_VEHICLE_INTERACTION_STATE.
+    SETTINGS_SYNCED = "settings:synced",
+    PUSH_SETTINGS_SYNCED = "settings.synced",
+
+    -- Server -> client only (NOT CEF-bound) - tells the client's own
+    -- SettingsState.lua to actually apply/un-apply one toggle's real
+    -- effect (e.g. exports.ui_hud:setHUDVisible) - { id, enabled }. Fired
+    -- individually per changed id (not the whole list) so
+    -- SettingsState.lua's own EFFECTS dispatch table only ever needs to
+    -- switch on one id at a time, both on a live toggle AND when
+    -- replaying the full enabled list on login.
+    SETTINGS_APPLY = "settings:apply",
+
     -- Server-to-server bridge between gm_groups (owns the handler
     -- closure/callback) and core (owns GroupRepository/GroupRankRepository/
     -- GroupMemberRepository/the database) - same requestId-correlated

@@ -229,6 +229,69 @@ AccountService.login = function(mtaSerial, input, onSuccess, onError)
     end)
 end
 
+--- Changes an already-authenticated player's own password after
+--- verifying their current one. No session/serial invalidation needed -
+--- this codebase has no multi-session concept; mta_serial is already
+--- 1:1 rebound on every login (see AccountService.login above), so a
+--- plain hash update is sufficient here.
+-- @param player element the currently-authenticated player
+-- @param input table { currentPassword: string, newPassword: string }
+-- @param onSuccess function()
+-- @param onError function(code: string, message: string|nil)
+AccountService.changePassword = function(player, input, onSuccess, onError)
+    local account = PlayerService.getAccount(player)
+    if not account then
+        onError(ErrorCodes.NOT_AUTHENTICATED)
+        return
+    end
+
+    local currentPassword = input and input.currentPassword
+    local newPassword = input and input.newPassword
+
+    if type(currentPassword) ~= "string" or type(newPassword) ~= "string" then
+        onError(ErrorCodes.INVALID_ARGUMENTS, "currentPassword and newPassword are required")
+        return
+    end
+
+    if not ValidationRules.isValidPassword(newPassword) then
+        onError(ErrorCodes.INVALID_PASSWORD, "Password must be 8-128 characters")
+        return
+    end
+
+    passwordVerify(currentPassword, account.password_hash, {}, function(matches)
+        if matches ~= true then
+            onError(ErrorCodes.INVALID_CREDENTIALS, "Current password is incorrect")
+            return
+        end
+
+        passwordHash(newPassword, "bcrypt", { cost = BCRYPT_COST }, function(hashOrFalse)
+            if hashOrFalse == false then
+                Logger.error("AccountService", "passwordHash failed", { accountId = account.id })
+                onError(ErrorCodes.INTERNAL_ERROR)
+                return
+            end
+
+            AccountRepository.updatePasswordHash(account.id, hashOrFalse, function(ok, affectedOrError)
+                if not ok then
+                    Logger.error("AccountService", "updatePasswordHash failed", { accountId = account.id, error = tostring(affectedOrError) })
+                    onError(ErrorCodes.INTERNAL_ERROR)
+                    return
+                end
+
+                -- PlayerService.getAccount(player) returns the SAME live
+                -- table PlayerService holds for the session (confirmed:
+                -- PlayerService.getAccount = function(player) return
+                -- accountContexts[player] end) - keeping this in sync
+                -- means a second change-password attempt in the same
+                -- session verifies against the fresh hash without a re-fetch.
+                account.password_hash = hashOrFalse
+                Logger.security("AccountService", "Password changed", { accountId = account.id })
+                onSuccess()
+            end)
+        end)
+    end)
+end
+
 --- Looks up the account already bound to a player's MTA serial, if any.
 --- UX shortcut only, not authentication.
 -- @param mtaSerial string

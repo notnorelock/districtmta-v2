@@ -98,7 +98,7 @@ end
 -- moment-to-moment visibility from vehicle occupancy every frame (see
 -- SpeedoComponent.lua's own update()), which would otherwise immediately
 -- undo an external hide() the very next frame (e.g. gm_worldmap's
--- openMap() -> setHUDVisible(false) -> HUD.stop() -> setSpeedoVisible(false),
+-- openMap() -> setHUDVisible(false) -> applyVisibility() -> setSpeedoVisible(false),
 -- while the player is still sitting in a vehicle behind the map). Setting
 -- speedo.suppressed makes update() stand down entirely while the caller
 -- wants it hidden; visible=true clears the suppression and lets update()

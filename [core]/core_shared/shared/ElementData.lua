@@ -73,6 +73,18 @@ ElementData = {
         -- needs to know suspension exists as its own concept - "in this
         -- array" already means "currently allowed to drive this category".
         LICENSES = "player:licenses",
+
+        -- gm_settings: array of enabled setting-toggle id strings
+        -- (SettingsRegistry.lua keys, e.g. {"hud_disabled"}) for the
+        -- current player - always present once SETTINGS_SYNCED has fired
+        -- at least once (SettingsService.lua's own resyncElementData sets
+        -- it unconditionally, even to an empty array, unlike LICENSES
+        -- above which omits absent entries - a settings array is expected
+        -- to exist for every logged-in player, there's no "not
+        -- applicable" state the way "holds no licenses" is). Presence-check
+        -- convention if ever read elsewhere: type(getElementData(player,
+        -- ElementData.Player.SETTINGS)) == "table".
+        SETTINGS = "player:settings",
     },
     Account = {
         PREMIUM = "account:premium",

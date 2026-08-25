@@ -43,3 +43,8 @@ export interface SavedCredentials {
   login: string;
   password: string;
 }
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}

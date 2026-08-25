@@ -1,9 +1,10 @@
 import { mta } from "@/lib/mta/MtaBridge";
 import type { MtaResponse } from "@/types/api";
-import type { Account } from "@/types/account";
+import type { ChangePasswordInput } from "@/types/account";
 
+// Typed wrapper over the account.* FetchBridge endpoints - keeps raw endpoint strings here.
 export const accountApi = {
-  getCurrent(): Promise<MtaResponse<Account>> {
-    return mta.fetch<Account>("account.current", []);
+  changePassword(input: ChangePasswordInput): Promise<MtaResponse<{ ok: boolean }>> {
+    return mta.fetch<{ ok: boolean }>("account.changePassword", [input]);
   },
 };

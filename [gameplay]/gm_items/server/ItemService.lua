@@ -1,16 +1,3 @@
--- Player inventories + world-dropped items: loading/saving a player's own
--- item rows, giving/taking/using/dropping/picking up, and carry-weight
--- enforcement. Ported from an older, unrelated project's reference
--- implementation (pd_items), cut down to Enums.ItemType.PLAIN/VEHICLE_KEY
--- only - see ItemSchemes.lua's own module comment on scope.
---
--- Unlike the reference implementation (which kept a player's item list in
--- player:items element data, publicly readable by every client), this
--- keeps each player's inventory in a server-only Lua table
--- (playerItems below) - element data is broadcast to every client that
--- can see the element, which would leak one player's full inventory
--- contents to everyone nearby. Only the owning client is ever told its
--- own contents, via INVENTORY_ITEMS_RECEIVED/PUSH_INVENTORY_ITEMS.
 ItemService = ItemService or {}
 
 local SAVE_INTERVAL_MS = 60000 * 5

@@ -65,6 +65,13 @@ AccountRepository.updateRole = function(id, role, callback)
     Account:query():where("id", id):update({ role = role }, callback)
 end
 
+--- @param id number
+-- @param passwordHash string bcrypt hash, as produced by passwordHash(...)
+-- @param callback function(ok: boolean, affectedRowsOrError: number|string)
+AccountRepository.updatePasswordHash = function(id, passwordHash, callback)
+    Account:query():where("id", id):update({ password_hash = passwordHash }, callback)
+end
+
 --- Adds to the account's own money balance - a single atomic
 -- `money = money + ?` UPDATE, not a read-then-write, so two concurrent
 -- give/take calls for the same account (e.g. a duty payout landing at

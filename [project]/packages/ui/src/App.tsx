@@ -18,6 +18,7 @@ import { InventoryOverlay } from "@/features/inventory/InventoryOverlay";
 import { VehicleStorageOverlay } from "@/features/vehicleStorage/VehicleStorageOverlay";
 import { WorldMapOverlay } from "@/features/worldMap/WorldMapOverlay";
 import { GroupPanelOverlay } from "@/features/groups/GroupPanelOverlay";
+import { DashboardOverlay } from "@/features/dashboard/DashboardOverlay";
 import { DutyIndicator } from "@/features/groups/DutyIndicator";
 import { GroupInviteToast } from "@/features/groups/GroupInviteToast";
 import { LicenseExamHud } from "@/features/licenses/LicenseExamHud";
@@ -111,6 +112,10 @@ const AppContent: Component = () => {
           toggled by gm_groups while G is pressed - see
           GroupPanelOverlay.tsx's own comment. */}
       <GroupPanelOverlay />
+      {/* Uses its own "dashboard" overlay key (Overlay name prop),
+          toggled by gm_settings while F10 is pressed - see
+          DashboardOverlay.tsx's own comment. */}
+      <DashboardOverlay />
       {/* Uses its own "licenseExam" overlay key (Overlay name prop),
           opened/closed by gm_licenses while standing inside a driving
           license category's marker - see LicenseExamDialog.tsx's own

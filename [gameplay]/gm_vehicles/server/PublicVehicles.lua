@@ -1,14 +1,3 @@
--- Public vehicles: free, temporary, NOT persisted to the database (see
--- Enums.VehiclePurpose's own module comment) - a fixed list of spawn
--- points defined right here in code. Ported from the reference
--- implementation's own public-vehicle behavior: only the driver seat is
--- exclusive (another player can still ride as a passenger), a second
--- player trying to take the driver seat while it's occupied is rejected,
--- and the vehicle despawns 60 seconds after the driver leaves if nobody
--- gets back in (respawns fresh at its original spot right away - see
--- despawnAndRespawn below). No 3D "occupied by X" floating label
--- (the reference used a custom pd_3dtext element this project doesn't
--- have) - purely a placeholder for later if wanted.
 PublicVehicles = PublicVehicles or {}
 
 local VACATED_DESPAWN_MS = 60000

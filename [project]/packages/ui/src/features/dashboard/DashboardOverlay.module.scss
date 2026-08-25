@@ -1,0 +1,47 @@
+// CSS Modules + Sass, scoped to features/dashboard/ only - see
+// webpack.config.js's *.module.scss rule comment for why.
+@reference "../../styles/globals.css";
+
+// pointer-events-none on root, same as VehicleStorageOverlay.module.scss's
+// own root - clicks only reach .panel while the cursor is active
+// (right-click toggle, see gm_settings/client/SettingsState.lua).
+.root {
+  @apply pointer-events-none fixed inset-0 z-40 flex items-center justify-center;
+}
+
+.panel {
+  @apply pointer-events-auto flex w-96 max-w-[90vw] flex-col overflow-hidden rounded-xl border border-border bg-popover/95 font-display shadow-lg;
+}
+
+.header {
+  @apply flex items-center justify-between gap-2 border-b border-border px-4 py-3 text-foreground;
+}
+
+.title {
+  @apply text-sm font-semibold;
+}
+
+// Tab rail, same tabButton/tabButtonActive shape as GroupPanelOverlay.module.scss.
+.tabs {
+  @apply flex items-center gap-1;
+}
+
+.tabButton {
+  @apply flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+}
+
+.tabButtonActive {
+  @apply bg-primary/15 text-primary hover:bg-primary/15 hover:text-primary;
+}
+
+.listWrap {
+  @apply flex flex-col;
+}
+
+.row {
+  @apply flex w-full items-center justify-between gap-2.5 border-b border-border/40 px-4 py-3 text-left last:border-b-0;
+}
+
+.rowLabel {
+  @apply text-sm text-foreground;
+}

@@ -43,11 +43,7 @@ BlackoutService.start = function(player, durationSeconds)
     setElementHealth(player, BLACKOUT_HP)
 
     -- TODO: once a faction/group system exists, this is where a medic
-    -- callout would be raised (see the old reference implementation's
-    -- areMedicsAvailable/pd_groups_requests - neither concept exists in
-    -- this project yet, see docs/Architecture.md's "Adding a new system"
-    -- section on not porting dead-end dependencies from an unrelated
-    -- prior project). For now blackout only ever ends via its own timer
+    -- callout would be raised, for now blackout only ever ends via its own timer
     -- or an explicit BlackoutService.finish call.
 
     -- Sends SECONDS REMAINING (computed here, server-side, from os.time()),

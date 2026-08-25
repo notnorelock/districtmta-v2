@@ -423,6 +423,24 @@
   transform: scale(0.98);
 }
 
+/*
+  F10 player dashboard (features/dashboard/DashboardOverlay.tsx) -
+  centered panel toggled by F10 (gm_settings/client/SettingsState.lua).
+  Same plain fade+scale as vehicleStorage/worldMap/groupPanel above, and
+  same reason this block must exist at all - see vehicleStorage's own
+  comment on the missing-CSS-class gotcha.
+*/
+.dashboard-enter-active,
+.dashboard-exit-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dashboard-enter-from,
+.dashboard-exit-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
 @keyframes marquee-slide {
   from {
     transform: translateX(0);

@@ -50,6 +50,7 @@
     <script src="client/Bootstrap.lua" type="client" cache="false" />
 
     <export function="setHUDVisible" type="client" />
+    <export function="setHUDUserPreference" type="client" />
     <export function="isRadarVisible" type="client" />
     <export function="setRadarVisible" type="client" />
     <export function="getRadarPosition" type="client" />

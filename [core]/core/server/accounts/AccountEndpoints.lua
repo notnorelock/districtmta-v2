@@ -86,6 +86,33 @@ registerEndpoint("account.current", {
     exports.core_ui:fetchBridgeRespond(requestId, successResponse(AccountService.toPublic(account)))
 end)
 
+registerEndpoint("account.changePassword", {
+    authenticated = true,
+    -- Tighter than account.current's 20/10s (a read) - this is an
+    -- irreversible, security-sensitive mutation.
+    rateLimit = { limit = 3, intervalMs = 60000 },
+}, function(requestId, player, payload)
+    if type(payload) ~= "table" then
+        exports.core_ui:fetchBridgeRespond(requestId, errorResponse(ErrorCodes.INVALID_ARGUMENTS, "Expected an object with currentPassword and newPassword"))
+        return
+    end
+
+    AccountService.changePassword(player, payload, function()
+        -- Native toast lives HERE, not inside AccountService -
+        -- AccountService methods stay notification-agnostic pure
+        -- business logic (register/login never call NotificationService
+        -- themselves either).
+        NotificationService.send(player, {
+            type = "success",
+            title = "Hasło zmienione",
+            message = "Twoje hasło zostało zmienione pomyślnie",
+        })
+        exports.core_ui:fetchBridgeRespond(requestId, successResponse({ ok = true }))
+    end, function(code, message)
+        exports.core_ui:fetchBridgeRespond(requestId, errorResponse(code, message))
+    end)
+end)
+
 local function isCoreUiRunning()
     local resource = getResourceFromName("core_ui")
     return resource ~= nil and getResourceState(resource) == "running"

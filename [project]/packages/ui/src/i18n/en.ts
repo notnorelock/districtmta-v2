@@ -122,6 +122,22 @@ export const en: Record<keyof typeof pl, string> = {
   "vehicleStorage.mileage": "Mileage",
   "vehicleStorage.plate": "Plate",
 
+  "settings.title": "Settings",
+  "settings.toggle.hudDisabled": "Hide HUD",
+
+  "dashboard.title": "Dashboard",
+  "dashboard.tab.account": "Account",
+  "dashboard.tab.settings": "Settings",
+  "dashboard.account.login": "Login",
+  "dashboard.account.email": "Email",
+  "dashboard.account.role": "Role",
+  "dashboard.account.changePassword": "Change password",
+  "dashboard.account.currentPassword": "Current password",
+  "dashboard.account.newPassword": "New password",
+  "dashboard.account.confirmNewPassword": "Confirm new password",
+  "dashboard.account.changePasswordSubmit": "Change password",
+  "dashboard.account.passwordChanged": "Password changed successfully",
+
   "hud.health.tooltip": "Health",
   "hud.hunger.tooltip": "Hunger",
   "hud.thirst.tooltip": "Thirst",

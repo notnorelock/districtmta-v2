@@ -120,6 +120,22 @@ export const pl = {
   "vehicleStorage.mileage": "Przebieg",
   "vehicleStorage.plate": "Tablica",
 
+  "settings.title": "Ustawienia",
+  "settings.toggle.hudDisabled": "Ukryj HUD",
+
+  "dashboard.title": "Panel gracza",
+  "dashboard.tab.account": "Konto",
+  "dashboard.tab.settings": "Ustawienia",
+  "dashboard.account.login": "Login",
+  "dashboard.account.email": "Email",
+  "dashboard.account.role": "Ranga",
+  "dashboard.account.changePassword": "Zmiana hasła",
+  "dashboard.account.currentPassword": "Obecne hasło",
+  "dashboard.account.newPassword": "Nowe hasło",
+  "dashboard.account.confirmNewPassword": "Potwierdź nowe hasło",
+  "dashboard.account.changePasswordSubmit": "Zmień hasło",
+  "dashboard.account.passwordChanged": "Hasło zostało zmienione",
+
   "hud.health.tooltip": "Zdrowie",
   "hud.hunger.tooltip": "Głód",
   "hud.thirst.tooltip": "Pragnienie",

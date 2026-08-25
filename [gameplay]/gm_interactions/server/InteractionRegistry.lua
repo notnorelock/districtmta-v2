@@ -1,16 +1,3 @@
--- Registry of world interactions - ported from an older, unrelated
--- project's reference implementation (pd_interactions), cut down to what
--- this project actually has. The original registry mixed a generic
--- interaction FRAMEWORK (element type, permission/rank/condition gates,
--- client/server handler) with dozens of concrete interactions tied to
--- systems that don't exist here yet (faction/group duty, SAPD/SAMD/SAFD
--- roles, stretchers, tuning workshops, vehicle exchange, casino) - only
--- the framework itself and the admin vehicle interactions (fix/flip/move
--- to self) were ported, since those are the only ones with nothing
--- missing underneath them. Everything else is deliberately NOT here yet -
--- add an entry once the system it depends on actually exists, per
--- docs/Architecture.md's "Adding a new system" section, the same
--- convention Enums.VehiclePurpose's own comment follows for GROUP/EVENT/etc.
 InteractionRegistry = InteractionRegistry or {}
 
 --- @type table<string, InteractionDefinition>
