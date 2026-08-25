@@ -30,6 +30,7 @@ local function openPanel()
     panelOpen = true
 
     showChat(false)
+    exports.ui_hud:setHUDVisible(false)
     UI.open(Enums.UiWindow.DASHBOARD)
 end
 
@@ -40,6 +41,7 @@ local function closePanel()
     panelOpen = false
 
     showChat(true)
+    exports.ui_hud:setHUDVisible(true)
     UI.close(Enums.UiWindow.DASHBOARD)
 end
 

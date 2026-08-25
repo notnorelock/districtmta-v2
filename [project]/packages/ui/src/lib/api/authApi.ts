@@ -1,6 +1,6 @@
 import { mta } from "@/lib/mta/MtaBridge";
 import type { MtaResponse } from "@/types/api";
-import type { Account, AuthStatus, LoginAccountInput, RegisterAccountInput } from "@/types/account";
+import type { Account, AuthStatus, LoginAccountInput, RegisterAccountInput, VerifyTwoFactorInput } from "@/types/account";
 
 // Typed wrapper over the auth.* FetchBridge endpoints - keeps raw endpoint strings here.
 export const authApi = {
@@ -14,5 +14,9 @@ export const authApi = {
 
   login(input: LoginAccountInput): Promise<MtaResponse<Account>> {
     return mta.fetch<Account>("auth.login", [input]);
+  },
+
+  verifyTwoFactor(input: VerifyTwoFactorInput): Promise<MtaResponse<Account>> {
+    return mta.fetch<Account>("auth.verifyTwoFactor", [input]);
   },
 };

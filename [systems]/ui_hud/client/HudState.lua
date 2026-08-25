@@ -11,7 +11,6 @@ local function isResourceAvailable(resourceName)
 end
 
 local HUD_OVERLAY = "hud"
-local WATERMARK_OVERLAY = "watermark"
 local GTA_COMPONENTS = { "radar", "area_name", "vehicle_name", "armour", "breath", "clock", "health", "money", "weapon", "wanted", "radio", "ammo" }
 local UPDATE_INTERVAL_MS = 2500
 local MIN_PUSH_INTERVAL_MS = 250
@@ -128,15 +127,6 @@ end
 local userPreferenceHidden = false
 local temporarilyHidden = false
 
--- Guarded on `active` - without this, a preference/temporary-hide call
--- arriving BEFORE the player has ever spawned (e.g. gm_settings' own
--- resyncElementData fires SETTINGS_APPLY on PLAYER_ACCOUNT_RESOLVED,
--- which happens on login, well before spawn - the player is still on
--- the spawn-select screen) would call uiShowOverlay(HUD_OVERLAY)
--- unconditionally and show health/hunger/thirst icons over a screen
--- that has no HUD concept at all. HUD.start() is the only thing allowed
--- to turn the HUD on for the first time each life; this only ever
--- adjusts visibility for an already-started HUD.
 local function applyVisibility()
     if not active then
         return
@@ -163,7 +153,7 @@ HUD.start = function()
         HUD.pushHudState(true)
     end
 
-    exports.core_ui:uiShowOverlay(WATERMARK_OVERLAY)
+    exports.core_ui:uiShowOverlay("watermark")
     applyVisibility()
 end
 
@@ -192,7 +182,6 @@ addEventHandler("onClientPlayerSpawn", localPlayer, HUD.start)
 addEventHandler("onClientResourceStop", resourceRoot, function()
     if active then
         exports.core_ui:uiHideOverlay(HUD_OVERLAY)
-        exports.core_ui:uiHideOverlay(WATERMARK_OVERLAY)
     end
 end)
 

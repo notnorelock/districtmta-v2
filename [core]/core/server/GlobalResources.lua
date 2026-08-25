@@ -55,6 +55,16 @@ local PushService = {
     broadcast = function(event, data) exports.core_ui:pushServiceBroadcast(event, data) end,
 }
 
+-- Same reasoning as ValidationRules above (MTA's exports strip function
+-- fields, so Totp.* - entirely functions - can't be fetched as one
+-- table via TABLE_RESOURCE_MAP the way Events/ErrorCodes/Enums are) -
+-- see core_shared/shared/Registry.lua's totpGenerateSecretKey/totpVerify
+-- flat wrappers.
+local Totp = {
+    generateSecretKey = function(length) return exports.core_shared:totpGenerateSecretKey(length) end,
+    verify = function(secret, submittedCode, toleranceSteps) return exports.core_shared:totpVerify(secret, submittedCode, toleranceSteps) end,
+}
+
 setmetatable(_G, {
     __index = function(table, key)
         if key == "ValidationRules" then
@@ -67,6 +77,10 @@ setmetatable(_G, {
 
         if key == "PushService" then
             return isResourceAvailable("core_ui") and PushService or false
+        end
+
+        if key == "Totp" then
+            return isResourceAvailable("core_shared") and Totp or false
         end
 
         local tableSpec = TABLE_RESOURCE_MAP[key]

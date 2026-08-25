@@ -103,6 +103,8 @@ const LoginForm: Component = () => {
   const [password, setPassword] = createSignal("");
   const [rememberMe, setRememberMe] = createSignal(false);
   const [submitting, setSubmitting] = createSignal(false);
+  const [twoFactorPending, setTwoFactorPending] = createSignal(false);
+  const [twoFactorCode, setTwoFactorCode] = createSignal("");
 
   // Pure UX convenience - the password is still submitted and verified fresh server-side.
   onMount(async () => {
@@ -120,6 +122,14 @@ const LoginForm: Component = () => {
     return t()(`auth.error.${code}`);
   };
 
+  const persistCredentials = (trimmedLogin: string, currentPassword: string) => {
+    if (rememberMe()) {
+      mta.saveCredentials(trimmedLogin, currentPassword);
+    } else {
+      mta.clearCredentials();
+    }
+  };
+
   const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault();
     if (submitting()) return;
@@ -128,20 +138,57 @@ const LoginForm: Component = () => {
     const currentPassword = password();
 
     setSubmitting(true);
-    const success = await authStore.login(trimmedLogin, currentPassword);
+    const result = await authStore.login(trimmedLogin, currentPassword);
     setSubmitting(false);
 
-    if (!success) return;
-
-    if (rememberMe()) {
-      mta.saveCredentials(trimmedLogin, currentPassword);
-    } else {
-      mta.clearCredentials();
+    if (result === "twoFactorRequired") {
+      setTwoFactorPending(true);
+      return;
     }
+    if (result !== "success") return;
+
+    persistCredentials(trimmedLogin, currentPassword);
+  };
+
+  const handleTwoFactorSubmit = async (event: SubmitEvent) => {
+    event.preventDefault();
+    if (submitting()) return;
+
+    setSubmitting(true);
+    const ok = await authStore.verifyTwoFactor(twoFactorCode().trim());
+    setSubmitting(false);
+
+    if (!ok) {
+      // Retryable in place - the server-side pending login isn't consumed
+      // by a wrong code, only by success or its own TTL/rate limit. Clear
+      // the input for a fresh attempt rather than bouncing back to the
+      // password step.
+      setTwoFactorCode("");
+      return;
+    }
+
+    persistCredentials(login().trim(), password());
+  };
+
+  const backToPassword = () => {
+    setTwoFactorPending(false);
+    setTwoFactorCode("");
   };
 
   return (
-    <>
+    <Show
+      when={!twoFactorPending()}
+      fallback={
+        <TwoFactorStepForm
+          code={twoFactorCode()}
+          onCodeChange={setTwoFactorCode}
+          onSubmit={handleTwoFactorSubmit}
+          onBack={backToPassword}
+          submitting={submitting()}
+          errorMessage={errorMessage()}
+        />
+      }
+    >
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-foreground">{t()("auth.login.title")}</h1>
         <p class="mt-1 text-sm text-muted-foreground">{t()("auth.login.subtitle")}</p>
@@ -185,6 +232,64 @@ const LoginForm: Component = () => {
           disabled={submitting() || !login() || !password()}
         >
           {submitting() ? t()("auth.login.submitting") : t()("auth.login.submit")}
+        </Button>
+      </form>
+    </Show>
+  );
+};
+
+interface TwoFactorStepFormProps {
+  code: string;
+  onCodeChange: (value: string) => void;
+  onSubmit: (event: SubmitEvent) => void;
+  onBack: () => void;
+  submitting: boolean;
+  errorMessage: string | null;
+}
+
+const TwoFactorStepForm: Component<TwoFactorStepFormProps> = (props) => {
+  return (
+    <>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-foreground">{t()("auth.twoFactor.title")}</h1>
+        <p class="mt-1 text-sm text-muted-foreground">{t()("auth.twoFactor.subtitle")}</p>
+      </div>
+
+      <form class="flex flex-col gap-4" onSubmit={props.onSubmit}>
+        <TextField value={props.code} onChange={props.onCodeChange} class="gap-2">
+          <TextFieldLabel for="auth-two-factor-code" class="select-none font-mono text-2xs font-bold uppercase tracking-widest text-accent-indigo/70">
+            {t()("auth.twoFactor.codeLabel")}
+          </TextFieldLabel>
+          <TextFieldInput
+            id="auth-two-factor-code"
+            name="auth-two-factor-code"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autocomplete="one-time-code"
+            placeholder={t()("auth.twoFactor.codePlaceholder")}
+            maxLength={6}
+            autofocus
+            class="h-auto border-accent-indigo/20 bg-black/60 px-4 py-3.5 backdrop-blur-md focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-accent-indigo/60"
+          />
+        </TextField>
+
+        <Show when={props.errorMessage}>
+          <p class="text-sm text-danger">{props.errorMessage}</p>
+        </Show>
+
+        <Button
+          type="submit"
+          variant="gradient"
+          class={submitButtonClass}
+          loading={props.submitting}
+          disabled={props.submitting || props.code.length !== 6}
+        >
+          {props.submitting ? t()("auth.login.submitting") : t()("auth.twoFactor.submit")}
+        </Button>
+
+        <Button type="button" variant="ghost" onClick={props.onBack} disabled={props.submitting}>
+          {t()("auth.twoFactor.back")}
         </Button>
       </form>
     </>

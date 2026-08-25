@@ -7,6 +7,7 @@
     <script src="shared/ErrorCodes.lua" type="shared" cache="false" />
     <script src="shared/ValidationRules.lua" type="shared" cache="false" />
     <script src="shared/Enums.lua" type="shared" cache="false" />
+    <script src="shared/Totp.lua" type="shared" cache="false" />
     <script src="shared/ElementData.lua" type="shared" cache="false" />
     <script src="shared/Registry.lua" type="shared" cache="false" />
 
@@ -14,6 +15,8 @@
     <export function="getErrorCodes" type="shared" />
     <export function="getValidationRules" type="shared" />
     <export function="getEnums" type="shared" />
+    <export function="totpGenerateSecretKey" type="shared" />
+    <export function="totpVerify" type="shared" />
     <export function="getElementData" type="shared" />
     <export function="elementDataAccountField" type="shared" />
 

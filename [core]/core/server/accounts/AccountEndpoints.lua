@@ -61,7 +61,33 @@ registerEndpoint("auth.login", {
 
     local mtaSerial = getPlayerSerial(player)
 
-    AccountService.login(mtaSerial, payload, function(account)
+    AccountService.login(player, mtaSerial, payload, function(account)
+        AccountService.resolveForPlayer(player, account.id, function(resolvedAccount)
+            exports.core_ui:fetchBridgeRespond(requestId, successResponse(AccountService.toPublic(resolvedAccount)))
+        end, function(code, message)
+            exports.core_ui:fetchBridgeRespond(requestId, errorResponse(code, message))
+        end)
+    end, function(code, message)
+        exports.core_ui:fetchBridgeRespond(requestId, errorResponse(code, message))
+    end)
+end)
+
+registerEndpoint("auth.verifyTwoFactor", {
+    authenticated = false, -- player hasn't reached onSuccess/resolveForPlayer yet - same "not yet logged in" shape as auth.login itself.
+    rateLimit = { limit = 8, intervalMs = 60000 },
+    -- Tighter count, longer window than auth.login's 10/30s - a 6-digit
+    -- code is guessable at 1-in-1,000,000 odds per attempt, so
+    -- throttling matters more here. 8/60s covers "fat-fingered a digit,
+    -- try again" (retryable in place, see AccountService.peekPendingTwoFactor)
+    -- without leaving room for online brute-forcing within the
+    -- 2-minute pending-login TTL.
+}, function(requestId, player, payload)
+    if type(payload) ~= "table" then
+        exports.core_ui:fetchBridgeRespond(requestId, errorResponse(ErrorCodes.INVALID_ARGUMENTS, "Expected an object with code"))
+        return
+    end
+
+    AccountService.verifyTwoFactor(player, payload, function(account)
         AccountService.resolveForPlayer(player, account.id, function(resolvedAccount)
             exports.core_ui:fetchBridgeRespond(requestId, successResponse(AccountService.toPublic(resolvedAccount)))
         end, function(code, message)
@@ -107,6 +133,61 @@ registerEndpoint("account.changePassword", {
             title = "Hasło zmienione",
             message = "Twoje hasło zostało zmienione pomyślnie",
         })
+        exports.core_ui:fetchBridgeRespond(requestId, successResponse({ ok = true }))
+    end, function(code, message)
+        exports.core_ui:fetchBridgeRespond(requestId, errorResponse(code, message))
+    end)
+end)
+
+registerEndpoint("account.enableTwoFactor", {
+    authenticated = true,
+    rateLimit = { limit = 5, intervalMs = 60000 },
+}, function(requestId, player, payload)
+    AccountService.beginTwoFactorSetup(player, function(secret, otpauthUri)
+        exports.core_ui:fetchBridgeRespond(requestId, successResponse({ secret = secret, otpauthUri = otpauthUri }))
+    end, function(code, message)
+        exports.core_ui:fetchBridgeRespond(requestId, errorResponse(code, message))
+    end)
+end)
+
+registerEndpoint("account.confirmTwoFactorSetup", {
+    authenticated = true,
+    rateLimit = { limit = 8, intervalMs = 60000 },
+}, function(requestId, player, payload)
+    if type(payload) ~= "table" then
+        exports.core_ui:fetchBridgeRespond(requestId, errorResponse(ErrorCodes.INVALID_ARGUMENTS, "Expected an object with code"))
+        return
+    end
+
+    AccountService.confirmTwoFactorSetup(player, payload, function()
+        NotificationService.send(player, {
+            type = "success",
+            title = "Weryfikacja dwuetapowa włączona",
+            message = "Twoje konto jest teraz chronione kodem 2FA",
+        })
+        PushService.send(player, Events.PUSH_ACCOUNT_UPDATED, AccountService.toPublic(PlayerService.getAccount(player)))
+        exports.core_ui:fetchBridgeRespond(requestId, successResponse({ ok = true }))
+    end, function(code, message)
+        exports.core_ui:fetchBridgeRespond(requestId, errorResponse(code, message))
+    end)
+end)
+
+registerEndpoint("account.disableTwoFactor", {
+    authenticated = true,
+    rateLimit = { limit = 3, intervalMs = 60000 }, -- same as changePassword - a security-sensitive mutation
+}, function(requestId, player, payload)
+    if type(payload) ~= "table" then
+        exports.core_ui:fetchBridgeRespond(requestId, errorResponse(ErrorCodes.INVALID_ARGUMENTS, "Expected an object with currentPassword"))
+        return
+    end
+
+    AccountService.disableTwoFactor(player, payload, function()
+        NotificationService.send(player, {
+            type = "success",
+            title = "Weryfikacja dwuetapowa wyłączona",
+            message = "2FA zostało wyłączone dla Twojego konta",
+        })
+        PushService.send(player, Events.PUSH_ACCOUNT_UPDATED, AccountService.toPublic(PlayerService.getAccount(player)))
         exports.core_ui:fetchBridgeRespond(requestId, successResponse({ ok = true }))
     end, function(code, message)
         exports.core_ui:fetchBridgeRespond(requestId, errorResponse(code, message))

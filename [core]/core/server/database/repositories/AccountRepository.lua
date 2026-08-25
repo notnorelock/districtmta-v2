@@ -93,3 +93,32 @@ end
 AccountRepository.takeMoney = function(id, amount, callback)
     Database.execute("UPDATE `accounts` SET `money` = GREATEST(0, `money` - ?) WHERE `id` = ?", { amount, id }, callback)
 end
+
+--- Persists a freshly-generated, NOT YET CONFIRMED secret (pending
+--- setup) - see Account.lua's column comment for the pending-vs-
+--- confirmed state machine. Does NOT touch two_factor_enabled_at - a
+--- second enableTwoFactor call before confirming just overwrites the
+--- pending secret, staying pending.
+-- @param id number
+-- @param secret string base32, as returned by Totp.generateSecretKey
+-- @param callback function(ok: boolean, affectedRowsOrError: number|string)
+AccountRepository.setTwoFactorPendingSecret = function(id, secret, callback)
+    Account:query():where("id", id):update({ two_factor_secret = secret, two_factor_enabled_at = Model.NULL }, callback)
+end
+
+--- Marks the already-set pending secret as confirmed/enabled - called
+--- only after Totp.verify succeeds against it for the first time.
+-- @param id number
+-- @param callback function(ok: boolean, affectedRowsOrError: number|string)
+AccountRepository.confirmTwoFactor = function(id, callback)
+    Account:query():where("id", id):update({ two_factor_enabled_at = os.date("!%Y-%m-%d %H:%M:%S") }, callback)
+end
+
+--- Fully disables 2FA - clears both columns (not just enabled_at) so a
+--- future re-enable starts clean rather than resuming an old, previously-
+--- shared secret.
+-- @param id number
+-- @param callback function(ok: boolean, affectedRowsOrError: number|string)
+AccountRepository.clearTwoFactor = function(id, callback)
+    Account:query():where("id", id):update({ two_factor_secret = Model.NULL, two_factor_enabled_at = Model.NULL }, callback)
+end

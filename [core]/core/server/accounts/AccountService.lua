@@ -17,6 +17,20 @@ AccountService.isPremiumActive = function(account)
     return type(expiresAt) == "string" and expiresAt > nowSql()
 end
 
+--- @param account table internal account record (snake_case DB columns)
+--- @return boolean true if two_factor_enabled_at is genuinely set. NOT a
+--- plain `~= nil` check - MTA's MySQL row hydration can return a NULL
+--- TIMESTAMP column as an empty string ("") rather than Lua `nil` (same
+--- reason AccountService.isPremiumActive above checks
+--- `type(x) == "string"` for premium_expires_at instead of `~= nil` -
+--- confirmed live: a freshly-migrated two_factor_enabled_at column,
+--- correctly NULL in the database, still made every account look
+--- 2FA-enabled because `"" ~= nil` is true in Lua).
+AccountService.isTwoFactorEnabled = function(account)
+    local enabledAt = account and account.two_factor_enabled_at
+    return type(enabledAt) == "string" and #enabledAt > 0
+end
+
 --- Formats a "YYYY-MM-DD HH:MM:SS" TIMESTAMP string into "DD.MM.YYYY HH:MM"
 --- for display to players.
 -- @param sqlTimestamp string
@@ -47,6 +61,7 @@ AccountService.toPublic = function(account)
         isPremium = AccountService.isPremiumActive(account),
         premiumExpiresAt = AccountService.isPremiumActive(account) and account.premium_expires_at or nil,
         role = account.role or Enums.AccountRole.PLAYER,
+        twoFactorEnabled = AccountService.isTwoFactorEnabled(account),
     }
 end
 
@@ -167,14 +182,71 @@ AccountService.register = function(mtaSerial, input, onSuccess, onError)
     end)
 end
 
+local TWO_FACTOR_PENDING_TTL_MS = 120000
+-- player -> { accountId: number, expiresAt: number (getTickCount) } -
+-- tracks a login that has passed the password check but is waiting on a
+-- 2FA code. Keyed by the player element itself, never a client-supplied
+-- account id - FetchBridge's own dispatch guarantees `player` always
+-- comes from MTA's authoritative connection identity, never from the
+-- browser-controlled payload, so a request can never target any account
+-- other than the one that just proved password knowledge on THIS
+-- connection.
+local pendingTwoFactor = {}
+
+--- @param role number one of Enums.AccountRole's values
+-- @return boolean true if this role may never log in without confirmed 2FA
+AccountService.roleRequiresTwoFactor = function(role)
+    return role == Enums.AccountRole.ADMINISTRATOR
+        or role == Enums.AccountRole.RCON
+        or role == Enums.AccountRole.BOARD
+end
+
+--- @param player element
+-- @param accountId number
+AccountService.beginPendingTwoFactor = function(player, accountId)
+    pendingTwoFactor[player] = { accountId = accountId, expiresAt = getTickCount() + TWO_FACTOR_PENDING_TTL_MS }
+end
+
+--- Reads the pending entry WITHOUT consuming it on failure - a wrong
+--- code is retryable in place (bounded by verifyTwoFactor's own rate
+--- limit and this TTL), not a one-shot check that forces a fresh
+--- password submit per typo. Only AccountService.verifyTwoFactor clears
+--- the entry, and only once verification actually succeeds.
+-- @param player element
+-- @return number|nil accountId, only if a non-expired pending entry exists
+AccountService.peekPendingTwoFactor = function(player)
+    local entry = pendingTwoFactor[player]
+    if not entry or getTickCount() > entry.expiresAt then
+        pendingTwoFactor[player] = nil
+        return nil
+    end
+    return entry.accountId
+end
+
+--- @param player element
+AccountService.clearPendingTwoFactor = function(player)
+    pendingTwoFactor[player] = nil
+end
+
+addEventHandler("onPlayerQuit", root, function()
+    AccountService.clearPendingTwoFactor(source)
+end)
+
+addEventHandler("onResourceStop", resourceRoot, function()
+    for player in pairs(pendingTwoFactor) do
+        pendingTwoFactor[player] = nil
+    end
+end)
+
 --- Authenticates a login/email + password pair and, on success, rebinds
 --- the account's mta_serial to the logging-in player's current client.
+-- @param player element the logging-in player
 -- @param mtaSerial string getPlayerSerial(player) of the logging-in player
 -- @param input table { login: string, password: string } - `login` accepts
 --        either a login or an email
 -- @param onSuccess function(account: table)
 -- @param onError function(code: string, message: string|nil)
-AccountService.login = function(mtaSerial, input, onSuccess, onError)
+AccountService.login = function(player, mtaSerial, input, onSuccess, onError)
     local identifier = input and input.login
     local password = input and input.password
 
@@ -218,6 +290,29 @@ AccountService.login = function(mtaSerial, input, onSuccess, onError)
 
                 if account.mta_serial ~= mtaSerial then
                     AccountRepository.updateMtaSerial(account.id, mtaSerial, function() end)
+                end
+
+                local twoFactorEnabled = AccountService.isTwoFactorEnabled(account)
+
+                if not twoFactorEnabled and AccountService.roleRequiresTwoFactor(account.role) then
+                    -- Privileged role, 2FA never confirmed (a still-
+                    -- pending, unconfirmed secret counts as "not enabled"
+                    -- too - see Account.lua's column comment). Per
+                    -- explicit product decision, blocked entirely rather
+                    -- than let in and shown a forced-setup screen - an
+                    -- unconfigured privileged account should require
+                    -- out-of-band intervention (DB admin/future web
+                    -- panel), not be self-serviceable mid-login where a
+                    -- compromised password alone would otherwise be
+                    -- enough to reach a privileged session.
+                    onError(ErrorCodes.TWO_FACTOR_SETUP_REQUIRED, "Two-factor authentication must be configured for this account before it can log in")
+                    return
+                end
+
+                if twoFactorEnabled then
+                    AccountService.beginPendingTwoFactor(player, account.id)
+                    onError(ErrorCodes.TWO_FACTOR_REQUIRED)
+                    return
                 end
 
                 onSuccess(account)
@@ -288,6 +383,203 @@ AccountService.changePassword = function(player, input, onSuccess, onError)
                 Logger.security("AccountService", "Password changed", { accountId = account.id })
                 onSuccess()
             end)
+        end)
+    end)
+end
+
+--- Completes a login paused by AccountService.login's TWO_FACTOR_REQUIRED
+--- branch above. The pending account id comes ONLY from
+--- AccountService.peekPendingTwoFactor(player) - never from the payload -
+--- so a request cannot target any account other than the one that just
+--- proved password knowledge on THIS connection.
+-- @param player element
+-- @param input table { code: string } - 6-digit TOTP code
+-- @param onSuccess function(account: table)
+-- @param onError function(code: string, message: string|nil)
+AccountService.verifyTwoFactor = function(player, input, onSuccess, onError)
+    local code = input and input.code
+
+    if type(code) ~= "string" then
+        onError(ErrorCodes.INVALID_ARGUMENTS, "code is required")
+        return
+    end
+
+    local accountId = AccountService.peekPendingTwoFactor(player)
+    if not accountId then
+        onError(ErrorCodes.TWO_FACTOR_SESSION_EXPIRED, "Login expired, please sign in again")
+        return
+    end
+
+    AccountRepository.findById(accountId, function(ok, account)
+        if not ok or not account then
+            Logger.error("AccountService", "verifyTwoFactor: account lookup failed", { accountId = accountId, error = tostring(account) })
+            onError(ErrorCodes.INTERNAL_ERROR)
+            return
+        end
+
+        if not AccountService.isTwoFactorEnabled(account) or type(account.two_factor_secret) ~= "string" or #account.two_factor_secret == 0 then
+            -- Defensive only (e.g. a disable-2FA race with an in-flight
+            -- login) - should be unreachable in normal flow. Uses the
+            -- same "empty string, not nil" -safe checks as
+            -- AccountService.isTwoFactorEnabled - see its own comment.
+            AccountService.clearPendingTwoFactor(player)
+            onError(ErrorCodes.TWO_FACTOR_SESSION_EXPIRED, "Two-factor authentication is no longer configured for this account")
+            return
+        end
+
+        if not Totp.verify(account.two_factor_secret, code) then
+            Logger.security("AccountService", "Two-factor code rejected", { accountId = account.id })
+            -- Deliberately NOT clearing pendingTwoFactor here - a wrong
+            -- code is retryable in place, see peekPendingTwoFactor's own
+            -- comment. Bounded by rate limiting + the 2-minute TTL.
+            onError(ErrorCodes.INVALID_TWO_FACTOR_CODE, "Invalid code")
+            return
+        end
+
+        AccountService.clearPendingTwoFactor(player)
+        onSuccess(account)
+    end)
+end
+
+--- Generates a new pending TOTP secret for the current player's account
+--- and returns it + an otpauth:// URI for QR rendering. Does NOT enable
+--- 2FA - see confirmTwoFactorSetup, which is the only path that does.
+--- Refuses if 2FA is already confirmed/enabled (must disable first via
+--- disableTwoFactor, which requires the current password) so a hijacked
+--- in-game session alone can't silently swap the secret out from under
+--- the real owner.
+-- @param player element
+-- @param onSuccess function(secret: string, otpauthUri: string)
+-- @param onError function(code: string, message: string|nil)
+AccountService.beginTwoFactorSetup = function(player, onSuccess, onError)
+    local account = PlayerService.getAccount(player)
+    if not account then
+        onError(ErrorCodes.NOT_AUTHENTICATED)
+        return
+    end
+
+    if AccountService.isTwoFactorEnabled(account) then
+        onError(ErrorCodes.TWO_FACTOR_ALREADY_ENABLED, "Two-factor authentication is already enabled")
+        return
+    end
+
+    local secret = Totp.generateSecretKey(16)
+
+    AccountRepository.setTwoFactorPendingSecret(account.id, secret, function(ok, affectedOrError)
+        if not ok then
+            Logger.error("AccountService", "setTwoFactorPendingSecret failed", { accountId = account.id, error = tostring(affectedOrError) })
+            onError(ErrorCodes.INTERNAL_ERROR)
+            return
+        end
+
+        account.two_factor_secret = secret
+        -- issuer/label per the otpauth Key Uri Format - shows in the
+        -- authenticator app's list as "District (login)". Both segments
+        -- percent-encoded even though `login` is already restricted to
+        -- [A-Za-z0-9_] by ValidationRules and never needs escaping today
+        -- - unconditional encoding means this doesn't quietly break if
+        -- that pattern is ever loosened later.
+        local issuer = "District"
+        local otpauthUri = ("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=SHA1&digits=6&period=30"):format(
+            issuer, account.login, secret, issuer
+        )
+
+        Logger.security("AccountService", "Two-factor setup started", { accountId = account.id })
+        onSuccess(secret, otpauthUri)
+    end)
+end
+
+--- Confirms a pending secret (started via beginTwoFactorSetup) by
+--- verifying the user's first live code against it, THEN persists it as
+--- enabled. This is the proof-of-possession step - without it, a typo'd
+--- or never-scanned secret could get "enabled" and permanently lock the
+--- account out (or, for a privileged role, block all future logins per
+--- AccountService.roleRequiresTwoFactor).
+-- @param player element
+-- @param input table { code: string }
+-- @param onSuccess function()
+-- @param onError function(code: string, message: string|nil)
+AccountService.confirmTwoFactorSetup = function(player, input, onSuccess, onError)
+    local account = PlayerService.getAccount(player)
+    if not account then
+        onError(ErrorCodes.NOT_AUTHENTICATED)
+        return
+    end
+
+    local code = input and input.code
+    if type(code) ~= "string" then
+        onError(ErrorCodes.INVALID_ARGUMENTS, "code is required")
+        return
+    end
+
+    if type(account.two_factor_secret) ~= "string" or #account.two_factor_secret == 0 then
+        onError(ErrorCodes.TWO_FACTOR_SETUP_REQUIRED, "Call account.enableTwoFactor first")
+        return
+    end
+
+    if not Totp.verify(account.two_factor_secret, code) then
+        onError(ErrorCodes.INVALID_TWO_FACTOR_CODE, "Invalid code")
+        return
+    end
+
+    AccountRepository.confirmTwoFactor(account.id, function(ok, affectedOrError)
+        if not ok then
+            Logger.error("AccountService", "confirmTwoFactor failed", { accountId = account.id, error = tostring(affectedOrError) })
+            onError(ErrorCodes.INTERNAL_ERROR)
+            return
+        end
+
+        account.two_factor_enabled_at = os.date("!%Y-%m-%d %H:%M:%S")
+        Logger.security("AccountService", "Two-factor authentication enabled", { accountId = account.id })
+        onSuccess()
+    end)
+end
+
+--- Disables 2FA after re-verifying the current password - same
+--- "re-verify before mutating" reasoning as changePassword above (a
+--- hijacked in-game session alone shouldn't be enough to strip an
+--- account's 2FA protection).
+-- @param player element
+-- @param input table { currentPassword: string }
+-- @param onSuccess function()
+-- @param onError function(code: string, message: string|nil)
+AccountService.disableTwoFactor = function(player, input, onSuccess, onError)
+    local account = PlayerService.getAccount(player)
+    if not account then
+        onError(ErrorCodes.NOT_AUTHENTICATED)
+        return
+    end
+
+    local currentPassword = input and input.currentPassword
+    if type(currentPassword) ~= "string" then
+        onError(ErrorCodes.INVALID_ARGUMENTS, "currentPassword is required")
+        return
+    end
+
+    if AccountService.roleRequiresTwoFactor(account.role) then
+        -- Mirrors login's own block, symmetrically: a privileged account
+        -- may not remove the one thing that lets it log in at all.
+        onError(ErrorCodes.TWO_FACTOR_REQUIRED_FOR_ROLE, "Two-factor authentication cannot be disabled for this account's role")
+        return
+    end
+
+    passwordVerify(currentPassword, account.password_hash, {}, function(matches)
+        if matches ~= true then
+            onError(ErrorCodes.INVALID_CREDENTIALS, "Current password is incorrect")
+            return
+        end
+
+        AccountRepository.clearTwoFactor(account.id, function(ok, affectedOrError)
+            if not ok then
+                Logger.error("AccountService", "clearTwoFactor failed", { accountId = account.id, error = tostring(affectedOrError) })
+                onError(ErrorCodes.INTERNAL_ERROR)
+                return
+            end
+
+            account.two_factor_secret = nil
+            account.two_factor_enabled_at = nil
+            Logger.security("AccountService", "Two-factor authentication disabled", { accountId = account.id })
+            onSuccess()
         end)
     end)
 end

@@ -64,11 +64,18 @@ local function columnSql(column)
 
     if column.nullable == false or column.primaryKey then
         parts[#parts + 1] = "NOT NULL"
-    elseif column.type == "timestamp" and column.nullable ~= true then
-        -- timestamps default to NULL explicitly, avoiding MySQL's
-        -- implicit "first TIMESTAMP column defaults to CURRENT_TIMESTAMP"
-        -- behavior, which would silently apply to whichever column
-        -- happens to be declared first.
+    elseif column.type == "timestamp" then
+        -- timestamps ALWAYS get an explicit NULL here, whether nullable
+        -- was left unset or set to true=true - avoids MySQL's implicit
+        -- "first TIMESTAMP column defaults to NOT NULL DEFAULT
+        -- CURRENT_TIMESTAMP" behavior, which would otherwise silently
+        -- apply to any nullable timestamp column added via a later
+        -- ALTER TABLE ADD COLUMN (confirmed live: two_factor_enabled_at,
+        -- added with nullable = true, still got backfilled to
+        -- CURRENT_TIMESTAMP on every existing row instead of staying
+        -- NULL, because the old `nullable ~= true` condition here
+        -- skipped the explicit NULL specifically for the nullable=true
+        -- case - the one case it was most needed for).
         parts[#parts + 1] = "NULL"
     end
 

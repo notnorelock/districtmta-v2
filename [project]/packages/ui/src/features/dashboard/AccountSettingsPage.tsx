@@ -6,6 +6,7 @@ import { accountApi } from "@/lib/api/accountApi";
 import { AccountRole } from "@/types/account";
 import type { ApiErrorCode } from "@/types/api";
 import { t } from "@/i18n";
+import { TwoFactorSection } from "./TwoFactorSection";
 import styles from "./DashboardOverlay.module.scss";
 
 // 6-entry map, exported since DashboardView.tsx's own topbar identity
@@ -133,6 +134,8 @@ export const AccountSettingsPage: Component = () => {
           {submitting() ? t()("auth.login.submitting") : t()("dashboard.account.changePasswordSubmit")}
         </Button>
       </form>
+
+      <TwoFactorSection />
     </div>
   );
 };

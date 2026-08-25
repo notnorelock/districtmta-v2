@@ -19,6 +19,7 @@ export interface Account {
   isPremium: boolean;
   premiumExpiresAt: string | null;
   role: AccountRole;
+  twoFactorEnabled: boolean;
 }
 
 export interface AuthStatus {
@@ -47,4 +48,21 @@ export interface SavedCredentials {
 export interface ChangePasswordInput {
   currentPassword: string;
   newPassword: string;
+}
+
+export interface VerifyTwoFactorInput {
+  code: string;
+}
+
+export interface EnableTwoFactorResult {
+  secret: string;
+  otpauthUri: string;
+}
+
+export interface ConfirmTwoFactorSetupInput {
+  code: string;
+}
+
+export interface DisableTwoFactorInput {
+  currentPassword: string;
 }

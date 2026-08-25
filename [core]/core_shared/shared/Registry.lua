@@ -34,6 +34,19 @@ function getEnums()
     return Enums
 end
 
+-- MTA's exports mechanism strips function fields from returned tables
+-- (same reason getValidationRules can't just `return ValidationRules`
+-- above) - Totp.* is ENTIRELY functions (generateSecretKey/
+-- generateHotpCode/generateTotpCode/verify), so a flat per-function
+-- wrapper is required rather than trying to export the table itself.
+function totpGenerateSecretKey(length)
+    return Totp.generateSecretKey(length)
+end
+
+function totpVerify(secret, submittedCode, toleranceSteps)
+    return Totp.verify(secret, submittedCode, toleranceSteps)
+end
+
 -- Returns only the constant key tables, not accountField - MTA's exports
 -- mechanism strips function fields from returned tables. accountField is
 -- reached through its own flat function below instead. Every top-level

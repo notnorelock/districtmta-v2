@@ -12,4 +12,6 @@ Account = Model:extend("accounts", {
     { name = "created_at", type = "timestamp", default = "CURRENT_TIMESTAMP" },
     { name = "updated_at", type = "timestamp", default = "CURRENT_TIMESTAMP" },
     { name = "last_seen_at", type = "timestamp", nullable = true },
+    { name = "two_factor_secret", type = "string", length = 32, nullable = true },
+    { name = "two_factor_enabled_at", type = "timestamp", nullable = true },
 })

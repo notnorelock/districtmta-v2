@@ -6,6 +6,8 @@ import { mta } from "@/lib/mta/MtaBridge";
 
 export type AuthPhase = "checking" | "unauthenticated" | "authenticated" | "error";
 
+export type LoginResult = "success" | "twoFactorRequired" | "error";
+
 const [phase, setPhase] = createSignal<AuthPhase>("checking");
 const [account, setAccount] = createSignal<Account | null>(null);
 const [lastError, setLastError] = createSignal<ApiErrorCode | null>(null);
@@ -48,9 +50,26 @@ export const authStore = {
     return true;
   },
 
-  async login(login: string, password: string): Promise<boolean> {
+  async login(login: string, password: string): Promise<LoginResult> {
     setLastError(null);
     const response = await authApi.login({ login, password });
+
+    if (!response.success) {
+      setLastError(response.error.code);
+      if (response.error.code === "TWO_FACTOR_REQUIRED") {
+        return "twoFactorRequired";
+      }
+      return "error";
+    }
+
+    setAccount(response.data);
+    setPhase("authenticated");
+    return "success";
+  },
+
+  async verifyTwoFactor(code: string): Promise<boolean> {
+    setLastError(null);
+    const response = await authApi.verifyTwoFactor({ code });
 
     if (!response.success) {
       setLastError(response.error.code);

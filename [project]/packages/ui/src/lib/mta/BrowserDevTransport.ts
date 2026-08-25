@@ -88,7 +88,7 @@ export class BrowserDevTransport implements MtaTransportLike {
           return;
         }
 
-        mockAccount = { id: nextMockId++, login, email, isPremium: false, premiumExpiresAt: null, role: AccountRole.PLAYER };
+        mockAccount = { id: nextMockId++, login, email, isPremium: false, premiumExpiresAt: null, role: AccountRole.PLAYER, twoFactorEnabled: false };
         mockPassword = password;
 
         respond({ success: true, data: mockAccount });
