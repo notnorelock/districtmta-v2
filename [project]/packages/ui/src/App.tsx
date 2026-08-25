@@ -113,7 +113,7 @@ const AppContent: Component = () => {
           GroupPanelOverlay.tsx's own comment. */}
       <GroupPanelOverlay />
       {/* Uses its own "dashboard" overlay key (Overlay name prop),
-          toggled by gm_settings while F10 is pressed - see
+          toggled by ui_dashboard while F10 is pressed - see
           DashboardOverlay.tsx's own comment. */}
       <DashboardOverlay />
       {/* Uses its own "licenseExam" overlay key (Overlay name prop),

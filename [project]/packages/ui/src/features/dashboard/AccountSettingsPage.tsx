@@ -8,9 +8,9 @@ import type { ApiErrorCode } from "@/types/api";
 import { t } from "@/i18n";
 import styles from "./DashboardOverlay.module.scss";
 
-// 6-entry map used in exactly one place - not extracted to a shared
-// module, matching this project's bias against premature abstraction.
-const ROLE_LABEL: Record<number, string> = {
+// 6-entry map, exported since DashboardOverlay.tsx's own sidebar header
+// also needs a role label - avoids a second copy for that one extra call site.
+export const ROLE_LABEL: Record<number, string> = {
   [AccountRole.PLAYER]: "Gracz",
   [AccountRole.VETERAN]: "Weteran",
   [AccountRole.SUPPORTER]: "Pomocnik",
@@ -21,13 +21,14 @@ const ROLE_LABEL: Record<number, string> = {
 };
 
 /**
- * Account info readout (read side: authStore.account() directly, zero
- * new fetches) + change-password form. Server re-verifies the current
- * password and re-validates the new one itself (see
+ * "Ustawienia konta" dashboard page - account info readout (read side:
+ * authStore.account() directly, zero new fetches) + change-password
+ * form, both as a single narrow centered card. Server re-verifies the
+ * current password and re-validates the new one itself (see
  * AccountService.changePassword) - this form never trusts its own
  * client-side checks beyond the confirm-mismatch UX guard.
  */
-export const AccountTab: Component = () => {
+export const AccountSettingsPage: Component = () => {
   const account = authStore.account;
 
   const [currentPassword, setCurrentPassword] = createSignal("");
@@ -77,10 +78,10 @@ export const AccountTab: Component = () => {
   };
 
   return (
-    <div class={styles.listWrap}>
+    <div class={styles.accountCard}>
       <Show when={account()}>
         {(acc) => (
-          <>
+          <div class={styles.listWrap}>
             <div class={styles.row}>
               <span class={styles.rowLabel}>{t()("dashboard.account.login")}</span>
               <span>{acc().login}</span>
@@ -93,11 +94,11 @@ export const AccountTab: Component = () => {
               <span class={styles.rowLabel}>{t()("dashboard.account.role")}</span>
               <span>{ROLE_LABEL[acc().role] ?? acc().role}</span>
             </div>
-          </>
+          </div>
         )}
       </Show>
 
-      <form class="flex flex-col gap-3 px-4 py-3" onSubmit={handleSubmit}>
+      <form class={styles.accountForm} onSubmit={handleSubmit}>
         <span class={styles.rowLabel}>{t()("dashboard.account.changePassword")}</span>
 
         <TextField value={currentPassword()} onChange={setCurrentPassword}>

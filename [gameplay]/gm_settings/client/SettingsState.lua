@@ -1,7 +1,9 @@
 -- Applies each real toggle effect (SETTINGS_APPLY from the server) and
--- relays the CEF panel's own toggle clicks/open state to the server -
--- mirrors gm_items/client/InventoryState.lua's own "server owns state,
--- this file only relays + applies local effects" split.
+-- relays the CEF panel's own toggle clicks to the server - mirrors
+-- gm_items/client/InventoryState.lua's own "server owns state, this file
+-- only relays + applies local effects" split. Panel open/close
+-- (F10/cursor lifecycle) moved to ui_dashboard/client/DashboardState.lua -
+-- this file no longer touches the "dashboard" overlay at all.
 SettingsState = SettingsState or {}
 
 -- The CLIENT-side half of the registry concept - server/SettingsRegistry.lua
@@ -73,69 +75,4 @@ end)
 addEvent(Events.SETTINGS_TOGGLE, true)
 addEventHandler(Events.SETTINGS_TOGGLE, root, function(id, enabled)
     triggerServerEvent(Events.SETTINGS_TOGGLE, resourceRoot, id, enabled)
-end)
-
--- Panel open/close - F10, plain toggle, non-blocking overlay that only
--- engages cursor/focus/movement-lock on a separate right-click toggle
--- while open - exact gm_items/client/InventoryState.lua pattern. F10 is
--- unused by any other resource in this project; no ESC/pause menu
--- exists yet to hook a "Ustawienia" entry into instead (see this
--- project's own settings-system plan for the investigation).
-local panelOpen = false
-local cursorActive = false
-
-local function onRightClick(key, state)
-    if key ~= "mouse2" or not state then
-        return
-    end
-    cursorActive = not cursorActive
-    toggleAllControls(not cursorActive)
-    exports.core_ui:uiFocusBrowser(cursorActive)
-end
-
-local function openPanel()
-    if panelOpen then
-        return
-    end
-    panelOpen = true
-
-    exports.core_ui:uiShowOverlay("dashboard")
-    addEventHandler("onClientKey", root, onRightClick)
-end
-
-local function closePanel()
-    if not panelOpen then
-        return
-    end
-    panelOpen = false
-
-    removeEventHandler("onClientKey", root, onRightClick)
-    if cursorActive then
-        cursorActive = false
-        toggleAllControls(true)
-        exports.core_ui:uiFocusBrowser(false)
-    end
-
-    exports.core_ui:uiHideOverlay("dashboard")
-end
-
-local function togglePanel()
-    if getElementData(localPlayer, ElementData.Player.SPAWNED) ~= true then
-        return
-    end
-    if panelOpen then
-        closePanel()
-    else
-        openPanel()
-    end
-end
-
-addEventHandler("onClientResourceStart", resourceRoot, function()
-    bindKey("F10", "down", togglePanel)
-end)
-
-addEventHandler("onClientResourceStop", resourceRoot, function()
-    if panelOpen then
-        closePanel()
-    end
 end)

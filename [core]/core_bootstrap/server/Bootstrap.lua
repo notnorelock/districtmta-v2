@@ -54,7 +54,7 @@
 -- as gm_interactions) - no dependency on gm_vehicles/gm_items/any other
 -- gameplay resource, so it's placed alongside gm_interactions/gm_items
 -- rather than at the very end of the chain.
-local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "markers", "models", "gm_3dtext", "gm_nametags", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_interactions", "gm_items", "gm_groups", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "gm_settings", "gm_worldmap", "gm_roleplay" }
+local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "markers", "models", "gm_3dtext", "gm_nametags", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_interactions", "gm_items", "gm_groups", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "ui_dashboard", "gm_settings", "gm_worldmap", "gm_roleplay" }
 local START_TIMEOUT_MS = 15000
 
 --- Extra pause after a resource's SERVER-side start before starting the

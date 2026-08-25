@@ -2,38 +2,103 @@
 // webpack.config.js's *.module.scss rule comment for why.
 @reference "../../styles/globals.css";
 
-// pointer-events-none on root, same as VehicleStorageOverlay.module.scss's
-// own root - clicks only reach .panel while the cursor is active
-// (right-click toggle, see gm_settings/client/SettingsState.lua).
+// Full-screen sidebar + content layout. Solid (non-transparent)
+// backgrounds throughout - WorldMapOverlay's own bg-black/60 lets the
+// game show through underneath, which reads as broken/unfinished for a
+// dashboard meant to be a real, opaque app surface (unlike the world
+// map, which is deliberately a HUD-like overlay over gameplay).
 .root {
-  @apply pointer-events-none fixed inset-0 z-40 flex items-center justify-center;
+  @apply fixed inset-0 z-40 flex overflow-hidden bg-background font-display;
 }
 
-.panel {
-  @apply pointer-events-auto flex w-96 max-w-[90vw] flex-col overflow-hidden rounded-xl border border-border bg-popover/95 font-display shadow-lg;
+.sidebar {
+  @apply flex w-72 shrink-0 flex-col gap-6 border-r border-border bg-background px-6 py-8;
 }
 
-.header {
-  @apply flex items-center justify-between gap-2 border-b border-border px-4 py-3 text-foreground;
+.sidebarHeader {
+  @apply flex items-center gap-3;
 }
 
-.title {
-  @apply text-sm font-semibold;
+.avatar {
+  @apply size-12 shrink-0 rounded-full bg-secondary;
 }
 
-// Tab rail, same tabButton/tabButtonActive shape as GroupPanelOverlay.module.scss.
-.tabs {
-  @apply flex items-center gap-1;
+.identity {
+  @apply flex min-w-0 flex-col;
 }
 
-.tabButton {
-  @apply flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+.name {
+  @apply truncate text-sm font-semibold text-foreground;
 }
 
-.tabButtonActive {
+.role {
+  @apply text-xs text-muted-foreground;
+}
+
+// Placeholder-only block - see DashboardOverlay.tsx's own comment on the
+// levelBlock JSX for why this isn't wired to real data.
+.levelBlock {
+  @apply flex flex-col gap-1.5;
+}
+
+.levelLabel {
+  @apply font-mono text-xs font-bold uppercase tracking-widest text-accent-indigo/70;
+}
+
+.levelBar {
+  @apply h-1.5 w-full overflow-hidden rounded-full bg-secondary;
+}
+
+.levelBarFill {
+  @apply h-full rounded-full bg-primary;
+}
+
+.nav {
+  @apply flex flex-col gap-1;
+}
+
+// Active-state visual language adapted vertically from
+// GroupPanelOverlay.module.scss's own .tabButton/.tabButtonActive (the
+// project's established "active nav item" look, previously used
+// horizontally in a tab-bar context).
+.navRow {
+  @apply flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+}
+
+.navRowActive {
   @apply bg-primary/15 text-primary hover:bg-primary/15 hover:text-primary;
 }
 
+// One of the 4 not-yet-implemented rows (quests/daily reward/penalties/
+// vehicles) - dimmed, no hover feedback, click shows a transient
+// "wkrótce" hint instead of switching pages (see DashboardOverlay.tsx's
+// own selectPage).
+.navRowDisabled {
+  @apply cursor-default opacity-40 hover:bg-transparent hover:text-muted-foreground;
+}
+
+.navLabel {
+  @apply truncate;
+}
+
+.comingSoonHint {
+  @apply mt-auto text-xs text-muted-foreground;
+}
+
+.content {
+  @apply relative flex-1 overflow-y-auto bg-popover p-8;
+}
+
+// "Strona główna" empty-state placeholder - see HomePage.tsx's own comment.
+.placeholder {
+  @apply flex h-full w-full items-center justify-center;
+}
+
+.placeholderText {
+  @apply text-sm text-muted-foreground;
+}
+
+// Reused by SettingsPage.tsx for its toggle rows.
 .listWrap {
   @apply flex flex-col;
 }
@@ -44,4 +109,17 @@
 
 .rowLabel {
   @apply text-sm text-foreground;
+}
+
+// "Ustawienia konta" (AccountSettingsPage.tsx) - a single narrow card
+// centered in the content pane, not stretched across the full width -
+// account info rows on top, the change-password form below, both inside
+// the SAME bordered card so the page reads as one cohesive block instead
+// of loose full-width rows.
+.accountCard {
+  @apply mx-auto flex w-full max-w-md flex-col gap-4 rounded-xl border border-border bg-background;
+}
+
+.accountForm {
+  @apply flex flex-col gap-3 px-4 py-3;
 }

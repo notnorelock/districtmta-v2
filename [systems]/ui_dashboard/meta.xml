@@ -1,0 +1,14 @@
+<meta>
+    <info
+        author="norelock"
+        version="0.1.0"
+        type="script"
+    />
+    <download_priority_group>3</download_priority_group>
+
+    <include resource="core_shared" />
+    <include resource="core_ui" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/DashboardState.lua" type="client" cache="false" />
+</meta>
