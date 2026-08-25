@@ -1,4 +1,5 @@
 import { Show, type Component } from "solid-js";
+import { Progress } from "@/components/ui/Progress";
 import { loadingStore } from "@/stores/loading.store";
 import { t } from "@/i18n";
 
@@ -27,12 +28,7 @@ export const ResourceCheckScreen: Component = () => {
               {t()("loading.resourceCheck")} ({formatBytes(progress().downloadedSize)} / {formatBytes(progress().totalSize)})
             </p>
 
-            <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface">
-              <div
-                class="h-full rounded-full bg-primary transition-all"
-                style={{ width: `${Math.round((progress().downloadedSize / progress().totalSize) * 100)}%` }}
-              />
-            </div>
+            <Progress value={Math.round((progress().downloadedSize / progress().totalSize) * 100)} />
           </div>
         )}
       </Show>

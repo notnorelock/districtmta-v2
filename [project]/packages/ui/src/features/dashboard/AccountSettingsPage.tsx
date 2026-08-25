@@ -8,8 +8,8 @@ import type { ApiErrorCode } from "@/types/api";
 import { t } from "@/i18n";
 import styles from "./DashboardOverlay.module.scss";
 
-// 6-entry map, exported since DashboardOverlay.tsx's own sidebar header
-// also needs a role label - avoids a second copy for that one extra call site.
+// 6-entry map, exported since DashboardView.tsx's own topbar identity
+// block also needs a role label - avoids a second copy for that one extra call site.
 export const ROLE_LABEL: Record<number, string> = {
   [AccountRole.PLAYER]: "Gracz",
   [AccountRole.VETERAN]: "Weteran",
@@ -82,24 +82,25 @@ export const AccountSettingsPage: Component = () => {
       <Show when={account()}>
         {(acc) => (
           <div class={styles.listWrap}>
+            <span class={`${styles.eyebrow} px-4 pt-3`}>{t()("dashboard.account.eyebrowInfo")}</span>
             <div class={styles.row}>
               <span class={styles.rowLabel}>{t()("dashboard.account.login")}</span>
-              <span>{acc().login}</span>
+              <span class="text-sm text-foreground">{acc().login}</span>
             </div>
             <div class={styles.row}>
               <span class={styles.rowLabel}>{t()("dashboard.account.email")}</span>
-              <span>{acc().email}</span>
+              <span class="text-sm text-foreground">{acc().email}</span>
             </div>
             <div class={styles.row}>
               <span class={styles.rowLabel}>{t()("dashboard.account.role")}</span>
-              <span>{ROLE_LABEL[acc().role] ?? acc().role}</span>
+              <span class="text-sm text-foreground">{ROLE_LABEL[acc().role] ?? acc().role}</span>
             </div>
           </div>
         )}
       </Show>
 
       <form class={styles.accountForm} onSubmit={handleSubmit}>
-        <span class={styles.rowLabel}>{t()("dashboard.account.changePassword")}</span>
+        <span class={styles.eyebrow}>{t()("dashboard.account.eyebrowPassword")}</span>
 
         <TextField value={currentPassword()} onChange={setCurrentPassword}>
           <TextFieldLabel for="dashboard-current-password">{t()("dashboard.account.currentPassword")}</TextFieldLabel>

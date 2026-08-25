@@ -8,7 +8,7 @@
 }
 
 .panel {
-  @apply pointer-events-auto flex max-h-[80vh] w-110 max-w-[92vw] flex-col overflow-hidden rounded-xl border border-border bg-popover/95 font-display shadow-lg;
+  @apply pointer-events-auto flex max-h-[80vh] w-110 max-w-[92vw] flex-col overflow-hidden border border-border bg-popover/95 font-display shadow-none;
 }
 
 .header {
@@ -24,7 +24,7 @@
 }
 
 .closeButton {
-  @apply flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+  @apply flex size-6 shrink-0 items-center justify-center text-muted-foreground transition-colors duration-fast ease-out hover:bg-secondary hover:text-foreground;
 }
 
 .body {
@@ -36,7 +36,7 @@
 }
 
 .feeRow {
-  @apply flex items-center justify-between rounded-lg border border-border bg-secondary/20 px-3 py-2 text-sm text-foreground;
+  @apply flex items-center justify-between border border-border bg-secondary/20 px-3 py-2 text-sm text-foreground;
 }
 
 .feeValue {
@@ -56,7 +56,7 @@
 }
 
 .quizProgress {
-  @apply font-medium;
+  @apply font-mono text-2xs font-medium uppercase tracking-wide;
 }
 
 .quizClock {

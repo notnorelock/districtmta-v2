@@ -5,11 +5,11 @@
 }
 
 .card {
-  @apply pointer-events-auto flex w-80 items-center gap-3 rounded-xl border border-border bg-popover/95 px-3 py-2.5 font-display shadow-lg;
+  @apply pointer-events-auto flex w-80 items-center gap-3 border border-border bg-popover/95 px-3 py-2.5 font-display shadow-none;
 }
 
 .icon {
-  @apply flex size-9 shrink-0 items-center justify-center rounded-lg text-primary-foreground;
+  @apply flex size-9 shrink-0 items-center justify-center text-primary-foreground;
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent-violet));
 }
 
@@ -30,20 +30,20 @@
 }
 
 .acceptButton {
-  @apply flex size-7 items-center justify-center rounded-md bg-primary/15 text-primary transition-colors hover:bg-primary/25;
+  @apply flex size-7 items-center justify-center bg-primary/15 text-primary transition-colors duration-fast ease-out hover:bg-primary/25;
 }
 
 .declineButton {
-  @apply flex size-7 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/15;
+  @apply flex size-7 items-center justify-center text-destructive transition-colors duration-fast ease-out hover:bg-destructive/15;
 }
 
 .cardMove {
-  transition: transform 0.25s ease;
+  transition: transform var(--transition-duration-base) var(--ease-out);
 }
 
 .cardEnterActive,
 .cardExitActive {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity var(--transition-duration-base) var(--ease-out), transform var(--transition-duration-base) var(--ease-out);
 }
 
 .cardEnterFrom,

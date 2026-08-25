@@ -73,7 +73,7 @@ export const LicenseExamDialog: Component = () => {
   }
 
   return (
-    <Overlay name="licenseExam" transitionName="hud">
+    <Overlay name="licenseExam" transitionName="licenseExam">
       <div class={styles.root}>
         <div class={styles.panel}>
           <div class={styles.header}>

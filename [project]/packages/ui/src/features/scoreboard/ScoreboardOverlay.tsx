@@ -1,6 +1,7 @@
 import { type Component, For, Show, createMemo, createSignal } from "solid-js";
 import { Users, Wifi, X } from "lucide-solid";
 import { Overlay } from "@/components/common/Overlay";
+import { Badge } from "@/components/ui/Badge";
 import { TextField, TextFieldInput } from "@/components/ui/TextField";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/Tooltip";
 import { scoreboardStore } from "@/stores/scoreboard.store";
@@ -27,11 +28,11 @@ const STATUS_LABEL_KEY: Record<ScoreboardPlayer["status"], string> = {
   [ScoreboardStatus.IN_GAME]: "scoreboard.status.inGame",
 };
 
-const STATUS_DOT_CLASS: Record<ScoreboardPlayer["status"], string> = {
-  [ScoreboardStatus.DOWNLOADING]: styles.dotPending as string,
-  [ScoreboardStatus.AUTHENTICATING]: styles.dotPending as string,
-  [ScoreboardStatus.SELECTING_SPAWN]: styles.dotPending as string,
-  [ScoreboardStatus.IN_GAME]: styles.dotReady as string,
+const STATUS_DOT_VARIANT: Record<ScoreboardPlayer["status"], "warning" | "success"> = {
+  [ScoreboardStatus.DOWNLOADING]: "warning",
+  [ScoreboardStatus.AUTHENTICATING]: "warning",
+  [ScoreboardStatus.SELECTING_SPAWN]: "warning",
+  [ScoreboardStatus.IN_GAME]: "success",
 };
 
 function pingClass(ping: number): string {
@@ -156,13 +157,13 @@ export const ScoreboardOverlay: Component = () => {
                       <span style={player.nameColor ? { color: player.nameColor } : undefined}>{player.login ?? player.name}</span>
                     </span>
                     <span class={styles.playerStatus}>
-                      <span class={`${styles.dot} ${STATUS_DOT_CLASS[player.status]}`} />
+                      <Badge variant={STATUS_DOT_VARIANT[player.status]} size="dot" />
                       {statusText(player)}
                     </span>
                   </div>
 
                   <Show when={player.faction}>
-                    <span class={styles.factionBadge}>{player.faction}</span>
+                    <Badge variant="muted">{player.faction}</Badge>
                   </Show>
 
                   <Tooltip placement="left">

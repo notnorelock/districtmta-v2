@@ -41,19 +41,21 @@
 }
 
 .card {
-  @apply relative flex items-center gap-3 rounded-xl border border-border bg-popover/95 px-4 py-3 shadow-lg;
+  @apply relative flex items-center gap-3 border border-border bg-popover/95 px-4 py-3 shadow-none;
 }
 
-// The outer <Overlay> (.root, transitionName="blackout" - see globals.css's
-// .blackout-enter-*/.blackout-exit-* classes) only fades the vignette in/out.
+// CORRECTION (design-system pass): this component does NOT use the
+// shared <Overlay> component - .root is a bare <div>, so globals.css's
+// .blackout-enter-*/.blackout-exit-* block is currently unreferenced
+// dead CSS (confirmed via grep - no component uses those class names).
 // The card has its OWN <Transition> in BlackoutOverlay.tsx (same split
 // RadioCard.tsx uses for its dock+card) so it can slide up/down from the
 // bottom instead of just fading - these classes are that transition's
-// enter/exit states, passed in directly as enterActiveClass/etc. props
-// rather than through the shared Overlay component.
+// enter/exit states, passed in directly as enterActiveClass/etc. props,
+// and are the ONLY transition actually driving this component's visuals.
 .cardEnterActive,
 .cardExitActive {
-  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity var(--transition-duration-slow) var(--ease-out), transform var(--transition-duration-slow) var(--ease-out);
 }
 
 .cardEnterFrom,
@@ -74,12 +76,21 @@
 // arc's start and end land on the same point, and "round" draws a
 // visible overlapping cap blob right there (same reasoning as HudIcon's
 // own ring - see that file's comment).
+// duration-500 (Tailwind's literal, not a design-system token) kept
+// deliberately un-tokenized - this is a continuous per-second countdown
+// redraw, not a one-shot enter/exit transition, so it isn't the same
+// category of motion the --transition-duration-* tokens were chosen
+// for. The nearest token (--transition-duration-slow, 350ms) is a 150ms/
+// 30% gap from 500ms, well outside the ~50ms tolerance used elsewhere in
+// this pass - rounding down would visibly speed up how the ring redraws
+// every tick. Left as literal duration-500 rather than forcing a
+// regression for token-purity's sake.
 .ringProgress {
   @apply transition-[stroke-dashoffset] duration-500 ease-linear;
 }
 
 .ringLabel {
-  @apply absolute text-[10px] font-semibold tabular-nums text-destructive;
+  @apply absolute font-mono text-2xs font-semibold tabular-nums text-destructive;
 }
 
 .info {
@@ -95,5 +106,5 @@
 }
 
 .key {
-  @apply rounded border border-border bg-secondary px-1 py-0.5 font-sans text-[10px] font-semibold text-foreground;
+  @apply border border-border bg-secondary px-1 py-0.5 font-sans text-2xs font-semibold text-foreground;
 }

@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 /** Ported from solid-ui - see Button.tsx's module comment for context. */
 const Card: Component<ComponentProps<"div">> = (props) => {
   const [local, others] = splitProps(props, ["class"]);
-  return <div class={cn("rounded-lg border border-border bg-card text-card-foreground shadow-sm", local.class)} {...others} />;
+  return <div class={cn("border border-border bg-card text-card-foreground shadow-none", local.class)} {...others} />;
 };
 
 const CardHeader: Component<ComponentProps<"div">> = (props) => {

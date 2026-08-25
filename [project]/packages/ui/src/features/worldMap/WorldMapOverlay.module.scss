@@ -16,7 +16,7 @@
 }
 
 .title {
-  @apply text-2xl font-bold uppercase tracking-wide text-foreground;
+  @apply text-2xl font-bold tracking-tight text-foreground;
 }
 
 .subtitle {
@@ -32,7 +32,7 @@
 }
 
 .legendItem {
-  @apply flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm text-foreground transition-opacity hover:bg-secondary;
+  @apply flex items-center gap-2.5 px-3 py-2.5 text-left text-sm text-foreground transition-opacity duration-fast ease-out hover:bg-secondary;
 }
 
 .legendItemDimmed {

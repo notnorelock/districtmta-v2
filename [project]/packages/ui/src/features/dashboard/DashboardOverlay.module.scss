@@ -2,29 +2,64 @@
 // webpack.config.js's *.module.scss rule comment for why.
 @reference "../../styles/globals.css";
 
-// Full-screen sidebar + content layout. Solid (non-transparent)
-// backgrounds throughout - WorldMapOverlay's own bg-black/60 lets the
-// game show through underneath, which reads as broken/unfinished for a
-// dashboard meant to be a real, opaque app surface (unlike the world
-// map, which is deliberately a HUD-like overlay over gameplay).
+// Full-screen window content: a full-width topbar row, then a
+// sidebar+content row filling the rest of the height. Solid
+// (non-transparent) backgrounds throughout - WorldMapOverlay's own
+// bg-black/60 lets the game show through underneath, which reads as
+// broken/unfinished for a dashboard meant to be a real, opaque app
+// surface (unlike the world map, which is deliberately a HUD-like
+// overlay over gameplay). This is now a real UiWindow (see
+// DashboardView.tsx), not an Overlay - no transition classes needed
+// here, matching LoginView/SpawnSelectView's own plain full-bleed roots.
 .root {
-  @apply fixed inset-0 z-40 flex overflow-hidden bg-background font-display;
+  @apply flex h-full w-full flex-col overflow-hidden bg-background font-display;
 }
 
-.sidebar {
-  @apply flex w-72 shrink-0 flex-col gap-6 border-r border-border bg-background px-6 py-8;
+// Full-width bar across the top: logo left, level/XP bar centered,
+// avatar+name+role right. Matches the reference screenshot's layout -
+// see DashboardView.tsx's own topbar JSX comment.
+.topbar {
+  @apply flex w-full shrink-0 items-center justify-between gap-6 border-b border-border bg-background px-6 py-4;
 }
 
-.sidebarHeader {
-  @apply flex items-center gap-3;
+// Same text-placeholder logo shape ScoreboardOverlay.module.scss already
+// uses ("district" in the primary accent color + "MTA" in the default
+// foreground) - reused verbatim for visual consistency rather than
+// inventing a second logo treatment; see that file's own module comment
+// on why it's a text placeholder until a real asset is provided.
+.logo {
+  @apply flex shrink-0 items-center gap-1 text-sm font-semibold uppercase tracking-widest text-foreground;
 }
 
+.logoAccent {
+  color: var(--color-primary);
+}
+
+// Centered level/XP bar block - "25 [====progress====] 26" shape: two
+// number spans flanking a horizontal bar, all in one row. Placeholder
+// only - see PLACEHOLDER_LEVEL_* comment in DashboardView.tsx.
+.topbarLevelBlock {
+  @apply flex flex-1 items-center justify-center gap-3;
+}
+
+.topbarLevelNumber {
+  @apply shrink-0 font-mono text-xs font-bold tabular-nums text-accent-indigo/70;
+}
+
+.topbarIdentity {
+  @apply flex shrink-0 items-center gap-3;
+}
+
+// Square, bordered tile - not a circle. See this file's own top-of-block
+// design note (in DashboardView.tsx's module comment) on the terminal-
+// dashboard direction: a bordered square placeholder reads as a
+// deliberate frame rather than a soft avatar blob.
 .avatar {
-  @apply size-12 shrink-0 rounded-full bg-secondary;
+  @apply size-10 shrink-0 border border-border bg-secondary transition-colors duration-fast ease-out hover:border-primary/40;
 }
 
 .identity {
-  @apply flex min-w-0 flex-col;
+  @apply flex min-w-0 flex-col items-end text-right;
 }
 
 .name {
@@ -32,25 +67,17 @@
 }
 
 .role {
-  @apply text-xs text-muted-foreground;
+  @apply font-mono text-2xs uppercase tracking-wide text-muted-foreground;
 }
 
-// Placeholder-only block - see DashboardOverlay.tsx's own comment on the
-// levelBlock JSX for why this isn't wired to real data.
-.levelBlock {
-  @apply flex flex-col gap-1.5;
+// Row below the topbar: nav-only sidebar + content pane, filling the
+// remaining height.
+.body {
+  @apply flex flex-1 overflow-hidden;
 }
 
-.levelLabel {
-  @apply font-mono text-xs font-bold uppercase tracking-widest text-accent-indigo/70;
-}
-
-.levelBar {
-  @apply h-1.5 w-full overflow-hidden rounded-full bg-secondary;
-}
-
-.levelBarFill {
-  @apply h-full rounded-full bg-primary;
+.sidebar {
+  @apply flex w-72 shrink-0 flex-col gap-6 border-r border-border bg-background px-6 py-8;
 }
 
 .nav {
@@ -62,16 +89,18 @@
 // project's established "active nav item" look, previously used
 // horizontally in a tab-bar context).
 .navRow {
-  @apply flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+  @apply flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-secondary hover:text-foreground;
 }
 
+// Left-edge accent bar on top of the existing tint - a terminal
+// "selected row" convention (bracket/rail marker), not just a soft fill.
 .navRowActive {
-  @apply bg-primary/15 text-primary hover:bg-primary/15 hover:text-primary;
+  @apply border-l-2 border-primary bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary;
 }
 
 // One of the 4 not-yet-implemented rows (quests/daily reward/penalties/
 // vehicles) - dimmed, no hover feedback, click shows a transient
-// "wkrótce" hint instead of switching pages (see DashboardOverlay.tsx's
+// "wkrótce" hint instead of switching pages (see DashboardView.tsx's
 // own selectPage).
 .navRowDisabled {
   @apply cursor-default opacity-40 hover:bg-transparent hover:text-muted-foreground;
@@ -108,18 +137,27 @@
 }
 
 .rowLabel {
-  @apply text-sm text-foreground;
+  @apply font-mono text-2xs uppercase tracking-wide text-muted-foreground;
 }
 
 // "Ustawienia konta" (AccountSettingsPage.tsx) - a single narrow card
 // centered in the content pane, not stretched across the full width -
 // account info rows on top, the change-password form below, both inside
 // the SAME bordered card so the page reads as one cohesive block instead
-// of loose full-width rows.
+// of loose full-width rows. Sharp corners (was rounded-xl).
 .accountCard {
-  @apply mx-auto flex w-full max-w-md flex-col gap-4 rounded-xl border border-border bg-background;
+  @apply mx-auto flex w-full max-w-md flex-col gap-4 border border-border bg-background;
 }
 
 .accountForm {
   @apply flex flex-col gap-3 px-4 py-3;
+}
+
+// Uppercase mono "eyebrow" caption above a section heading - the
+// reference screenshot's own "KATALOG POJAZDÓW GRACZY" convention.
+// Reused by DashboardView.tsx's topbar and each page's own header
+// (SettingsPage.tsx, AccountSettingsPage.tsx) - one shared class
+// instead of repeating the Tailwind string per call site.
+.eyebrow {
+  @apply font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground;
 }

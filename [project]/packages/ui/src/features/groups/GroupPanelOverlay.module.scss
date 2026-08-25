@@ -5,7 +5,7 @@
 }
 
 .panel {
-  @apply pointer-events-auto flex h-[70vh] max-h-[560px] w-125 max-w-[92vw] overflow-hidden rounded-xl border border-border bg-popover/95 font-display shadow-lg;
+  @apply pointer-events-auto flex h-[70vh] max-h-[560px] w-125 max-w-[92vw] overflow-hidden border border-border bg-popover/95 font-display shadow-none;
 }
 
 // Left rail listing every group the player belongs to (multi-membership
@@ -17,7 +17,7 @@
 }
 
 .groupTab {
-  @apply flex items-center gap-2 rounded-lg px-2 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+  @apply flex items-center gap-2 px-2 py-2 text-left text-xs text-muted-foreground transition-colors duration-fast ease-out hover:bg-secondary hover:text-foreground;
 }
 
 .groupTabActive {
@@ -54,7 +54,7 @@
 }
 
 .subtitle {
-  @apply text-xs text-muted-foreground;
+  @apply font-mono text-2xs uppercase tracking-wide text-muted-foreground;
 }
 
 .tabs {
@@ -62,7 +62,7 @@
 }
 
 .tabButton {
-  @apply flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+  @apply flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors duration-fast ease-out hover:bg-secondary hover:text-foreground;
 }
 
 .tabButtonActive {
@@ -78,7 +78,7 @@
 }
 
 .memberRow {
-  @apply flex w-full items-center gap-2.5 rounded-lg border-b border-border/40 px-2.5 py-2.5 text-left last:border-b-0 hover:bg-secondary/40;
+  @apply flex w-full items-center gap-2.5 border-b border-border/40 px-2.5 py-2.5 text-left transition-colors duration-fast ease-out last:border-b-0 hover:bg-secondary/40;
 }
 
 .memberInfo {
@@ -89,12 +89,8 @@
   @apply flex items-center gap-1.5 truncate text-sm text-foreground;
 }
 
-.memberSelfBadge {
-  @apply rounded-sm bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary;
-}
-
 .memberStat {
-  @apply text-xs text-muted-foreground;
+  @apply font-mono text-2xs tabular-nums text-muted-foreground;
 }
 
 .memberRankText {
@@ -102,15 +98,15 @@
 }
 
 .rankSelect {
-  @apply h-8 shrink-0 rounded-md border border-input bg-transparent px-2 text-xs text-foreground;
+  @apply h-8 shrink-0 border border-input bg-transparent px-2 text-xs text-foreground;
 }
 
 .kickButton {
-  @apply flex size-7 shrink-0 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/15;
+  @apply flex size-7 shrink-0 items-center justify-center text-destructive transition-colors duration-fast ease-out hover:bg-destructive/15;
 }
 
 .rankRow {
-  @apply flex w-full items-center justify-between gap-2 rounded-lg border-b border-border/40 px-2.5 py-2.5 text-left last:border-b-0 hover:bg-secondary/40 disabled:cursor-default disabled:hover:bg-transparent;
+  @apply flex w-full items-center justify-between gap-2 border-b border-border/40 px-2.5 py-2.5 text-left transition-colors duration-fast ease-out last:border-b-0 hover:bg-secondary/40 disabled:cursor-default disabled:hover:bg-transparent;
 }
 
 .rankRowName {
@@ -118,7 +114,7 @@
 }
 
 .rankRowMeta {
-  @apply text-xs text-muted-foreground;
+  @apply font-mono text-2xs text-muted-foreground;
 }
 
 .addRankButton {
@@ -130,7 +126,7 @@
 }
 
 .playerRow {
-  @apply flex w-full items-center justify-between gap-2 rounded-lg border-b border-border/40 px-2.5 py-2.5 text-left last:border-b-0 hover:bg-secondary/40;
+  @apply flex w-full items-center justify-between gap-2 border-b border-border/40 px-2.5 py-2.5 text-left transition-colors duration-fast ease-out last:border-b-0 hover:bg-secondary/40;
 }
 
 .playerRowName {

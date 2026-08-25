@@ -1,5 +1,6 @@
 import { type Component, For, Show } from "solid-js";
 import { UserX } from "lucide-solid";
+import { Badge } from "@/components/ui/Badge";
 import { t } from "@/i18n";
 import type { GroupMember, GroupRank } from "@/types/group";
 import styles from "./GroupPanelOverlay.module.scss";
@@ -30,7 +31,7 @@ export const MemberRow: Component<MemberRowProps> = (props) => {
         <span class={styles.memberName}>
           {props.member.name ?? t()("groups.member.offline")}
           <Show when={props.isSelf}>
-            <span class={styles.memberSelfBadge}>{t()("groups.member.you")}</span>
+            <Badge variant="primary" size="sm">{t()("groups.member.you")}</Badge>
           </Show>
         </span>
         <span class={styles.memberStat}>

@@ -13,6 +13,7 @@ Enums = {
     UiWindow = {
         AUTHENTICATION = "authentication",
         SPAWN_SELECT = "spawnSelect",
+        DASHBOARD = "dashboard",
     },
 
     ReportStatus = {

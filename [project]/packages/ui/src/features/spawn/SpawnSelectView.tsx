@@ -107,7 +107,7 @@ export const SpawnSelectView: Component = () => {
           <SmokeBackground transparent color="#ffffff" opacity={0.2} enableWind enableTurbulence />
 
           <div class="pointer-events-none absolute inset-x-0 top-0 flex flex-col items-center gap-1 p-6 text-center">
-            <h1 class="text-2xl font-bold uppercase tracking-wide text-foreground [text-shadow:0_2px_8px_rgb(0_0_0/0.8)]">{t()("spawn.title")}</h1>
+            <h1 class="text-2xl font-bold tracking-tight text-foreground [text-shadow:0_2px_8px_rgb(0_0_0/0.8)]">{t()("spawn.title")}</h1>
             <p class="text-sm text-muted-foreground [text-shadow:0_2px_8px_rgb(0_0_0/0.8)]">{t()("spawn.subtitle")}</p>
 
             <Show when={error()}>

@@ -20,20 +20,20 @@
   // style's own base in LicenseExamHud.tsx (calc(4.5rem|8rem + liftPx))
   // - see HudBar.module.scss's own .bar comment for why this transition
   // exists.
-  transition: bottom 0.3s ease;
+  transition: bottom var(--transition-duration-slow) var(--ease-out);
 }
 
 .dockRaised {
   @apply pointer-events-none fixed bottom-32 right-4 z-40 flex flex-col items-end gap-1;
-  transition: bottom 0.3s ease;
+  transition: bottom var(--transition-duration-slow) var(--ease-out);
 }
 
 .card {
-  @apply pointer-events-auto flex max-w-72 items-center gap-2 rounded-xl border border-white/10 bg-popover px-2.5 py-1.5 font-display shadow-lg;
+  @apply pointer-events-auto flex max-w-72 items-center gap-2 border border-white/10 bg-popover px-2.5 py-1.5 font-display shadow-none;
 }
 
 .icon {
-  @apply flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-white;
+  @apply flex size-7 shrink-0 items-center justify-center bg-primary text-white;
 }
 
 .info {
@@ -45,7 +45,7 @@
 }
 
 .objective {
-  @apply max-w-56 truncate text-[10px] text-muted-foreground;
+  @apply max-w-56 truncate text-2xs text-muted-foreground;
 }
 
 .remaining {

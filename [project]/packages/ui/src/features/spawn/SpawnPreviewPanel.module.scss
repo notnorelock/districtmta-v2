@@ -9,11 +9,11 @@
 }
 
 .card {
-  @apply pointer-events-auto relative flex w-56 flex-col gap-3 rounded-xl border border-border bg-popover/95 p-4 font-display shadow-lg;
+  @apply pointer-events-auto relative flex w-56 flex-col gap-3 border border-border bg-popover/95 p-4 font-display shadow-none;
 }
 
 .closeButton {
-  @apply absolute right-2 top-2 flex size-5 items-center justify-center rounded-full text-sm leading-none text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:pointer-events-none disabled:opacity-50;
+  @apply absolute right-2 top-2 flex size-5 items-center justify-center rounded-full text-sm leading-none text-muted-foreground transition-colors duration-fast ease-out hover:bg-secondary hover:text-foreground disabled:pointer-events-none disabled:opacity-50;
 }
 
 .info {
@@ -29,5 +29,5 @@
 }
 
 .confirmButton {
-  @apply h-9 w-full rounded-md text-xs font-bold uppercase tracking-wider;
+  @apply h-9 w-full text-xs font-bold uppercase tracking-wider;
 }

@@ -31,6 +31,17 @@
   over a typical SaaS/admin light theme. Components consume these via
   Tailwind's generated utilities (bg-background, text-foreground, ...).
 
+  Shape/type direction (ongoing, dashboard-first pass): the UI is
+  migrating toward a "terminal/dashboard" look - sharp corners, hairline
+  borders instead of soft shadows, uppercase monospace labels - starting
+  with the F10 player dashboard as a pilot before the rest of the app
+  follows. --radius-sm/md/lg are 0 for this reason (cascades to every
+  primitive automatically - Button/TextField/Select/Tabs/Checkbox/
+  Tooltip/Card/Dialog all read sharp now); --font-mono/JetBrains Mono is
+  the new data/label face for this same direction (see its own comment
+  below). --color-primary/the rest of the palette are UNCHANGED - this
+  is a shape/type redesign, not a rebrand.
+
   UI components (Button, TextField, Tabs, Dialog, Card, Select, Checkbox,
   Switch - components/ui/*.tsx) are ported from solid-ui
   (github.com/stefan-karger/solid-ui, a shadcn/ui equivalent for SolidJS
@@ -80,19 +91,25 @@
   --color-black: #000000;
   --color-white: #ffffff;
 
-  --color-background: #100d0b;
+  /* Deepened toward near-black for the terminal-dashboard direction
+     (was #100d0b) - card/popover/surface unified to one panel tone
+     (was two slightly different browns: #1a1512/#201a16) and border/
+     input tightened to read as a thin hairline against the darker
+     background (was #2e2620). --color-primary/-ring and everything
+     else below is unchanged - see this file's own top-of-block comment. */
+  --color-background: #0a0908;
   --color-foreground: #efebe8;
 
-  --color-card: #1a1512;
+  --color-card: #121110;
   --color-card-foreground: #efebe8;
 
-  --color-popover: #201a16;
+  --color-popover: #121110;
   --color-popover-foreground: #efebe8;
 
-  --color-surface: #1a1512;
-  --color-surface-elevated: #201a16;
-  --color-border: #2e2620;
-  --color-input: #2e2620;
+  --color-surface: #121110;
+  --color-surface-elevated: #17150f;
+  --color-border: #232019;
+  --color-input: #232019;
   --color-ring: #fc8c5b;
 
   --color-primary: #fc8c5b;
@@ -134,9 +151,62 @@
   --font-sans: "Titillium Web", "Inter", "Segoe UI", system-ui, sans-serif;
   --font-display: "Titillium Web", "Inter", "Segoe UI", system-ui, sans-serif;
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  /* font-mono was ALREADY referenced by font-mono classes in 7 files
+     (AuthCard, DashboardOverlay, DutyIndicator, ItemToast,
+     LicenseExamDialog, LicenseExamHud, WorldMapOverlay) with no token
+     defined here - they were silently falling back to Tailwind's
+     default system-mono stack. Defining it retroactively re-skins all
+     7 correctly, same "attach point" font-display already is for
+     font-sans call sites. JetBrains Mono files are bundled locally
+     (see the @font-face blocks below) - no network font dependency,
+     since CEF in-game has no reliable internet access for players. */
+  --font-mono: "JetBrains Mono", "Consolas", "SF Mono", monospace;
+
+  /* 0 across the board for the terminal-dashboard direction (was
+     0.25rem/0.5rem/0.75rem) - see this file's own top-of-block comment. */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+
+  /* Type scale for the design-system pass (see docs/DesignSystem.md).
+     Tailwind v4 pairs a font-size token with a matching line-height
+     token (confirmed against the built-in theme.css text-xs and
+     text-xs line-height pair) - defining both together generates a
+     matching text-* utility setting font-size and line-height at once.
+     text-2xs promotes the 10px arbitrary value already used
+     independently in 5 files (BlackoutOverlay x2, DutyIndicator x2,
+     GroupPanelOverlay, LicenseExamHud, DashboardOverlay eyebrow class) to
+     a real token instead of a repeated magic number - not a new
+     invention. The built-in xs/sm/base/lg/xl/2xl/3xl values are left at
+     their defaults (already shipped in theme.css, merged automatically)
+     - redeclaring them here would be redundant. See docs/DesignSystem.md
+     for the full 3-way typographic hierarchy this token supports. */
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1rem;
+
+  /* Motion tokens for the design-system pass. duration-* utilities are
+     keyed off --transition-duration-* specifically (confirmed against
+     the compiled Tailwind engine: valueThemeKeys: ["--transition-duration"]),
+     not a --duration-* namespace - matches the legacy transitionDuration
+     config key name. Generates real duration-fast/duration-base/
+     duration-slow utility classes, no arbitrary-value syntax needed.
+     Values chosen from this file's own hand-rolled overlay transition
+     blocks below: 0.15s ease is used in 5 of ~9 blocks (majority
+     convention) -> fast. 0.2s/0.25s -> base. 0.32s/0.35s/0.4s -> slow. */
+  --transition-duration-fast: 150ms;
+  --transition-duration-base: 250ms;
+  --transition-duration-slow: 350ms;
+
+  /* ease utilities ARE theme-keyed natively off --ease-* (Tailwind's own
+     built-in --ease-in/--ease-out/--ease-in-out already work this way -
+     do not redeclare those three). Only the two custom curves this
+     file's overlay transitions already relied on (as inline literals)
+     are added here, promoted to named tokens - preserved verbatim (not
+     collapsed to a generic ease) since each was deliberately chosen for
+     a specific visual effect, see the blocks below that now reference
+     them. */
+  --ease-height: cubic-bezier(0.36, 0.66, 0.04, 1);
+  --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @font-face {
@@ -167,6 +237,30 @@
   font-family: "Titillium Web";
   src: url("~@/assets/fonts/TitilliumWeb-Black.ttf") format("truetype");
   font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("~@/assets/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("~@/assets/fonts/JetBrainsMono-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("~@/assets/fonts/JetBrainsMono-Bold.ttf") format("truetype");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
@@ -209,11 +303,11 @@
 */
 .auth-panel__viewport {
   overflow: hidden;
-  transition: height 0.35s cubic-bezier(0.36, 0.66, 0.04, 1);
+  transition: height var(--transition-duration-slow) var(--ease-height);
 }
 
 .auth-panel__content {
-  transition: transform 0.35s cubic-bezier(0.36, 0.66, 0.04, 1), opacity 0.35s ease;
+  transition: transform var(--transition-duration-slow) var(--ease-height), opacity var(--transition-duration-slow) var(--ease-out);
 }
 
 .auth-panel__content:not([data-selected]) {
@@ -249,7 +343,7 @@
 */
 .hud-enter-active,
 .hud-exit-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity var(--transition-duration-base) var(--ease-out), transform var(--transition-duration-base) var(--ease-out);
 }
 
 .hud-enter-from {
@@ -277,10 +371,17 @@
   not a directional slide like "hud" above: it's a full-screen cover, not
   an element anchored to a screen edge, so there's no "direction it lives
   in" for a slide to read as coming from.
+
+  NOT CURRENTLY WIRED to any component - BlackoutOverlay.tsx does not use
+  the shared <Overlay> component (see its own module comment on why: an
+  outer mode="outin" Transition tore down its inner countdown-card
+  Transition on every flip). This block is dead CSS today, kept in case a
+  future restructure re-adopts <Overlay> for the vignette layer. The
+  card's own transition lives in BlackoutOverlay.module.scss instead.
 */
 .blackout-enter-active,
 .blackout-exit-active {
-  transition: opacity 0.4s ease;
+  transition: opacity var(--transition-duration-slow) var(--ease-out);
 }
 
 .blackout-enter-from,
@@ -295,7 +396,7 @@
 */
 .scoreboard-enter-active,
 .scoreboard-exit-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity var(--transition-duration-fast) var(--ease-out), transform var(--transition-duration-fast) var(--ease-out);
 }
 
 .scoreboard-enter-from,
@@ -316,11 +417,11 @@
   hold-to-show overlay that closes the instant the key is released.
 */
 .vehicleMenu-enter-active {
-  transition: opacity 0.28s ease, transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.28s ease;
+  transition: opacity var(--transition-duration-base) var(--ease-out), transform var(--transition-duration-slow) var(--ease-overshoot), filter var(--transition-duration-base) var(--ease-out);
 }
 
 .vehicleMenu-exit-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity var(--transition-duration-fast) var(--ease-out), transform var(--transition-duration-fast) var(--ease-out);
 }
 
 .vehicleMenu-enter-from {
@@ -341,7 +442,7 @@
 */
 .worldInteraction-enter-active,
 .worldInteraction-exit-active {
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-duration-base) var(--ease-out);
 }
 
 .worldInteraction-enter-from,
@@ -356,7 +457,7 @@
 */
 .inventory-enter-active,
 .inventory-exit-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity var(--transition-duration-fast) var(--ease-out), transform var(--transition-duration-fast) var(--ease-out);
 }
 
 .inventory-enter-from,
@@ -379,7 +480,7 @@
 */
 .vehicleStorage-enter-active,
 .vehicleStorage-exit-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity var(--transition-duration-fast) var(--ease-out), transform var(--transition-duration-fast) var(--ease-out);
 }
 
 .vehicleStorage-enter-from,
@@ -396,7 +497,7 @@
 */
 .worldMap-enter-active,
 .worldMap-exit-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity var(--transition-duration-fast) var(--ease-out), transform var(--transition-duration-fast) var(--ease-out);
 }
 
 .worldMap-enter-from,
@@ -414,7 +515,7 @@
 */
 .groupPanel-enter-active,
 .groupPanel-exit-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity var(--transition-duration-fast) var(--ease-out), transform var(--transition-duration-fast) var(--ease-out);
 }
 
 .groupPanel-enter-from,
@@ -424,19 +525,23 @@
 }
 
 /*
-  F10 player dashboard (features/dashboard/DashboardOverlay.tsx) -
-  centered panel toggled by F10 (gm_settings/client/SettingsState.lua).
-  Same plain fade+scale as vehicleStorage/worldMap/groupPanel above, and
-  same reason this block must exist at all - see vehicleStorage's own
-  comment on the missing-CSS-class gotcha.
+  License exam dialog (features/licenses/LicenseExamDialog.tsx) - centered
+  panel opened by standing in a driving-license category's marker. Was
+  previously reusing transitionName="hud" purely because no dedicated
+  block existed yet - but that block's directional translateX(48px)
+  slide was chosen specifically because HudBar's icons live in the
+  bottom-right corner and "stamp in" from off-screen; that reasoning
+  doesn't apply to a centered dialog, so reusing it was a visible
+  mismatch. Same plain fade+scale as scoreboard/inventory/vehicleStorage/
+  worldMap/groupPanel above instead.
 */
-.dashboard-enter-active,
-.dashboard-exit-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+.licenseExam-enter-active,
+.licenseExam-exit-active {
+  transition: opacity var(--transition-duration-fast) var(--ease-out), transform var(--transition-duration-fast) var(--ease-out);
 }
 
-.dashboard-enter-from,
-.dashboard-exit-to {
+.licenseExam-enter-from,
+.licenseExam-exit-to {
   opacity: 0;
   transform: scale(0.98);
 }

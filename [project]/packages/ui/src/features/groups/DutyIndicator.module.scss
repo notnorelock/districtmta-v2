@@ -9,16 +9,18 @@
   // bottom-18's own value (4.5rem) is restated as the inline style's own
   // base in DutyIndicator.tsx (calc(4.5rem + liftPx)) - see
   // HudBar.module.scss's own .bar comment for why this transition exists.
-  transition: bottom 0.3s ease;
+  transition: bottom var(--transition-duration-slow) var(--ease-out);
 }
 
 .pill {
-  @apply pointer-events-auto flex items-center gap-2 rounded-xl border border-white/10 bg-popover px-2.5 py-1.5 font-display shadow-lg;
+  @apply pointer-events-auto flex items-center gap-2 border border-white/10 bg-popover px-2.5 py-1.5 font-display shadow-none;
+  // Deliberate status-color glow, not a generic drop shadow - kept even
+  // though shadow-lg (the generic one) was dropped above.
   box-shadow: 0 0 8px 1px color-mix(in srgb, var(--duty-color) 35%, transparent);
 }
 
 .icon {
-  @apply flex size-7 shrink-0 items-center justify-center rounded-lg text-white;
+  @apply flex size-7 shrink-0 items-center justify-center text-white;
   background: var(--duty-color);
 }
 
@@ -31,7 +33,7 @@
 }
 
 .rankName {
-  @apply truncate text-[10px] text-muted-foreground;
+  @apply truncate text-2xs text-muted-foreground;
 }
 
 .elapsed {
@@ -39,5 +41,5 @@
 }
 
 .hint {
-  @apply pr-1 text-[10px] text-muted-foreground;
+  @apply pr-1 text-2xs text-muted-foreground;
 }

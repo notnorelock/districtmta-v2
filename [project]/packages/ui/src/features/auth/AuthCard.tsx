@@ -60,13 +60,13 @@ export const AuthCard: Component = () => {
             <TabsList class="relative mb-2 h-auto justify-start gap-8 bg-transparent p-0">
               <TabsTrigger
                 value="login"
-                class="auth-panel__tab relative rounded-none bg-transparent py-2 text-xs font-bold uppercase tracking-widest text-muted shadow-none transition-colors data-selected:bg-transparent data-selected:text-foreground data-selected:shadow-none"
+                class="auth-panel__tab relative rounded-none bg-transparent py-2 font-mono text-xs font-bold uppercase tracking-widest text-muted shadow-none transition-colors duration-fast ease-out data-selected:bg-transparent data-selected:text-foreground data-selected:shadow-none"
               >
                 {t()("auth.tabs.login")}
               </TabsTrigger>
               <TabsTrigger
                 value="register"
-                class="auth-panel__tab relative rounded-none bg-transparent py-2 text-xs font-bold uppercase tracking-widest text-muted shadow-none transition-colors data-selected:bg-transparent data-selected:text-foreground data-selected:shadow-none"
+                class="auth-panel__tab relative rounded-none bg-transparent py-2 font-mono text-xs font-bold uppercase tracking-widest text-muted shadow-none transition-colors duration-fast ease-out data-selected:bg-transparent data-selected:text-foreground data-selected:shadow-none"
               >
                 {t()("auth.tabs.register")}
               </TabsTrigger>
@@ -96,7 +96,7 @@ export const AuthCard: Component = () => {
   );
 };
 
-const submitButtonClass = "auth-panel__submit mt-2 h-auto w-full rounded-xl py-4 text-xs font-bold uppercase tracking-widest";
+const submitButtonClass = "auth-panel__submit mt-2 h-auto w-full py-4 font-mono text-xs font-bold uppercase tracking-widest";
 
 const LoginForm: Component = () => {
   const [login, setLogin] = createSignal("");
@@ -143,7 +143,7 @@ const LoginForm: Component = () => {
   return (
     <>
       <div>
-        <h1 class="text-2xl font-bold uppercase tracking-wide text-foreground">{t()("auth.login.title")}</h1>
+        <h1 class="text-2xl font-bold tracking-tight text-foreground">{t()("auth.login.title")}</h1>
         <p class="mt-1 text-sm text-muted-foreground">{t()("auth.login.subtitle")}</p>
       </div>
 
@@ -231,7 +231,7 @@ const RegisterForm: Component<{ onSwitchToLogin: () => void }> = (props) => {
   return (
     <>
       <div>
-        <h1 class="text-2xl font-bold uppercase tracking-wide text-foreground">{t()("auth.register.title")}</h1>
+        <h1 class="text-2xl font-bold tracking-tight text-foreground">{t()("auth.register.title")}</h1>
         <p class="mt-1 text-sm text-muted-foreground">{t()("auth.register.subtitle")}</p>
       </div>
 
@@ -314,7 +314,7 @@ const AuthField: Component<AuthFieldProps> = (props) => {
     <TextField value={props.value} onChange={props.onInput} class="gap-2">
       <TextFieldLabel
         for={props.id}
-        class="select-none font-mono text-xs font-bold uppercase tracking-widest text-accent-indigo/70"
+        class="select-none font-mono text-2xs font-bold uppercase tracking-widest text-accent-indigo/70"
       >
         {props.label}
       </TextFieldLabel>
@@ -329,7 +329,7 @@ const AuthField: Component<AuthFieldProps> = (props) => {
           maxLength={props.maxLength}
           required
           class={cn(
-            "h-auto rounded-xl border-accent-indigo/20 bg-black/60 px-4 py-3.5 backdrop-blur-md",
+            "h-auto border-accent-indigo/20 bg-black/60 px-4 py-3.5 backdrop-blur-md",
             "focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-accent-indigo/60",
             isPassword() && "pr-11",
           )}
@@ -341,7 +341,7 @@ const AuthField: Component<AuthFieldProps> = (props) => {
             size="icon"
             onClick={() => setReveal((current) => !current)}
             aria-label={reveal() ? t()("auth.password.hide") : t()("auth.password.show")}
-            class="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 rounded-lg text-muted hover:bg-accent-indigo/10 hover:text-foreground"
+            class="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-muted hover:bg-accent-indigo/10 hover:text-foreground"
           >
             <Show
               when={reveal()}

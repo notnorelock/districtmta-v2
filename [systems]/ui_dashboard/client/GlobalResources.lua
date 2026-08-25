@@ -32,8 +32,19 @@ local ElementData = setmetatable({
     end,
 })
 
+local UI = {
+    open = function(windowName, blocking) exports.core_ui:uiOpen(windowName, blocking) end,
+    close = function(windowName) exports.core_ui:uiClose(windowName) end,
+    isOpen = function(windowName) return exports.core_ui:uiIsOpen(windowName) end,
+    isReady = function() return exports.core_ui:uiIsReady() end,
+}
+
 setmetatable(_G, {
     __index = function(table, key)
+        if key == "UI" then
+            return isResourceAvailable("core_ui") and UI or false
+        end
+        
         if key == "ElementData" then
             return isResourceAvailable("core_shared") and ElementData or false
         end

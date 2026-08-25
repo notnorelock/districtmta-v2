@@ -32,7 +32,7 @@ const TooltipContent = <T extends ValidComponent = "div">(props: PolymorphicProp
           // module.scss's .panel etc.), so without this it silently fell
           // back to body's own font-sans (Inter) instead of matching every
           // other panel's Titillium Web.
-          "z-50 origin-[var(--kb-popper-content-transform-origin)] rounded-md border border-border bg-popover px-2.5 py-1.5 font-display text-xs text-popover-foreground shadow-md data-expanded:animate-in data-closed:animate-out data-closed:fade-out-0 data-expanded:fade-in-0 data-closed:zoom-out-95 data-expanded:zoom-in-95",
+          "z-50 origin-[var(--kb-popper-content-transform-origin)] border border-border bg-popover px-2.5 py-1.5 font-display text-xs text-popover-foreground shadow-none data-expanded:animate-in data-closed:animate-out data-closed:fade-out-0 data-expanded:fade-in-0 data-closed:zoom-out-95 data-expanded:zoom-in-95",
           local.class,
         )}
         {...others}

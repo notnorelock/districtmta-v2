@@ -12,7 +12,7 @@
 }
 
 .panel {
-  @apply pointer-events-auto flex h-[70vh] max-h-[600px] w-140 max-w-[90vw] overflow-hidden rounded-xl border border-border bg-popover/95 font-display shadow-lg;
+  @apply pointer-events-auto flex h-[70vh] max-h-[600px] w-140 max-w-[90vw] overflow-hidden border border-border bg-popover/95 font-display shadow-none;
 }
 
 // Category tab rail down the left side - ported from the reference's own
@@ -24,7 +24,7 @@
 }
 
 .tab {
-  @apply flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
+  @apply flex size-10 items-center justify-center text-muted-foreground transition-colors duration-fast ease-out hover:bg-secondary hover:text-foreground;
 }
 
 .tabActive {
@@ -44,7 +44,7 @@
 }
 
 .weight {
-  @apply flex items-center gap-1.5 text-xs text-muted-foreground;
+  @apply flex items-center gap-1.5 font-mono text-xs tabular-nums text-muted-foreground;
 }
 
 .listWrap {
@@ -52,11 +52,11 @@
 }
 
 .row {
-  @apply flex items-center gap-2.5 border-b border-border/40 px-4 py-2.5 last:border-b-0 hover:bg-secondary/40;
+  @apply flex items-center gap-2.5 border-b border-border/40 px-4 py-2.5 transition-colors duration-fast ease-out last:border-b-0 hover:bg-secondary/40;
 }
 
 .rowIcon {
-  @apply flex size-8 shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground;
+  @apply flex size-8 shrink-0 items-center justify-center bg-secondary text-muted-foreground;
 }
 
 .rowName {
@@ -68,7 +68,7 @@
 }
 
 .rowAmount {
-  @apply shrink-0 text-xs tabular-nums text-muted-foreground;
+  @apply shrink-0 font-mono text-2xs tabular-nums text-muted-foreground;
 }
 
 .empty {
@@ -84,11 +84,11 @@
 // component library (checked before writing this), see
 // InventoryOverlay.tsx's own module comment.
 .contextMenu {
-  @apply pointer-events-auto fixed z-50 flex w-44 flex-col overflow-hidden rounded-lg border border-border bg-popover shadow-lg;
+  @apply pointer-events-auto fixed z-50 flex w-44 flex-col overflow-hidden border border-border bg-popover shadow-none;
 }
 
 .contextItem {
-  @apply flex items-center gap-2 px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-secondary;
+  @apply flex items-center gap-2 px-3 py-2 text-left text-sm text-foreground transition-colors duration-fast ease-out hover:bg-secondary;
 }
 
 .contextItemDanger {

@@ -5,6 +5,7 @@ import { OverlayProvider } from "@/components/common/OverlayProvider";
 import { WindowProvider, useWindow } from "@/components/common/WindowProvider";
 import { LoginView } from "@/features/auth/LoginView";
 import { SpawnSelectView } from "@/features/spawn/SpawnSelectView";
+import { DashboardView } from "@/features/dashboard/DashboardView";
 import { ResourceCheckScreen } from "@/features/loading/ResourceCheckScreen";
 import { HudBar } from "@/features/hud/HudBar";
 import { VoiceIndicator } from "@/features/hud/VoiceIndicator";
@@ -18,7 +19,6 @@ import { InventoryOverlay } from "@/features/inventory/InventoryOverlay";
 import { VehicleStorageOverlay } from "@/features/vehicleStorage/VehicleStorageOverlay";
 import { WorldMapOverlay } from "@/features/worldMap/WorldMapOverlay";
 import { GroupPanelOverlay } from "@/features/groups/GroupPanelOverlay";
-import { DashboardOverlay } from "@/features/dashboard/DashboardOverlay";
 import { DutyIndicator } from "@/features/groups/DutyIndicator";
 import { GroupInviteToast } from "@/features/groups/GroupInviteToast";
 import { LicenseExamHud } from "@/features/licenses/LicenseExamHud";
@@ -47,6 +47,9 @@ const AppContent: Component = () => {
         </Match>
         <Match when={authStore.phase() === "authenticated" && windowState.activeWindow() === "spawnSelect"}>
           <SpawnSelectView />
+        </Match>
+        <Match when={windowState.activeWindow() === "dashboard"}>
+          <DashboardView />
         </Match>
       </Switch>
 
@@ -112,10 +115,6 @@ const AppContent: Component = () => {
           toggled by gm_groups while G is pressed - see
           GroupPanelOverlay.tsx's own comment. */}
       <GroupPanelOverlay />
-      {/* Uses its own "dashboard" overlay key (Overlay name prop),
-          toggled by ui_dashboard while F10 is pressed - see
-          DashboardOverlay.tsx's own comment. */}
-      <DashboardOverlay />
       {/* Uses its own "licenseExam" overlay key (Overlay name prop),
           opened/closed by gm_licenses while standing inside a driving
           license category's marker - see LicenseExamDialog.tsx's own

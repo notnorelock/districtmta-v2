@@ -12,7 +12,7 @@
 }
 
 .panel {
-  @apply pointer-events-auto flex max-h-[75vh] w-140 max-w-[90vw] flex-col overflow-hidden rounded-xl border border-border bg-popover/95 font-display shadow-lg;
+  @apply pointer-events-auto flex max-h-[75vh] w-140 max-w-[90vw] flex-col overflow-hidden border border-border bg-popover/95 font-display shadow-none;
 }
 
 .header {
@@ -22,7 +22,7 @@
 // Text placeholder until a real logo asset is provided (see
 // ScoreboardOverlay.tsx's own module comment) - swap for an <img> then.
 .logo {
-  @apply flex shrink-0 items-center gap-1 text-sm font-semibold text-foreground;
+  @apply flex shrink-0 items-center gap-1 font-mono text-sm font-semibold uppercase tracking-wide text-foreground;
 }
 
 .logoAccent {
@@ -46,7 +46,7 @@
 }
 
 .searchClear {
-  @apply absolute right-1.5 flex items-center justify-center text-muted-foreground transition-colors hover:text-foreground;
+  @apply absolute right-1.5 flex items-center justify-center text-muted-foreground transition-colors duration-fast ease-out hover:text-foreground;
 }
 
 .count {
@@ -58,7 +58,7 @@
 }
 
 .row {
-  @apply flex items-center gap-3 border-b border-border/40 px-4 py-2.5 last:border-b-0 hover:bg-secondary/40;
+  @apply flex items-center gap-3 border-b border-border/40 px-4 py-2.5 transition-colors duration-fast ease-out last:border-b-0 hover:bg-secondary/40;
 }
 
 .avatar {
@@ -78,27 +78,11 @@
 }
 
 .playerStatus {
-  @apply flex items-center gap-1.5 truncate text-xs text-muted-foreground;
-}
-
-.dot {
-  @apply size-1.5 shrink-0 rounded-full;
-}
-
-.dotPending {
-  background: var(--color-warning);
-}
-
-.dotReady {
-  background: var(--color-success);
-}
-
-.factionBadge {
-  @apply shrink-0 text-xs font-medium text-accent-violet;
+  @apply flex items-center gap-1.5 truncate font-mono text-2xs tracking-wide text-muted-foreground;
 }
 
 .pingCol {
-  @apply flex w-14 shrink-0 items-center justify-end gap-1.5 text-sm tabular-nums text-foreground;
+  @apply flex w-14 shrink-0 items-center justify-end gap-1.5 font-mono text-sm tabular-nums text-foreground;
 }
 
 .pingGood {

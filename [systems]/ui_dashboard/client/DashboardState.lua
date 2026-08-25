@@ -1,8 +1,15 @@
--- F10 player-dashboard panel open/close - plain toggle, non-blocking
--- overlay that only engages cursor/focus/movement-lock on a separate
--- right-click toggle while open - exact gm_items/client/InventoryState.lua
--- pattern. F10 is unused by any other resource in this project; no
--- ESC/pause menu exists yet to hook a "Ustawienia" entry into instead.
+-- F10 player-dashboard panel open/close - real blocking UiWindow (same
+-- mechanism core_auth's AuthUiClient.lua uses for the login/spawn-select
+-- screens), NOT the old additive-overlay + manual right-click cursor
+-- toggle. core_ui/client/ui/BrowserManager.lua's UI.open/UI.close already
+-- handles cursor/GUI-input/weapon-fire-and-switch lock and browser focus
+-- automatically for any blocking window (see updateInputState() there) -
+-- this file owns nothing but the F10 keybind and panel open/closed state.
+-- Movement (WASD etc.) is deliberately left unlocked, matching how
+-- updateInputState() already treats the auth/spawn-select windows.
+--
+-- F10 is unused by any other resource in this project; no ESC/pause menu
+-- exists yet to hook a "Ustawienia" entry into instead.
 --
 -- This resource owns ONLY panel lifecycle. The Settings tab's actual
 -- toggle logic (whitelist/persistence/effects) stays in gm_settings -
@@ -15,16 +22,6 @@
 DashboardState = DashboardState or {}
 
 local panelOpen = false
-local cursorActive = false
-
-local function onRightClick(key, state)
-    if key ~= "mouse2" or not state then
-        return
-    end
-    cursorActive = not cursorActive
-    toggleAllControls(not cursorActive)
-    exports.core_ui:uiFocusBrowser(cursorActive)
-end
 
 local function openPanel()
     if panelOpen then
@@ -32,8 +29,8 @@ local function openPanel()
     end
     panelOpen = true
 
-    exports.core_ui:uiShowOverlay("dashboard")
-    addEventHandler("onClientKey", root, onRightClick)
+    showChat(false)
+    UI.open(Enums.UiWindow.DASHBOARD)
 end
 
 local function closePanel()
@@ -42,14 +39,8 @@ local function closePanel()
     end
     panelOpen = false
 
-    removeEventHandler("onClientKey", root, onRightClick)
-    if cursorActive then
-        cursorActive = false
-        toggleAllControls(true)
-        exports.core_ui:uiFocusBrowser(false)
-    end
-
-    exports.core_ui:uiHideOverlay("dashboard")
+    showChat(true)
+    UI.close(Enums.UiWindow.DASHBOARD)
 end
 
 local function togglePanel()
