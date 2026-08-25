@@ -7,7 +7,9 @@ local IGNORE_KEYS = {
     ["login"] = true,
     ["mta_serial"] = true,
     ["password_hash"] = true,
+    ["two_factor_secret"] = true,
     ["premium_expires_at"] = true,
+    ["two_factor_enabled_at"] = true,
 }
 
 local function setupPlayerData(player, data)
