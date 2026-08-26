@@ -4,14 +4,6 @@
 // alias - see HudIcon.module.scss's comment on the same directive for why.
 @reference "../../styles/globals.css";
 
-// Positioning (fixed/centered/z-index) now lives on the shared
-// .topCenterStack wrapper in App.tsx - see its own comment for why. This
-// card only needs to opt back INTO pointer events for its own row
-// (.dock itself stays a plain flex item, no longer independently fixed).
-.dock {
-  @apply pointer-events-none;
-}
-
 // font-display (Titillium Web, matches Watermark/the rest of the HUD) -
 // the plain <div>/<span> text here otherwise falls back to body's
 // font-sans (Inter), which read as "wrong font" next to everything else.
@@ -93,15 +85,4 @@
 
 .footerLabelRight {
   @apply flex-1 truncate text-right text-xs font-medium text-foreground;
-}
-
-.cardEnterActive,
-.cardExitActive {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.cardEnterFrom,
-.cardExitTo {
-  opacity: 0;
-  transform: translateY(-12px);
 }

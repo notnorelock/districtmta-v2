@@ -4,14 +4,6 @@
 // alias - see HudIcon.module.scss's comment on the same directive for why.
 @reference "../../styles/globals.css";
 
-// Positioning (fixed/centered/z-index) now lives on the shared
-// .topCenterStack wrapper in App.tsx - see its own comment for why. This
-// card only needs to opt back INTO pointer events for its own row
-// (.dock itself stays a plain flex item, no longer independently fixed).
-.dock {
-  @apply pointer-events-none;
-}
-
 // font-display (Titillium Web, matches Watermark/RadioCard) - see
 // RadioCard.module.scss's own comment on the same rule for why.
 .card {
@@ -33,17 +25,6 @@
 
 .label {
   @apply truncate text-xs text-muted-foreground;
-}
-
-.cardEnterActive,
-.cardExitActive {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.cardEnterFrom,
-.cardExitTo {
-  opacity: 0;
-  transform: translateY(-12px);
 }
 
 // Sun: slow, steady rotation - the classic "shining" cue, subtle enough

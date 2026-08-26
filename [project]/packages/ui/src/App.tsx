@@ -10,8 +10,7 @@ import { DashboardView } from "@/features/dashboard/DashboardView";
 import { ResourceCheckScreen } from "@/features/loading/ResourceCheckScreen";
 import { HudBar } from "@/features/hud/HudBar";
 import { VoiceIndicator } from "@/features/hud/VoiceIndicator";
-import { RadioCard } from "@/features/hud/RadioCard";
-import { WeatherCard } from "@/features/hud/WeatherCard";
+import { TopCenterStack } from "@/features/hud/TopCenterStack";
 import { ItemToast } from "@/features/hud/ItemToast";
 import { BlackoutOverlay } from "@/features/blackout/BlackoutOverlay";
 import { ScoreboardOverlay } from "@/features/scoreboard/ScoreboardOverlay";
@@ -96,19 +95,10 @@ const AppContent: Component = () => {
       {/* Not gated behind the "hud" overlay - both cards are their own
           independent systems (gm_radio/gm_weather, not ui_hud) and should
           show even if the HUD itself is hidden, same reasoning as
-          Watermark. Shared top-center dock: RadioCard/WeatherCard used to
-          each carry their own `fixed left-1/2 top-6` positioning, which
-          put both cards in the exact same spot whenever they were visible
-          at once (e.g. driving through a city border while the radio card
-          is still showing). This wrapper owns the fixed/centered/z-index
-          positioning instead, as a plain flex column - each card is now
-          just a normal flex item, so whichever one(s) are actually
-          mounted stack top-down with a gap instead of overlapping,
-          entirely automatically regardless of which fired first. */}
-      <div class="pointer-events-none fixed left-1/2 top-6 z-40 flex -translate-x-1/2 flex-col items-center gap-2">
-        <RadioCard />
-        <WeatherCard />
-      </div>
+          Watermark. See TopCenterStack.tsx's own comment for why this is
+          one shared component rather than two independently-positioned
+          cards. */}
+      <TopCenterStack />
       {/* Uses its own "blackout" overlay key internally (Overlay name
           prop) - rendered unconditionally here so it can show up
           regardless of auth/HUD state, same reasoning as Watermark/RadioCard. */}

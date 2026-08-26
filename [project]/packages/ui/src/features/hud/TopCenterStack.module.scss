@@ -1,0 +1,39 @@
+// CSS Modules + Sass, scoped to features/hud/ only - see
+// webpack.config.js's *.module.scss rule comment for why.
+// @reference (not @import "tailwindcss"), relative path not the "@/"
+// alias - see HudIcon.module.scss's comment on the same directive for why.
+@reference "../../styles/globals.css";
+
+// TransitionGroup renders NO wrapper element of its own - it passes
+// props.children straight through into wherever it's placed (confirmed
+// against solid-transition-group's own source: it calls
+// createListTransition(...).toArray directly as children, no host div).
+// So the flex column that stacks radio/weather top-to-bottom instead of
+// overlapping at the same fixed position lives on .dock (the actual DOM
+// parent, in TopCenterStack.tsx) - see that class below.
+.dock {
+  @apply flex flex-col items-center gap-2;
+}
+
+.slot {
+  @apply pointer-events-auto;
+}
+
+// FLIP-based reflow (auto-applied by TransitionGroup to every sibling
+// whose position shifts) - same mechanism/duration as HudBar's own
+// slideMove, so the surviving card glides into the vacated slot instead
+// of snapping there the instant the other one unmounts.
+.slideMove {
+  transition: transform 0.3s ease;
+}
+
+.slideEnterActive,
+.slideExitActive {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.slideEnterFrom,
+.slideExitTo {
+  opacity: 0;
+  transform: translateY(-12px);
+}
