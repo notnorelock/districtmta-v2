@@ -36,7 +36,7 @@ function getAll(table)
     local all = 0
 
     for i, v in ipairs(table) do
-        if tonumber(string.sub(v[2], 1, string.len(v[2]) - 1)) and v[1] ~= "cpu" then
+        if tonumber(string.sub(v[2], 1, string.len(v[2]) - 1)) then
             all = all + tonumber(string.sub(v[2], 1, string.len(v[2]) - 1))
         end
     end
@@ -50,7 +50,19 @@ function resStatRender()
         x = sx - 200
     end
 
-    local columns, rows = getPerformanceStats('Lua timing')
+    local columns, allRows = getPerformanceStats('Lua timing')
+
+    -- Drop this resource's OWN row entirely - its Lua timing is just the
+    -- cost of rendering this very stats overlay, not gameplay/other
+    -- resources' actual usage, and would otherwise show up as a
+    -- misleading extra line in a list meant to profile everything else.
+    local rows = {}
+    for _, row in ipairs(allRows) do
+        if row[1] ~= "cpu" then
+            rows[#rows + 1] = row
+        end
+    end
+
     table.insert(rows, {
         '- całość',
         getAll(rows) .. '%',
@@ -70,8 +82,7 @@ function resStatRender()
 
     for i, row in ipairs(rows) do
         local text = row[1]:sub(0, 15) .. ': ' .. row[2]
-        local color = row.color and tocolor(255, 0, 0) or (row[1] and row[1] == "cpu") and tocolor(0, 255, 0) or
-        tocolor(200, 200, 200)
+        local color = row.color and tocolor(255, 0, 0) or tocolor(0, 255, 0)
         dxDrawRectangle(x - 10, y, 200, 20, i % 2 == 1 and tocolor(125, 125, 125, 205) or tocolor(150, 150, 150, 205))
         dxDrawText(text, x, y, 200, 20, color, 1, font)
 

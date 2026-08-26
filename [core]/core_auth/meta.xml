@@ -11,6 +11,8 @@
     <include resource="core" />
     <include resource="core_ui" />
 
+    <file src="assets/*" />
+
     <script src="server/GlobalResources.lua" type="server" cache="false" />
     <script src="server/AuthUiController.lua" type="server" cache="false" />
     <script src="server/SpawnLocations.lua" type="server" cache="false" />
@@ -19,6 +21,9 @@
     <script src="client/GlobalResources.lua" type="client" cache="false" />
     <script src="client/Logger.lua" type="client" cache="false" />
     <script src="client/AuthUiClient.lua" type="client" cache="false" />
+    <script src="client/UiAnimation.lua" type="client" cache="false" />
+    <script src="client/MusicState.lua" type="client" cache="false" />
+    <script src="client/LightsEffect.lua" type="client" cache="false" />
     <script src="client/CredentialStore.lua" type="client" cache="false" />
     <script src="client/CredentialTransport.lua" type="client" cache="false" />
     <script src="client/TrustedDeviceStore.lua" type="client" cache="false" />

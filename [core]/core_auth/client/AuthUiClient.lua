@@ -1,17 +1,16 @@
--- Opens the auth UI window when the server signals a player needs to
--- authenticate, and closes it once the server confirms world entry.
--- SPAWN_SELECT_CLOSE only flags the window as pending-close rather than
--- closing it immediately - it waits for onClientPlayerSpawn so the player
--- sees a loading state through the spawn itself rather than a jarring cut.
+local function noop()
+    if isChatVisible() then
+        showChat(false)
+    end
+end
 
 addEvent(Events.AUTH_BEGIN_AUTHENTICATION, true)
 addEventHandler(Events.AUTH_BEGIN_AUTHENTICATION, root, function()
     UI.open(Enums.UiWindow.AUTHENTICATION)
+    showChat(false)
+    addEventHandler("onClientRender", root, noop)
 end)
 
--- See Events.AUTH_ALREADY_IN_WORLD's own comment - a plain CEF push
--- (UI.pushEvent), not UI.open/close, since no window is actually opening
--- or closing here.
 addEvent(Events.AUTH_ALREADY_IN_WORLD, true)
 addEventHandler(Events.AUTH_ALREADY_IN_WORLD, root, function()
     exports.core_ui:uiPushEvent(Events.PUSH_UI_ALREADY_IN_WORLD, true)
@@ -46,5 +45,7 @@ addEventHandler("onClientPlayerSpawn", localPlayer, function()
         spawnSelectClosePending = false
         return
     end
+    showChat(true)
+    removeEventHandler("onClientRender", root, noop)
     playerSpawnedOnce = true
 end)
