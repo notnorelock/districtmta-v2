@@ -4,6 +4,7 @@ import type { MtaTransportLike } from "./Transport";
 import { obfuscatePayload, deobfuscatePayload } from "./payloadObfuscation";
 
 const CREDENTIALS_LOAD_TIMEOUT_MS = 3000;
+const TRUSTED_DEVICE_LOAD_TIMEOUT_MS = 3000;
 
 /** Real transport used inside MTA's CEF browser. See docs/UiBridge.md for the protocol. */
 export class MtaTransport implements MtaTransportLike {
@@ -142,6 +143,61 @@ export class MtaTransport implements MtaTransportLike {
     });
   }
 
+  saveTrustedDeviceToken(token: string): void {
+    if (typeof window.mta?.triggerEvent !== "function") {
+      console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot saveTrustedDeviceToken");
+      return;
+    }
+
+    const obfuscated = obfuscatePayload(JSON.stringify({ token }), this.sessionKey());
+    window.mta.triggerEvent("trustedDevice.save", obfuscated);
+  }
+
+  clearTrustedDeviceToken(): void {
+    if (typeof window.mta?.triggerEvent !== "function") {
+      console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot clearTrustedDeviceToken");
+      return;
+    }
+
+    window.mta.triggerEvent("trustedDevice.clear");
+  }
+
+  loadTrustedDeviceToken(): Promise<string | null> {
+    if (typeof window.mta?.triggerEvent !== "function") {
+      console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot loadTrustedDeviceToken");
+      return Promise.resolve(null);
+    }
+
+    return new Promise((resolve) => {
+      let settled = false;
+
+      const timeoutId = window.setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        delete window.__mtaTrustedDeviceLoaded;
+        console.warn("[MtaTransport] loadTrustedDeviceToken timed out");
+        resolve(null);
+      }, TRUSTED_DEVICE_LOAD_TIMEOUT_MS);
+
+      window.__mtaTrustedDeviceLoaded = (obfuscatedResponse: string) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timeoutId);
+        delete window.__mtaTrustedDeviceLoaded;
+
+        const parsed = this.parseObfuscated<{ token: string | null }>(obfuscatedResponse);
+        if (!parsed.ok || !parsed.value.token) {
+          resolve(null);
+          return;
+        }
+
+        resolve(parsed.value.token);
+      };
+
+      window.mta!.triggerEvent("trustedDevice.load");
+    });
+  }
+
   // Session key may not have arrived yet when a response does; fall back to plaintext JSON.
   private parseObfuscated<T>(raw: string): { ok: true; value: T } | { ok: false } {
     const key = this.sessionKey();
@@ -166,6 +222,7 @@ declare global {
     __mtaFetchResponse?: (requestId: string, obfuscatedResponse: string) => void;
     __mtaPushEvent?: (event: string, obfuscatedData: string) => void;
     __mtaCredentialsLoaded?: (obfuscatedResponse: string) => void;
+    __mtaTrustedDeviceLoaded?: (obfuscatedResponse: string) => void;
     __mtaSessionKey?: string;
   }
 }

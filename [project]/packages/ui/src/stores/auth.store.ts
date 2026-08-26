@@ -4,7 +4,7 @@ import type { ApiErrorCode } from "@/types/api";
 import { authApi } from "@/lib/api/authApi";
 import { mta } from "@/lib/mta/MtaBridge";
 
-export type AuthPhase = "checking" | "unauthenticated" | "authenticated" | "error";
+export type AuthPhase = "checking" | "unauthenticated" | "securingAccount" | "authenticated" | "error";
 
 export type LoginResult = "success" | "twoFactorRequired" | "error";
 
@@ -46,13 +46,25 @@ export const authStore = {
     }
 
     setAccount(response.data);
-    setPhase("authenticated");
+    setPhase("securingAccount");
     return true;
+  },
+
+  /**
+   * The only path from "securingAccount" to "authenticated" - called once
+   * the post-registration 2FA step resolves, whether the player actually
+   * configured 2FA (account.confirmTwoFactorSetup already succeeded by
+   * then) or explicitly skipped it. Doesn't call any account.* endpoint
+   * itself - purely finishes the CEF-local phase transition.
+   */
+  finishSecuringAccount(): void {
+    setPhase("authenticated");
   },
 
   async login(login: string, password: string): Promise<LoginResult> {
     setLastError(null);
-    const response = await authApi.login({ login, password });
+    const trustToken = await mta.loadTrustedDeviceToken();
+    const response = await authApi.login({ login, password, trustToken: trustToken ?? undefined });
 
     if (!response.success) {
       setLastError(response.error.code);
@@ -67,16 +79,20 @@ export const authStore = {
     return "success";
   },
 
-  async verifyTwoFactor(code: string): Promise<boolean> {
+  async verifyTwoFactor(code: string, trustDevice: boolean): Promise<boolean> {
     setLastError(null);
-    const response = await authApi.verifyTwoFactor({ code });
+    const response = await authApi.verifyTwoFactor({ code, trustDevice });
 
     if (!response.success) {
       setLastError(response.error.code);
       return false;
     }
 
-    setAccount(response.data);
+    if (response.data.trustToken) {
+      mta.saveTrustedDeviceToken(response.data.trustToken);
+    }
+
+    setAccount(response.data.account);
     setPhase("authenticated");
     return true;
   },

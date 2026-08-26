@@ -304,14 +304,32 @@ AccountService.login = function(player, mtaSerial, input, onSuccess, onError)
                     -- out-of-band intervention (DB admin/future web
                     -- panel), not be self-serviceable mid-login where a
                     -- compromised password alone would otherwise be
-                    -- enough to reach a privileged session.
+                    -- enough to reach a privileged session. UNCHANGED by
+                    -- the trusted-device feature below: a trust token can
+                    -- only ever exist for an account that has confirmed
+                    -- 2FA (issueTrustedDevice is only ever called from the
+                    -- verifyTwoFactor success path), so an account that
+                    -- reaches this branch structurally cannot have any
+                    -- valid row in account_trusted_devices in the first
+                    -- place - two independent reasons this can never be
+                    -- bypassed, not one.
                     onError(ErrorCodes.TWO_FACTOR_SETUP_REQUIRED, "Two-factor authentication must be configured for this account before it can log in")
                     return
                 end
 
                 if twoFactorEnabled then
-                    AccountService.beginPendingTwoFactor(player, account.id)
-                    onError(ErrorCodes.TWO_FACTOR_REQUIRED)
+                    local trustToken = input and input.trustToken
+
+                    AccountService.checkTrustedDevice(account.id, trustToken, function(isTrusted)
+                        if isTrusted then
+                            Logger.security("AccountService", "Login via trusted device, 2FA challenge skipped", { accountId = account.id })
+                            onSuccess(account)
+                            return
+                        end
+
+                        AccountService.beginPendingTwoFactor(player, account.id)
+                        onError(ErrorCodes.TWO_FACTOR_REQUIRED)
+                    end)
                     return
                 end
 
@@ -393,11 +411,15 @@ end
 --- so a request cannot target any account other than the one that just
 --- proved password knowledge on THIS connection.
 -- @param player element
--- @param input table { code: string } - 6-digit TOTP code
--- @param onSuccess function(account: table)
+-- @param input table { code: string, trustDevice: boolean|nil } - 6-digit
+--        TOTP code, and whether to issue a trusted-device bypass token
+-- @param onSuccess function(account: table, trustToken: string|nil)
+--        trustToken is nil unless input.trustDevice was true AND issuing
+--        one succeeded
 -- @param onError function(code: string, message: string|nil)
 AccountService.verifyTwoFactor = function(player, input, onSuccess, onError)
     local code = input and input.code
+    local trustDevice = input and input.trustDevice == true
 
     if type(code) ~= "string" then
         onError(ErrorCodes.INVALID_ARGUMENTS, "code is required")
@@ -437,7 +459,23 @@ AccountService.verifyTwoFactor = function(player, input, onSuccess, onError)
         end
 
         AccountService.clearPendingTwoFactor(player)
-        onSuccess(account)
+
+        if trustDevice then
+            AccountService.issueTrustedDevice(account.id, function(rawToken)
+                onSuccess(account, rawToken)
+            end, function(issueCode, issueMessage)
+                -- Trust-token issuance failing must NEVER fail the login
+                -- that already succeeded on a correct TOTP code - log and
+                -- proceed without a token, same "degrade gracefully"
+                -- reasoning as this file's own fire-and-forget calls
+                -- elsewhere (e.g. touchLastSeen).
+                Logger.error("AccountService", "issueTrustedDevice failed post-verify", { accountId = account.id, code = issueCode, message = issueMessage })
+                onSuccess(account, nil)
+            end)
+            return
+        end
+
+        onSuccess(account, nil)
     end)
 end
 
@@ -578,9 +616,87 @@ AccountService.disableTwoFactor = function(player, input, onSuccess, onError)
 
             account.two_factor_secret = nil
             account.two_factor_enabled_at = nil
+
+            -- Disabling 2FA must revoke every outstanding trusted device -
+            -- otherwise a device trusted while 2FA was on would silently
+            -- keep bypassing password-only re-auth even after the owner
+            -- explicitly turned 2FA off, and (if they later re-enable it)
+            -- potentially with a BRAND NEW secret the old trust decision
+            -- was never made against. A trust token's entire meaning is
+            -- "this device already proved a 2FA code for the CURRENT 2FA
+            -- configuration" - once that configuration is gone, every such
+            -- proof is stale. Fire-and-forget, same reasoning as
+            -- touchLastSeen elsewhere in this file - a failure here must
+            -- not fail the disable itself (2FA is already off in the
+            -- source of truth), just gets logged.
+            AccountTrustedDeviceRepository.revokeAllForAccount(account.id, function(revokeOk, revokeErr)
+                if not revokeOk then
+                    Logger.error("AccountService", "revokeAllForAccount failed after disableTwoFactor", { accountId = account.id, error = tostring(revokeErr) })
+                end
+            end)
+
             Logger.security("AccountService", "Two-factor authentication disabled", { accountId = account.id })
             onSuccess()
         end)
+    end)
+end
+
+--- Checks whether `rawToken` is a currently-valid trusted-device token for
+--- `accountId`. Called ONLY from within login's `if twoFactorEnabled then`
+--- branch (see that function's own comment) - never a standalone bypass
+--- path. A missing/malformed/expired/revoked/wrong-account token is
+--- treated identically (isTrusted = false) - no error code is surfaced for
+--- an invalid token, it just falls through to the normal 2FA challenge as
+--- if no token had ever been sent.
+-- @param accountId number
+-- @param rawToken string|nil client-supplied trustToken from the login payload
+-- @param onResult function(isTrusted: boolean)
+AccountService.checkTrustedDevice = function(accountId, rawToken, onResult)
+    if type(rawToken) ~= "string" or #rawToken == 0 then
+        onResult(false)
+        return
+    end
+
+    AccountTrustedDeviceRepository.findValid(rawToken, function(ok, result)
+        if not ok then
+            Logger.error("AccountService", "checkTrustedDevice lookup failed", { error = tostring(result) })
+            onResult(false)
+            return
+        end
+
+        if not result.valid or result.accountId ~= accountId then
+            -- accountId mismatch: a token issued for account A submitted
+            -- alongside a login/password pair that resolved to account B.
+            -- Never trust the token to identify WHICH account it's for -
+            -- only to confirm trust for the account already authenticated
+            -- by password in this same call.
+            onResult(false)
+            return
+        end
+
+        AccountTrustedDeviceRepository.touchLastUsed(result.id)
+        onResult(true)
+    end)
+end
+
+--- Issues a new trusted-device token for the CURRENTLY authenticated
+--- player's account. Called only from the verifyTwoFactor success path
+--- (never standalone) - see AccountEndpoints.lua's auth.verifyTwoFactor
+--- handler, gated behind an explicit opt-in checkbox, default OFF (mirrors
+--- "remember me"'s own default-off pattern).
+-- @param accountId number an account that JUST proved a live TOTP code
+-- @param onSuccess function(rawToken: string)
+-- @param onError function(code: string, message: string|nil)
+AccountService.issueTrustedDevice = function(accountId, onSuccess, onError)
+    AccountTrustedDeviceRepository.create(accountId, function(ok, tokenOrError)
+        if not ok then
+            Logger.error("AccountService", "issueTrustedDevice failed", { accountId = accountId, error = tostring(tokenOrError) })
+            onError(ErrorCodes.INTERNAL_ERROR)
+            return
+        end
+
+        Logger.security("AccountService", "Trusted device issued", { accountId = accountId })
+        onSuccess(tokenOrError)
     end)
 end
 

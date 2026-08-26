@@ -48,6 +48,17 @@ Events = {
     CREDENTIALS_LOAD = "credentials.load",
     CREDENTIALS_CLEAR = "credentials.clear",
 
+    -- Local-only trusted-device bypass token persistence (browser <->
+    -- client Lua only - never touches the server directly; the CEF side
+    -- is responsible for INCLUDING this token in auth.login's own payload
+    -- when it calls the server). Mirrors CREDENTIALS_SAVE/_LOAD/_CLEAR's
+    -- shape exactly, kept as separate events rather than reusing those
+    -- three because the payload shape differs (a single opaque token
+    -- string, not {login,password}).
+    TRUSTED_DEVICE_SAVE = "trustedDevice.save",
+    TRUSTED_DEVICE_LOAD = "trustedDevice.load",
+    TRUSTED_DEVICE_CLEAR = "trustedDevice.clear",
+
     -- AUTH_SUCCESS_AUTHENTICATION only means "close the auth window" -
     -- not "player is in the game world" (that waits on spawn selection).
     AUTH_BEGIN_AUTHENTICATION = "auth:beginAuthentication",

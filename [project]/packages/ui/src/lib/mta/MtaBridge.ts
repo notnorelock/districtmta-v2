@@ -140,6 +140,18 @@ class MtaBridge {
   loadCredentials() {
     return this.transport.loadCredentials();
   }
+
+  saveTrustedDeviceToken(token: string): void {
+    this.transport.saveTrustedDeviceToken(token);
+  }
+
+  clearTrustedDeviceToken(): void {
+    this.transport.clearTrustedDeviceToken();
+  }
+
+  loadTrustedDeviceToken() {
+    return this.transport.loadTrustedDeviceToken();
+  }
 }
 
 /** No-op stand-in used only for the instant between module load and BrowserDevTransport's dynamic import resolving, in dev outside MTA. */
@@ -155,6 +167,11 @@ class NoopTransport implements MtaTransportLike {
   saveCredentials(): void {}
   clearCredentials(): void {}
   loadCredentials(): Promise<null> {
+    return Promise.resolve(null);
+  }
+  saveTrustedDeviceToken(): void {}
+  clearTrustedDeviceToken(): void {}
+  loadTrustedDeviceToken(): Promise<null> {
     return Promise.resolve(null);
   }
 }

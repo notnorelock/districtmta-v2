@@ -37,6 +37,8 @@ export interface RegisterAccountInput {
 export interface LoginAccountInput {
   login: string;
   password: string;
+  /** A locally-stored trusted-device bypass token, if one exists - see TrustedDeviceStore.lua. */
+  trustToken?: string;
 }
 
 /** "Remember me" credentials - stored locally only, never sent to the server. */
@@ -52,6 +54,14 @@ export interface ChangePasswordInput {
 
 export interface VerifyTwoFactorInput {
   code: string;
+  /** Whether to issue a trusted-device bypass token on success. Default off - mirrors "remember me"'s own default-off pattern. */
+  trustDevice: boolean;
+}
+
+export interface VerifyTwoFactorResult {
+  account: Account;
+  /** Present only when the request opted in via trustDevice=true AND issuing one succeeded. */
+  trustToken?: string;
 }
 
 export interface EnableTwoFactorResult {

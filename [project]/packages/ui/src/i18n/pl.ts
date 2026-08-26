@@ -53,6 +53,12 @@ export const pl = {
   "auth.twoFactor.codePlaceholder": "000000",
   "auth.twoFactor.submit": "Zatwierdź",
   "auth.twoFactor.back": "Wróć",
+  "auth.twoFactor.trustDevice": "Ufaj temu urządzeniu przez 30 dni",
+
+  "auth.secureAccount.title": "Zabezpiecz swoje konto",
+  "auth.secureAccount.subtitle": "Dodaj dodatkową warstwę ochrony dzięki weryfikacji dwuetapowej",
+  "auth.secureAccount.enableButton": "Skonfiguruj weryfikację dwuetapową",
+  "auth.secureAccount.skipButton": "Pomiń na razie",
 
   "auth.error.TWO_FACTOR_REQUIRED": "Wymagana weryfikacja dwuetapowa",
   "auth.error.TWO_FACTOR_SETUP_REQUIRED": "To konto wymaga skonfigurowanej weryfikacji dwuetapowej. Skontaktuj się z administracją.",

@@ -87,9 +87,12 @@ registerEndpoint("auth.verifyTwoFactor", {
         return
     end
 
-    AccountService.verifyTwoFactor(player, payload, function(account)
+    AccountService.verifyTwoFactor(player, payload, function(account, trustToken)
         AccountService.resolveForPlayer(player, account.id, function(resolvedAccount)
-            exports.core_ui:fetchBridgeRespond(requestId, successResponse(AccountService.toPublic(resolvedAccount)))
+            exports.core_ui:fetchBridgeRespond(requestId, successResponse({
+                account = AccountService.toPublic(resolvedAccount),
+                trustToken = trustToken, -- nil unless the client opted in via trustDevice=true
+            }))
         end, function(code, message)
             exports.core_ui:fetchBridgeRespond(requestId, errorResponse(code, message))
         end)

@@ -6,6 +6,7 @@ import type { MtaTransportLike } from "./Transport";
 const DEV_LATENCY_MS = 350;
 // Not obfuscated: this is a dev-only stand-in and never ships.
 const DEV_CREDENTIALS_STORAGE_KEY = "district.dev.savedCredentials";
+const DEV_TRUSTED_DEVICE_STORAGE_KEY = "district.dev.trustedDeviceToken";
 
 let mockAccount: Account | null = null;
 let mockPassword: string | null = null;
@@ -54,6 +55,22 @@ export class BrowserDevTransport implements MtaTransportLike {
         } catch {
           resolve(null);
         }
+      }, DEV_LATENCY_MS);
+    });
+  }
+
+  saveTrustedDeviceToken(token: string): void {
+    window.localStorage.setItem(DEV_TRUSTED_DEVICE_STORAGE_KEY, token);
+  }
+
+  clearTrustedDeviceToken(): void {
+    window.localStorage.removeItem(DEV_TRUSTED_DEVICE_STORAGE_KEY);
+  }
+
+  loadTrustedDeviceToken(): Promise<string | null> {
+    return new Promise((resolve) => {
+      window.setTimeout(() => {
+        resolve(window.localStorage.getItem(DEV_TRUSTED_DEVICE_STORAGE_KEY));
       }, DEV_LATENCY_MS);
     });
   }

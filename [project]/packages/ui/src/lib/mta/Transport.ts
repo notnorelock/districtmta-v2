@@ -11,4 +11,7 @@ export interface MtaTransportLike {
   saveCredentials(login: string, password: string): void;
   clearCredentials(): void;
   loadCredentials(): Promise<SavedCredentials | null>;
+  saveTrustedDeviceToken(token: string): void;
+  clearTrustedDeviceToken(): void;
+  loadTrustedDeviceToken(): Promise<string | null>;
 }

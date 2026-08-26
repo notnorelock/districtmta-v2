@@ -105,6 +105,7 @@ const LoginForm: Component = () => {
   const [submitting, setSubmitting] = createSignal(false);
   const [twoFactorPending, setTwoFactorPending] = createSignal(false);
   const [twoFactorCode, setTwoFactorCode] = createSignal("");
+  const [trustDevice, setTrustDevice] = createSignal(false);
 
   // Pure UX convenience - the password is still submitted and verified fresh server-side.
   onMount(async () => {
@@ -155,7 +156,7 @@ const LoginForm: Component = () => {
     if (submitting()) return;
 
     setSubmitting(true);
-    const ok = await authStore.verifyTwoFactor(twoFactorCode().trim());
+    const ok = await authStore.verifyTwoFactor(twoFactorCode().trim(), trustDevice());
     setSubmitting(false);
 
     if (!ok) {
@@ -173,6 +174,7 @@ const LoginForm: Component = () => {
   const backToPassword = () => {
     setTwoFactorPending(false);
     setTwoFactorCode("");
+    setTrustDevice(false);
   };
 
   return (
@@ -182,6 +184,8 @@ const LoginForm: Component = () => {
         <TwoFactorStepForm
           code={twoFactorCode()}
           onCodeChange={setTwoFactorCode}
+          trustDevice={trustDevice()}
+          onTrustDeviceChange={setTrustDevice}
           onSubmit={handleTwoFactorSubmit}
           onBack={backToPassword}
           submitting={submitting()}
@@ -241,6 +245,8 @@ const LoginForm: Component = () => {
 interface TwoFactorStepFormProps {
   code: string;
   onCodeChange: (value: string) => void;
+  trustDevice: boolean;
+  onTrustDeviceChange: (value: boolean) => void;
   onSubmit: (event: SubmitEvent) => void;
   onBack: () => void;
   submitting: boolean;
@@ -273,6 +279,12 @@ const TwoFactorStepForm: Component<TwoFactorStepFormProps> = (props) => {
             class="h-auto border-accent-indigo/20 bg-black/60 px-4 py-3.5 backdrop-blur-md focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-accent-indigo/60"
           />
         </TextField>
+
+        <Checkbox checked={props.trustDevice} onChange={props.onTrustDeviceChange} variant="gradient">
+          <CheckboxLabel class="cursor-pointer select-none text-sm text-muted-foreground">
+            {t()("auth.twoFactor.trustDevice")}
+          </CheckboxLabel>
+        </Checkbox>
 
         <Show when={props.errorMessage}>
           <p class="text-sm text-danger">{props.errorMessage}</p>

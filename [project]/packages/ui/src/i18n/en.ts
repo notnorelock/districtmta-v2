@@ -55,6 +55,12 @@ export const en: Record<keyof typeof pl, string> = {
   "auth.twoFactor.codePlaceholder": "000000",
   "auth.twoFactor.submit": "Verify",
   "auth.twoFactor.back": "Back",
+  "auth.twoFactor.trustDevice": "Trust this device for 30 days",
+
+  "auth.secureAccount.title": "Secure your account",
+  "auth.secureAccount.subtitle": "Add an extra layer of protection with two-factor authentication",
+  "auth.secureAccount.enableButton": "Set up two-factor authentication",
+  "auth.secureAccount.skipButton": "Skip for now",
 
   "auth.error.TWO_FACTOR_REQUIRED": "Two-factor verification required",
   "auth.error.TWO_FACTOR_SETUP_REQUIRED": "This account requires two-factor authentication to be configured. Please contact the administration.",

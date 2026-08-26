@@ -4,6 +4,7 @@ import { Overlay } from "@/components/common/Overlay";
 import { OverlayProvider } from "@/components/common/OverlayProvider";
 import { WindowProvider, useWindow } from "@/components/common/WindowProvider";
 import { LoginView } from "@/features/auth/LoginView";
+import { SecureAccountStep } from "@/features/auth/SecureAccountStep";
 import { SpawnSelectView } from "@/features/spawn/SpawnSelectView";
 import { DashboardView } from "@/features/dashboard/DashboardView";
 import { ResourceCheckScreen } from "@/features/loading/ResourceCheckScreen";
@@ -44,6 +45,18 @@ const AppContent: Component = () => {
         </Match>
         <Match when={authStore.phase() === "unauthenticated" && windowState.activeWindow() === "authentication"}>
           <LoginView />
+        </Match>
+        {/* Gates spawn-select until 2FA setup is configured or explicitly
+            skipped. MUST stay before the spawnSelect arm below (Switch/
+            Match picks the first matching arm) - the server pushes
+            SPAWN_SELECT_OPEN immediately and unconditionally right after a
+            successful registration (see AuthUiController.lua's
+            PLAYER_ACCOUNT_RESOLVED handler), so windowState.activeWindow()
+            is already "spawnSelect" by the time this phase is active. This
+            ordering is the only thing preventing SpawnSelectView from
+            rendering instead of this step - do not reorder these two arms. */}
+        <Match when={authStore.phase() === "securingAccount"}>
+          <SecureAccountStep />
         </Match>
         <Match when={authStore.phase() === "authenticated" && windowState.activeWindow() === "spawnSelect"}>
           <SpawnSelectView />

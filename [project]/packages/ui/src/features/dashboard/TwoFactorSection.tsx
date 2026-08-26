@@ -1,9 +1,9 @@
 import { type Component, Show, createSignal } from "solid-js";
-import QRCode from "qrcode";
 import { Button } from "@/components/ui/Button";
 import { TextField, TextFieldInput, TextFieldLabel } from "@/components/ui/TextField";
 import { authStore } from "@/stores/auth.store";
 import { accountApi } from "@/lib/api/accountApi";
+import { useTwoFactorSetup } from "@/features/auth/useTwoFactorSetup";
 import type { ApiErrorCode } from "@/types/api";
 import { t } from "@/i18n";
 import styles from "./DashboardOverlay.module.scss";
@@ -30,96 +30,55 @@ import styles from "./DashboardOverlay.module.scss";
 export const TwoFactorSection: Component = () => {
   const account = authStore.account;
 
-  const [step, setStep] = createSignal<"idle" | "settingUp" | "disabling">("idle");
-  const [secret, setSecret] = createSignal("");
-  const [qrDataUrl, setQrDataUrl] = createSignal("");
-  const [confirmCode, setConfirmCode] = createSignal("");
+  const { step, secret, qrDataUrl, confirmCode, setConfirmCode, submitting, errorCode, startSetup, cancelSetup, confirmSetup } = useTwoFactorSetup();
+
+  const [disabling, setDisabling] = createSignal(false);
   const [disablePassword, setDisablePassword] = createSignal("");
-  const [submitting, setSubmitting] = createSignal(false);
-  const [errorCode, setErrorCode] = createSignal<ApiErrorCode | null>(null);
+  const [disableSubmitting, setDisableSubmitting] = createSignal(false);
+  const [disableErrorCode, setDisableErrorCode] = createSignal<ApiErrorCode | null>(null);
   const [success, setSuccess] = createSignal<"enabled" | "disabled" | null>(null);
 
   const errorMessage = () => {
-    const code = errorCode();
+    const code = disabling() ? disableErrorCode() : errorCode();
     if (!code) return null;
     return t()(`auth.error.${code}`);
   };
 
-  const startSetup = async () => {
-    setSubmitting(true);
-    setErrorCode(null);
+  const handleStartSetup = async () => {
     setSuccess(null);
-    const response = await accountApi.enableTwoFactor();
-    setSubmitting(false);
-
-    if (!response.success) {
-      setErrorCode(response.error.code);
-      return;
-    }
-
-    setSecret(response.data.secret);
-    setQrDataUrl(await QRCode.toDataURL(response.data.otpauthUri));
-    setConfirmCode("");
-    setStep("settingUp");
+    await startSetup();
   };
 
-  const cancelSetup = () => {
-    setStep("idle");
-    setSecret("");
-    setQrDataUrl("");
-    setConfirmCode("");
-    setErrorCode(null);
-  };
-
-  const confirmSetup = async (event: SubmitEvent) => {
-    event.preventDefault();
-    if (submitting()) return;
-
-    setSubmitting(true);
-    setErrorCode(null);
-    const response = await accountApi.confirmTwoFactorSetup({ code: confirmCode().trim() });
-    setSubmitting(false);
-
-    if (!response.success) {
-      setErrorCode(response.error.code);
-      return;
-    }
-
-    setStep("idle");
-    setSecret("");
-    setQrDataUrl("");
-    setConfirmCode("");
-    setSuccess("enabled");
-  };
+  const handleConfirmSetup = (event: SubmitEvent) => confirmSetup(event, () => setSuccess("enabled"));
 
   const startDisable = () => {
-    setStep("disabling");
+    setDisabling(true);
     setDisablePassword("");
-    setErrorCode(null);
+    setDisableErrorCode(null);
     setSuccess(null);
   };
 
   const cancelDisable = () => {
-    setStep("idle");
+    setDisabling(false);
     setDisablePassword("");
-    setErrorCode(null);
+    setDisableErrorCode(null);
   };
 
   const disable = async (event: SubmitEvent) => {
     event.preventDefault();
-    if (submitting()) return;
+    if (disableSubmitting()) return;
 
-    setSubmitting(true);
-    setErrorCode(null);
+    setDisableSubmitting(true);
+    setDisableErrorCode(null);
     const response = await accountApi.disableTwoFactor({ currentPassword: disablePassword() });
-    setSubmitting(false);
+    setDisableSubmitting(false);
 
     if (!response.success) {
-      setErrorCode(response.error.code);
+      setDisableErrorCode(response.error.code);
       return;
     }
 
-    setStep("idle");
+    setDisabling(false);
     setDisablePassword("");
     setSuccess("disabled");
   };
@@ -128,7 +87,7 @@ export const TwoFactorSection: Component = () => {
     <div class={styles.accountForm}>
       <span class={styles.eyebrow}>{t()("dashboard.account.eyebrowTwoFactor")}</span>
 
-      <Show when={step() === "idle"}>
+      <Show when={step() === "idle" && !disabling()}>
         <div class={styles.row}>
           <span class={styles.rowLabel}>{t()("dashboard.account.eyebrowTwoFactor")}</span>
           <span class="text-sm text-foreground">
@@ -141,7 +100,7 @@ export const TwoFactorSection: Component = () => {
         <Show
           when={account()?.twoFactorEnabled}
           fallback={
-            <Button type="button" size="sm" variant="secondary" loading={submitting()} onClick={startSetup}>
+            <Button type="button" size="sm" variant="secondary" loading={submitting()} onClick={handleStartSetup}>
               {t()("dashboard.account.enableTwoFactorButton")}
             </Button>
           }
@@ -172,7 +131,7 @@ export const TwoFactorSection: Component = () => {
           <code class="select-all break-all font-mono text-xs text-foreground">{secret()}</code>
         </div>
 
-        <form class="flex flex-col gap-3" onSubmit={confirmSetup}>
+        <form class="flex flex-col gap-3" onSubmit={handleConfirmSetup}>
           <TextField value={confirmCode()} onChange={setConfirmCode}>
             <TextFieldLabel for="dashboard-two-factor-confirm">{t()("dashboard.account.twoFactorConfirmCodeLabel")}</TextFieldLabel>
             <TextFieldInput
@@ -201,7 +160,7 @@ export const TwoFactorSection: Component = () => {
         </form>
       </Show>
 
-      <Show when={step() === "disabling"}>
+      <Show when={disabling()}>
         <form class="flex flex-col gap-3" onSubmit={disable}>
           <TextField value={disablePassword()} onChange={setDisablePassword}>
             <TextFieldLabel for="dashboard-two-factor-disable-password">{t()("dashboard.account.twoFactorDisablePasswordLabel")}</TextFieldLabel>
@@ -213,10 +172,10 @@ export const TwoFactorSection: Component = () => {
           </Show>
 
           <div class="flex gap-2">
-            <Button type="submit" size="sm" loading={submitting()} disabled={submitting() || !disablePassword()}>
+            <Button type="submit" size="sm" loading={disableSubmitting()} disabled={disableSubmitting() || !disablePassword()}>
               {t()("dashboard.account.twoFactorDisableSubmit")}
             </Button>
-            <Button type="button" size="sm" variant="ghost" disabled={submitting()} onClick={cancelDisable}>
+            <Button type="button" size="sm" variant="ghost" disabled={disableSubmitting()} onClick={cancelDisable}>
               {t()("dashboard.account.twoFactorCancelSetup")}
             </Button>
           </div>
