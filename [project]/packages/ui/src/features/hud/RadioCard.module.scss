@@ -4,8 +4,12 @@
 // alias - see HudIcon.module.scss's comment on the same directive for why.
 @reference "../../styles/globals.css";
 
+// Positioning (fixed/centered/z-index) now lives on the shared
+// .topCenterStack wrapper in App.tsx - see its own comment for why. This
+// card only needs to opt back INTO pointer events for its own row
+// (.dock itself stays a plain flex item, no longer independently fixed).
 .dock {
-  @apply pointer-events-none fixed left-1/2 top-6 z-40 -translate-x-1/2;
+  @apply pointer-events-none;
 }
 
 // font-display (Titillium Web, matches Watermark/the rest of the HUD) -
