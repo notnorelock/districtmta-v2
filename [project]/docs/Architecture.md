@@ -236,7 +236,7 @@ responsibility table below for what each resource actually needs.
 | `core` | `script` | Database abstraction + ORM (`Model`/`QueryBuilder`/`Schema`) + repositories, logging, player/account runtime context, security reporting hook, per-player session key issuance (for `core_ui`'s payload obfuscation), account domain (bcrypt password hashing, registration/login, endpoint handlers), notifications. |
 | `core_ui` | `script` | Domain-agnostic CEF bridge: FetchBridge request router (validation, auth check, rate limiting, dispatch), push event channel, browser lifecycle (single long-lived CEF instance, input/cursor management), payload obfuscation for the browser-facing leg (see `docs/UiBridge.md`'s "Payload obfuscation" section - transport obfuscation, not encryption). Also tracks per-player browser readiness (`UiState.isBrowserReady`, exported as `uiStateIsBrowserReady` - backed by `Events.BROWSER_READY`), which `core_loading` polls. |
 | `core_loading` | `script` | Gates `Events.LOADING_READY` per player until BOTH `core_bootstrap`'s server-side chain has finished (`exports.core_bootstrap:bootstrapIsChainReady()`) AND that specific player's CEF has reported ready (`exports.core_ui:uiStateIsBrowserReady(player)`) - see `LoadingGate.lua`. Exists so a player is never told to open the auth window before the CEF bridge (or the rest of the resource chain) is actually ready to receive it - see "Loading gate" below. |
-| `core_auth` | `script`, server + client | Owns essentially all post-login UI orchestration - "which named window is open right now, and why": (1) "remember me" local credential persistence (`CredentialStore.lua`/`CredentialTransport.lua`) - `core_ui/client/ui/Transport.lua` forwards the relevant browser events here (as plain custom events, never a closure) after verifying they came from the tracked browser element, and `core_auth` calls back into `core_ui`'s `uiExecuteInBrowser`/`uiObfuscateForBrowser`/`uiDeobfuscateFromBrowser` exports rather than touching the browser element or `SessionKeyState` directly (see "Remember me" below); (2) auth UI AND spawn-select UI open/close orchestration, both handled together in `AuthUiController.lua`/`AuthUiClient.lua` - listens for `Events.LOADING_READY`/`Events.PLAYER_ACCOUNT_RESOLVED` and drives `UI.open`/`UI.close` for both windows via `Events.AUTH_BEGIN_AUTHENTICATION`/`Events.AUTH_SUCCESS_AUTHENTICATION` (the latter only means "login/register succeeded, close the auth window" - not "the player is in the game world", which still waits on spawn selection) and `Events.SPAWN_SELECT_OPEN`/`_CLOSE`, backed by a static location list and two FetchBridge endpoints (`SpawnLocations.lua`/`SpawnEndpoints.lua`'s `spawn.list`/`spawn.select`, registered the same way `AccountEndpoints.lua` registers `auth.*`). `spawn.select` calls `exports.gm_roleplay:gameplayEnterWorld(player, location)` (a one-hop, plain-data call) to actually spawn the player, then closes its own window - see the account lifecycle diagram below. |
+| `core_auth` | `script`, server + client | Owns essentially all post-login UI orchestration - "which named window is open right now, and why": (1) the login screen's account switcher - local remembered-account list persistence (`CredentialStore.lua`/`AccountsTransport.lua`) plus per-account trusted-device 2FA-bypass tokens (`TrustedDeviceStore.lua`/`TrustedDeviceTransport.lua`) - `core_ui/client/ui/Transport.lua` forwards the relevant browser events here (as plain custom events, never a closure) after verifying they came from the tracked browser element, and `core_auth` calls back into `core_ui`'s `uiExecuteInBrowser`/`uiObfuscateForBrowser`/`uiDeobfuscateFromBrowser` exports rather than touching the browser element or `SessionKeyState` directly (see "Login screen account switcher" below); (2) auth UI AND spawn-select UI open/close orchestration, both handled together in `AuthUiController.lua`/`AuthUiClient.lua` - listens for `Events.LOADING_READY`/`Events.PLAYER_ACCOUNT_RESOLVED` and drives `UI.open`/`UI.close` for both windows via `Events.AUTH_BEGIN_AUTHENTICATION`/`Events.AUTH_SUCCESS_AUTHENTICATION` (the latter only means "login/register succeeded, close the auth window" - not "the player is in the game world", which still waits on spawn selection) and `Events.SPAWN_SELECT_OPEN`/`_CLOSE`, backed by a static location list and two FetchBridge endpoints (`SpawnLocations.lua`/`SpawnEndpoints.lua`'s `spawn.list`/`spawn.select`, registered the same way `AccountEndpoints.lua` registers `auth.*`). `spawn.select` calls `exports.gm_roleplay:gameplayEnterWorld(player, location)` (a one-hop, plain-data call) to actually spawn the player, then closes its own window - see the account lifecycle diagram below. |
 | `core_admin` | `script`, client-only | The admin panel and reports overlay, rendered as native MTA dxGUI/dxDraw (`client/gui/` - `AdminGuiWindow.lua`, `PlayersTab.lua`, `ReportsTab.lua`, `PenaltyDialog.lua`), not CEF. Has zero `server/` scripts - toggled by `/apanel`/`/reports` (`Events.ADMIN_PANEL_TOGGLE`/`REPORTS_OVERLAY_TOGGLE`, fired from `core`) and talks to the server over plain `triggerServerEvent`/`triggerClientEvent` pairs, not FetchBridge. Does NOT own the duty/report/penalty business logic itself - that lives in `core` (`AdminGuiEndpoints.lua` - see "Admin duty, panel, and reports" below) for the same reason `core_auth` doesn't own `AccountService`: anything that needs to call back into `core`'s services directly has to live in the same resource as those services. Includes only `core_shared`, not `core`/`core_ui`. |
 | `gm_voice` | `script`, server + client | Proximity voice chat, entirely independent of MTA's built-in `voice` resource (this project doesn't use it). Server (`VoiceService.lua`): whisper/talk/shout talk mode per player (`ElementData.Player.VOICE_MODE`, cycled by `Events.VOICE_CYCLE_MODE`, client-requested but server-authoritative), each mode driving a different `setPlayerVoiceBroadcastTo` distance (speaker-centric - a shout reaches farther listeners, not "listeners set their own range"), and admin-mute enforcement that reuses `core`'s existing account mute penalty (`ElementData.Account.MUTE`) rather than a separate voice-only mute. Client (`VoiceState.lua`): distance/fade volume falloff and stereo panning toward the speaker (replicates MTA's own built-in voice panning formula) for whoever the server already decided this client can hear, plus a small "who's nearby talking" list pushed into the CEF HUD (`Events.PUSH_VOICE_NEARBY_UPDATED` - see `VoiceIndicator.tsx`). Exports `voiceStateIsTalking`/`voiceStateGetMode` (client) so `ui_hud` can read the local player's own live talk state without duplicating the tracking logic or reading `ElementData.Player.VOICE`/`VOICE_MODE` directly. |
 | `gm_radio` | `script`, server + client | Vehicle radio - a fixed station list (`RadioService.lua`'s `STATIONS`; no per-account saved stations or YouTube-proxy support, unlike an earlier non-project version of this feature that depended on a third-party stream-conversion service this project doesn't own). Station state lives on the vehicle itself (`ElementData.Vehicle.RADIO_STATION`, distinct from "never touched" so a deliberately-silenced radio doesn't spring back on the next driver - see `RadioService.lua`'s `RADIO_OFF` sentinel/`hasStationEverBeenSet`), not per-player, so every occupant (including one who enters mid-ride, or a driver re-entering after getting out) hears the same thing via a driver-only scroll-wheel/`R` control (`Events.RADIO_CHANGE_STATION`, server-authoritative same pattern as `gm_voice`'s mode cycle). Client (`RadioState.lua`) plays the stream and pushes a "now playing" state into the CEF HUD (`Events.PUSH_RADIO_STATION_CHANGED` - see `RadioCard.tsx`), including a loading state driven by `onClientSoundStream` (fires once a stream actually starts, well after `playSound()` itself already returned) rather than assuming "got a sound element back" means "audible". |
@@ -1093,73 +1093,86 @@ nothing when clicked. The actual authorization boundary is still
 entirely server-side, same as everywhere else in this file - this push
 is a presentation-layer courtesy on top of it, not a substitute for it.
 
-## "Remember me" (local credential persistence)
+## Login screen account switcher (local credential persistence)
 
-`core_auth`'s client-side half lets the login form pre-fill itself on
-the next launch, so a player doesn't retype their login and password every
-time. This is **entirely local to the player's machine** - it never
-touches the server, never goes through FetchBridge, and has no bearing on
-real authentication: the (pre-filled) form is still submitted normally and
-the server still runs `passwordVerify` exactly as if the player had typed
-it fresh.
+`core_auth`'s client-side half remembers up to 5 accounts locally, shown
+on the login screen as a Steam-style switcher (`AccountSwitcher.tsx`):
+"saved" accounts (password remembered, one-click login) and "recently
+used" accounts (only the login remembered, password re-entry required),
+split purely by whether a password is stored for that entry. This is
+**entirely local to the player's machine** - it never touches the
+server, never goes through FetchBridge, and has no bearing on real
+authentication: a one-click "saved" login still submits the stored
+login+password through the normal `auth.login` endpoint and the server
+still runs `passwordVerify` exactly as if the player had typed it fresh.
 
 ```
-CEF: "remember me" checked + successful login
+CEF: successful login (rememberMe checked or not)
      |
      v
-mta.saveCredentials(login, password)   (lib/mta/MtaBridge.ts)
+mta.upsertAccount(login, password, rememberMe)   (lib/mta/MtaBridge.ts)
      |
      v
-window.mta.triggerEvent("credentials.save", obfuscatedPayload)
+window.mta.triggerEvent("accounts.upsert", obfuscatedPayload)
      |
      v
 core_ui/client/ui/Transport.lua - verifies source is the tracked browser
-     element, then triggerEvent("credentials.save", root, obfuscatedPayload)
+     element, then triggerEvent("accounts.upsert", root, obfuscatedPayload)
      |
      v
-core_auth/client/CredentialTransport.lua - deobfuscates (via
-     exports.core_ui:uiDeobfuscateFromBrowser), calls CredentialStore.save
+core_auth/client/AccountsTransport.lua - deobfuscates (via
+     exports.core_ui:uiDeobfuscateFromBrowser), calls CredentialStore.upsert
      |
      v
-core_auth/client/CredentialStore.lua - xmlCreateFile("@credentials.xml", ...),
-     obfuscated with a FIXED local key (not the per-session key), xmlSaveFile
+core_auth/client/CredentialStore.lua - one <account> XML child node per
+     remembered account (capped at 5, oldest by last-used evicted),
+     obfuscated per-attribute with a FIXED local key (not the per-session
+     key), xmlSaveFile
 ```
 
-Loading mirrors this in reverse: `mta.loadCredentials()` resolves a
-`SavedCredentials | null` once `window.__mtaCredentialsLoaded` is called
-(or times out after 3s) - see `MtaTransport.ts`.
+Loading mirrors this in reverse: `mta.listAccounts()` resolves a
+`RememberedAccount[]` once `window.__mtaAccountsLoaded` is called (or
+times out after 3s, resolving `[]`) - see `MtaTransport.ts`. `touchAccount`/
+`removeAccount` follow the same one-way fire-and-forget shape as `upsertAccount`.
+
+The trusted-device 2FA-bypass token (`TrustedDeviceStore.lua`) follows
+the identical list-of-entries shape, keyed by `login` instead of holding
+a single device-wide value - a device trusted via one account's "trust
+this device" checkbox must not silently bypass 2FA for a *different*
+account remembered in the same switcher, so every `trustedDevice.save`/
+`.load`/`.clear` call now carries a `login` alongside the token.
 
 Two independent obfuscation layers are involved, with two different keys,
 for two different reasons:
 
-- The CEF↔Lua leg (`credentials.save`/`credentials.load`'s wire payload)
+- The CEF↔Lua leg (each `accounts.*`/`trustedDevice.*` wire payload)
   uses the same per-session key as every other browser↔Lua message (see
   `docs/UiBridge.md`'s "Payload obfuscation" section) - this key doesn't
   survive a restart, which is fine, since this leg only exists transiently
   while the message is in flight.
-- The **on-disk** XML file (`CredentialStore.lua`) uses a separate, FIXED
-  local key baked into the client script, because the whole point is
-  surviving a full client restart with no server round trip - a
-  per-session key literally cannot be used here. This is explicitly
-  weaker than the session-key scheme: the fixed key is the same for every
-  install, so anyone who can read the shipped client script recovers it.
-  Combined with `"@credentials.xml"`'s per-connected-server-private
-  storage (see `Filepath` on the MTA wiki), this raises the bar above "a
-  plaintext file anyone with basic file access on THIS machine can open
-  in Notepad" - it is not a real secret, and is not meant to withstand a
-  motivated attacker with access to the player's own machine. See
-  `CredentialStore.lua`'s own module comment for the full, deliberately
-  blunt statement of this tradeoff.
+- The **on-disk** XML files (`CredentialStore.lua`/`TrustedDeviceStore.lua`)
+  use a separate, FIXED local key baked into each client script, because
+  the whole point is surviving a full client restart with no server
+  round trip - a per-session key literally cannot be used here. This is
+  explicitly weaker than the session-key scheme: the fixed key is the
+  same for every install, so anyone who can read the shipped client
+  script recovers it. Combined with `"@credentials.xml"`'s
+  per-connected-server-private storage (see `Filepath` on the MTA wiki),
+  this raises the bar above "a plaintext file anyone with basic file
+  access on THIS machine can open in Notepad" - it is not a real secret,
+  and is not meant to withstand a motivated attacker with access to the
+  player's own machine. See `CredentialStore.lua`'s own module comment
+  for the full, deliberately blunt statement of this tradeoff.
 
 `core_auth` is a separate resource from `core_ui` specifically so
 auth-specific code doesn't accumulate inside the otherwise domain-agnostic
-CEF bridge (`core_ui` still doesn't know what a "credential" is - it only
-forwards three named browser events verbatim) or inside a gameplay
-resource (`gm_roleplay` has no knowledge of the auth UI at all - see the
-resource responsibility table above). Its server-side half
-(`AuthUiController.lua`) only reads `PlayerService.isAuthenticated` and
-listens for `Events.PLAYER_ACCOUNT_RESOLVED` - both already exposed by
-`core`'s existing exports/events - rather than absorbing `core`'s whole
+CEF bridge (`core_ui` still doesn't know what an "account" is - it only
+forwards named browser events verbatim) or inside a gameplay resource
+(`gm_roleplay` has no knowledge of the auth UI at all - see the resource
+responsibility table above). Its server-side half (`AuthUiController.lua`)
+only reads `PlayerService.isAuthenticated` and listens for
+`Events.PLAYER_ACCOUNT_RESOLVED` - both already exposed by `core`'s
+existing exports/events - rather than absorbing `core`'s whole
 server-side accounts domain (`AccountService`, `AccountEndpoints`, ...);
 that split would add real resource-boundary risk (new exports/
 `GlobalResources.lua` wiring on both sides, per gotcha #10 in

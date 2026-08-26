@@ -1,10 +1,10 @@
 import { onMount, Match, Switch, type Component } from "solid-js";
+import { Transition } from "solid-transition-group";
 import { ErrorScreen } from "@/components/common/ErrorScreen";
 import { Overlay } from "@/components/common/Overlay";
 import { OverlayProvider } from "@/components/common/OverlayProvider";
 import { WindowProvider, useWindow } from "@/components/common/WindowProvider";
 import { LoginView } from "@/features/auth/LoginView";
-import { SecureAccountStep } from "@/features/auth/SecureAccountStep";
 import { SpawnSelectView } from "@/features/spawn/SpawnSelectView";
 import { DashboardView } from "@/features/dashboard/DashboardView";
 import { ResourceCheckScreen } from "@/features/loading/ResourceCheckScreen";
@@ -33,38 +33,59 @@ const AppContent: Component = () => {
   const windowState = useWindow();
 
   return (
-    <div class="h-full w-full">
-      <Switch>
-        <Match when={authStore.phase() === "error"}>
-          <ErrorScreen onRetry={() => void authStore.checkStatus()} />
-        </Match>
-        <Match when={authStore.phase() === "checking" || (!windowState.hasOpenedAnyWindow() && windowState.activeWindow() === null)}>
-          {/* activeWindow() check avoids a blank screen if auth.status resolves before
-              LOADING_READY; hasOpenedAnyWindow() avoids re-showing this after spawn. */}
-          <ResourceCheckScreen />
-        </Match>
-        <Match when={authStore.phase() === "unauthenticated" && windowState.activeWindow() === "authentication"}>
-          <LoginView />
-        </Match>
-        {/* Gates spawn-select until 2FA setup is configured or explicitly
-            skipped. MUST stay before the spawnSelect arm below (Switch/
-            Match picks the first matching arm) - the server pushes
-            SPAWN_SELECT_OPEN immediately and unconditionally right after a
-            successful registration (see AuthUiController.lua's
-            PLAYER_ACCOUNT_RESOLVED handler), so windowState.activeWindow()
-            is already "spawnSelect" by the time this phase is active. This
-            ordering is the only thing preventing SpawnSelectView from
-            rendering instead of this step - do not reorder these two arms. */}
-        <Match when={authStore.phase() === "securingAccount"}>
-          <SecureAccountStep />
-        </Match>
-        <Match when={authStore.phase() === "authenticated" && windowState.activeWindow() === "spawnSelect"}>
-          <SpawnSelectView />
-        </Match>
-        <Match when={windowState.activeWindow() === "dashboard"}>
-          <DashboardView />
-        </Match>
-      </Switch>
+    <div class="relative h-full w-full overflow-hidden">
+      {/* Cross-fades between the top-level screens below (loading/error,
+          login/switcher, spawn-select, dashboard) instead of hard-cutting
+          - see globals.css's own .app-stage-* comment. mode="outin" (the
+          leaving screen fully fades out before the entering one fades
+          in) avoids two full-screen, visually-unrelated experiences ever
+          being simultaneously visible/interactive mid-transition. */}
+      <Transition
+        enterActiveClass="app-stage-enter-active"
+        exitActiveClass="app-stage-exit-active"
+        enterClass="app-stage-enter-from"
+        exitToClass="app-stage-exit-to"
+      >
+        <Switch>
+          <Match when={authStore.phase() === "error"}>
+            <ErrorScreen onRetry={() => void authStore.checkStatus()} />
+          </Match>
+          <Match when={authStore.phase() === "checking" || (!windowState.hasOpenedAnyWindow() && windowState.activeWindow() === null)}>
+            {/* activeWindow() check avoids a blank screen if auth.status resolves before
+                LOADING_READY; hasOpenedAnyWindow() avoids re-showing this after spawn. */}
+            <ResourceCheckScreen />
+          </Match>
+          {/* Covers BOTH "unauthenticated" (login/register/switcher) AND
+              "securingAccount" (post-registration 2FA step) - AuthCard.tsx
+              itself is the router between all three now (see its own
+              createEffect watching authStore.phase()), so LoginView/AuthCard
+              stays mounted continuously across registration instead of
+              App.tsx swapping in a separate full-screen component. MUST
+              stay before the spawnSelect arm below (Switch/Match picks the
+              first matching arm) - the server pushes SPAWN_SELECT_OPEN
+              immediately and unconditionally right after a successful
+              registration (see AuthUiController.lua's
+              PLAYER_ACCOUNT_RESOLVED handler), so windowState.activeWindow()
+              is already "spawnSelect" by the time "securingAccount" is
+              active. This ordering is the only thing preventing
+              SpawnSelectView from rendering instead of this step - do not
+              reorder these two arms. */}
+          <Match
+            when={
+              (authStore.phase() === "unauthenticated" && windowState.activeWindow() === "authentication") ||
+              authStore.phase() === "securingAccount"
+            }
+          >
+            <LoginView />
+          </Match>
+          <Match when={authStore.phase() === "authenticated" && windowState.activeWindow() === "spawnSelect"}>
+            <SpawnSelectView />
+          </Match>
+          <Match when={windowState.activeWindow() === "dashboard"}>
+            <DashboardView />
+          </Match>
+        </Switch>
+      </Transition>
 
       <Overlay name="hud" transitionName="hud">
         {/* fixed + inset-0, not a plain block div - HudBar/VoiceIndicator

@@ -22,10 +22,11 @@
     <script src="client/Logger.lua" type="client" cache="false" />
     <script src="client/AuthUiClient.lua" type="client" cache="false" />
     <script src="client/UiAnimation.lua" type="client" cache="false" />
+    <script src="client/LoginCamera.lua" type="client" cache="false" />
     <script src="client/MusicState.lua" type="client" cache="false" />
     <script src="client/LightsEffect.lua" type="client" cache="false" />
     <script src="client/CredentialStore.lua" type="client" cache="false" />
-    <script src="client/CredentialTransport.lua" type="client" cache="false" />
+    <script src="client/AccountsTransport.lua" type="client" cache="false" />
     <script src="client/TrustedDeviceStore.lua" type="client" cache="false" />
     <script src="client/TrustedDeviceTransport.lua" type="client" cache="false" />
 </meta>

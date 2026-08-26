@@ -129,28 +129,32 @@ class MtaBridge {
     this.transport.notify(eventName, ...args);
   }
 
-  saveCredentials(login: string, password: string): void {
-    this.transport.saveCredentials(login, password);
+  upsertAccount(login: string, password: string, rememberPassword: boolean): void {
+    this.transport.upsertAccount(login, password, rememberPassword);
   }
 
-  clearCredentials(): void {
-    this.transport.clearCredentials();
+  touchAccount(login: string): void {
+    this.transport.touchAccount(login);
   }
 
-  loadCredentials() {
-    return this.transport.loadCredentials();
+  removeAccount(login: string): void {
+    this.transport.removeAccount(login);
   }
 
-  saveTrustedDeviceToken(token: string): void {
-    this.transport.saveTrustedDeviceToken(token);
+  listAccounts() {
+    return this.transport.listAccounts();
   }
 
-  clearTrustedDeviceToken(): void {
-    this.transport.clearTrustedDeviceToken();
+  saveTrustedDeviceToken(login: string, token: string): void {
+    this.transport.saveTrustedDeviceToken(login, token);
   }
 
-  loadTrustedDeviceToken() {
-    return this.transport.loadTrustedDeviceToken();
+  clearTrustedDeviceToken(login: string): void {
+    this.transport.clearTrustedDeviceToken(login);
+  }
+
+  loadTrustedDeviceToken(login: string) {
+    return this.transport.loadTrustedDeviceToken(login);
   }
 }
 
@@ -164,10 +168,11 @@ class NoopTransport implements MtaTransportLike {
     return () => {};
   }
   notify(): void {}
-  saveCredentials(): void {}
-  clearCredentials(): void {}
-  loadCredentials(): Promise<null> {
-    return Promise.resolve(null);
+  upsertAccount(): void {}
+  touchAccount(): void {}
+  removeAccount(): void {}
+  listAccounts(): Promise<[]> {
+    return Promise.resolve([]);
   }
   saveTrustedDeviceToken(): void {}
   clearTrustedDeviceToken(): void {}

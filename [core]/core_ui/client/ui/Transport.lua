@@ -99,10 +99,19 @@ addEventHandler(Events.BROWSER_READY, root, function()
     triggerServerEvent(Events.BROWSER_READY, localPlayer)
 end)
 
--- "Remember me" credential persistence - stays domain-agnostic here,
--- just forwards the obfuscated payload to core_auth/client/
--- CredentialTransport.lua (see docs/Architecture.md).
-for _, browserEventName in ipairs({ Events.CREDENTIALS_SAVE, Events.CREDENTIALS_LOAD, Events.CREDENTIALS_CLEAR }) do
+-- Remembered-account list persistence (login screen's account switcher)
+-- and trusted-device bypass tokens - stays domain-agnostic here, just
+-- forwards the obfuscated payload to core_auth/client/
+-- AccountsTransport.lua / TrustedDeviceTransport.lua (see
+-- docs/Architecture.md). Both families are forwarded through this SAME
+-- loop (not two separate ones) since they're identical in shape: a
+-- browser-sourced event carrying zero or one obfuscated-payload
+-- argument, re-fired on `root` for core_auth's own resourceRoot-scoped
+-- handler to pick up.
+for _, browserEventName in ipairs({
+    Events.ACCOUNTS_UPSERT, Events.ACCOUNTS_TOUCH, Events.ACCOUNTS_REMOVE, Events.ACCOUNTS_LIST,
+    Events.TRUSTED_DEVICE_SAVE, Events.TRUSTED_DEVICE_LOAD, Events.TRUSTED_DEVICE_CLEAR,
+}) do
     addEvent(browserEventName, true)
     addEventHandler(browserEventName, root, function(obfuscatedPayload)
         if source ~= UI.getBrowser() then

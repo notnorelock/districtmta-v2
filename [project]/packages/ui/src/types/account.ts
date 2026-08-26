@@ -41,10 +41,21 @@ export interface LoginAccountInput {
   trustToken?: string;
 }
 
-/** "Remember me" credentials - stored locally only, never sent to the server. */
-export interface SavedCredentials {
+/**
+ * One entry in the login screen's local account switcher - stored
+ * locally only, never sent to the server. Mirrors
+ * CredentialStore.lua's own list shape 1:1. "Saved" vs "recently used"
+ * is derived from `password` being present/absent, not a separate flag
+ * - see AccountSwitcher.tsx.
+ */
+export interface RememberedAccount {
   login: string;
-  password: string;
+  /** Present only for a "saved" entry (password remembered). Absent for "recently used" (login only). */
+  password?: string;
+  /** Unix seconds - when this entry was first created. */
+  savedAt: number;
+  /** Unix seconds - updated on every successful login through this entry; drives LRU eviction/sort order. */
+  lastUsedAt: number;
 }
 
 export interface ChangePasswordInput {

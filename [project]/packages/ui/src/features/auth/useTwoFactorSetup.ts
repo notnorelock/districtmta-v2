@@ -9,11 +9,12 @@ import type { ApiErrorCode } from "@/types/api";
  * account.confirmTwoFactorSetup proves the user actually scanned/typed it
  * correctly before the server flips it to enabled - see AccountService.lua's
  * own comment on why a typo'd/never-scanned secret must never silently
- * "enable"). Extracted so the dashboard's TwoFactorSection.tsx and the
- * post-registration SecureAccountStep.tsx share one implementation instead
- * of two copies that could drift - only the surrounding chrome (dashboard
- * card vs. auth-card visual language) and what happens after a successful
- * confirm differ between the two call sites.
+ * "enable"). Extracted so the dashboard's TwoFactorSection.tsx and
+ * AuthCard.tsx's own post-registration SecureAccountStep (an internal
+ * view of that card, not a separate file) share one implementation
+ * instead of two copies that could drift - only the surrounding chrome
+ * (dashboard card vs. auth-card visual language) and what happens after
+ * a successful confirm differ between the two call sites.
  */
 export function useTwoFactorSetup() {
   const [step, setStep] = createSignal<"idle" | "settingUp">("idle");

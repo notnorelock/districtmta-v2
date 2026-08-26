@@ -6,7 +6,7 @@ local function toJsonValue(value)
 end
 
 --- Deobfuscates and JSON-decodes a CEF->Lua event payload, returning nil
---- if it isn't a well-formed table.
+--- (and logging) if it isn't a well-formed table.
 -- @param obfuscatedPayload string
 -- @return table|nil
 local function decodePayload(obfuscatedPayload)
@@ -19,42 +19,46 @@ local function decodePayload(obfuscatedPayload)
     return payload
 end
 
-addEvent(Events.TRUSTED_DEVICE_SAVE, true)
-addEventHandler(Events.TRUSTED_DEVICE_SAVE, root, function(obfuscatedPayload)
+addEvent(Events.ACCOUNTS_UPSERT, true)
+addEventHandler(Events.ACCOUNTS_UPSERT, root, function(obfuscatedPayload)
     local payload = decodePayload(obfuscatedPayload)
-    if not payload or type(payload.login) ~= "string" or type(payload.token) ~= "string" then
-        outputDebugString("TrustedDeviceTransport: received malformed trustedDevice.save payload", 2)
+    if not payload or type(payload.login) ~= "string" or type(payload.password) ~= "string" or type(payload.rememberPassword) ~= "boolean" then
+        outputDebugString("AccountsTransport: received malformed accounts.upsert payload", 2)
         return
     end
 
-    TrustedDeviceStore.save(payload.login, payload.token)
+    CredentialStore.upsert(payload.login, payload.password, payload.rememberPassword)
 end)
 
-addEvent(Events.TRUSTED_DEVICE_CLEAR, true)
-addEventHandler(Events.TRUSTED_DEVICE_CLEAR, root, function(obfuscatedPayload)
+addEvent(Events.ACCOUNTS_TOUCH, true)
+addEventHandler(Events.ACCOUNTS_TOUCH, root, function(obfuscatedPayload)
     local payload = decodePayload(obfuscatedPayload)
     if not payload or type(payload.login) ~= "string" then
-        outputDebugString("TrustedDeviceTransport: received malformed trustedDevice.clear payload", 2)
+        outputDebugString("AccountsTransport: received malformed accounts.touch payload", 2)
         return
     end
 
-    TrustedDeviceStore.clear(payload.login)
+    CredentialStore.touch(payload.login)
 end)
 
-addEvent(Events.TRUSTED_DEVICE_LOAD, true)
-addEventHandler(Events.TRUSTED_DEVICE_LOAD, root, function(obfuscatedPayload)
+addEvent(Events.ACCOUNTS_REMOVE, true)
+addEventHandler(Events.ACCOUNTS_REMOVE, root, function(obfuscatedPayload)
     local payload = decodePayload(obfuscatedPayload)
     if not payload or type(payload.login) ~= "string" then
-        outputDebugString("TrustedDeviceTransport: received malformed trustedDevice.load payload", 2)
+        outputDebugString("AccountsTransport: received malformed accounts.remove payload", 2)
         return
     end
 
-    local token = TrustedDeviceStore.load(payload.login)
-    local response = { token = token }
+    CredentialStore.remove(payload.login)
+end)
+
+addEvent(Events.ACCOUNTS_LIST, true)
+addEventHandler(Events.ACCOUNTS_LIST, root, function()
+    local response = { accounts = CredentialStore.list() }
 
     local obfuscated = exports.core_ui:uiObfuscateForBrowser(toJsonValue(response))
     local script = string.format(
-        "window.__mtaTrustedDeviceLoaded && window.__mtaTrustedDeviceLoaded(%s)",
+        "window.__mtaAccountsLoaded && window.__mtaAccountsLoaded(%s)",
         ("'%s'"):format(tostring(obfuscated):gsub("\\", "\\\\"):gsub("'", "\\'"):gsub("\n", "\\n"):gsub("\r", ""))
     )
     exports.core_ui:uiExecuteInBrowser(script)

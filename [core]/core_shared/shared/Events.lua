@@ -42,19 +42,25 @@ Events = {
     -- JSON-decoding of their own.
     UI_NOTIFY = "ui.notify",
 
-    -- Local-only "remember me" credential persistence (browser <-> client
-    -- Lua only - never touches the server)
-    CREDENTIALS_SAVE = "credentials.save",
-    CREDENTIALS_LOAD = "credentials.load",
-    CREDENTIALS_CLEAR = "credentials.clear",
+    -- Local-only remembered-account list persistence (browser <-> client
+    -- Lua only - never touches the server). Replaces the old single-slot
+    -- CREDENTIALS_SAVE/_LOAD/_CLEAR trio now that the login screen
+    -- remembers up to 5 accounts at once, split into "saved" (password
+    -- remembered) and "recently used" (login only) - see
+    -- AccountSwitcher.tsx / CredentialStore.lua.
+    ACCOUNTS_UPSERT = "accounts.upsert",
+    ACCOUNTS_TOUCH = "accounts.touch",
+    ACCOUNTS_REMOVE = "accounts.remove",
+    ACCOUNTS_LIST = "accounts.list",
 
     -- Local-only trusted-device bypass token persistence (browser <->
     -- client Lua only - never touches the server directly; the CEF side
     -- is responsible for INCLUDING this token in auth.login's own payload
-    -- when it calls the server). Mirrors CREDENTIALS_SAVE/_LOAD/_CLEAR's
-    -- shape exactly, kept as separate events rather than reusing those
-    -- three because the payload shape differs (a single opaque token
-    -- string, not {login,password}).
+    -- when it calls the server). PER-ACCOUNT (payloads carry a `login`
+    -- field alongside the token) since the login screen went
+    -- multi-account - a device trusted via one account's 2FA verify must
+    -- not silently bypass 2FA for a DIFFERENT account typed into the same
+    -- switcher. See TrustedDeviceStore.lua's own module comment.
     TRUSTED_DEVICE_SAVE = "trustedDevice.save",
     TRUSTED_DEVICE_LOAD = "trustedDevice.load",
     TRUSTED_DEVICE_CLEAR = "trustedDevice.clear",

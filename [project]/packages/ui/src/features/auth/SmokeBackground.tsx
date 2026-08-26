@@ -57,6 +57,7 @@ export const SmokeBackground: Component<SmokeBackgroundProps> = (rawProps) => {
   let particles: THREE.Mesh[] = [];
   let animationId: number;
   let smokeTexture: THREE.Texture | undefined;
+  let resizeObserver: ResizeObserver | undefined;
 
   const initScene = async () => {
     if (!containerRef) return;
@@ -70,8 +71,20 @@ export const SmokeBackground: Component<SmokeBackgroundProps> = (rawProps) => {
     camera.position.z = 500;
 
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: props.transparent });
-    renderer.setSize(containerRef.clientWidth, containerRef.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // updateStyle=false - the canvas is stretched to its container purely
+    // via CSS (w-full h-full block, see the root div below), not via a
+    // JS-computed inline width/height in px. setSize's default
+    // (updateStyle=true) writes that inline px size from
+    // containerRef.clientWidth/Height AT INIT TIME - if the container's
+    // layout hadn't fully settled yet on first paint (a flex child mid
+    // layout pass, confirmed live: this left a persistent few-px gap
+    // down one edge that window's own "resize" listener below never
+    // fixed, since the browser window itself never resizes in MTA's CEF),
+    // that stale inline size stuck around for the rest of the session.
+    // Letting CSS own the element's box instead means it can never drift
+    // from its actual container size, whatever that turns out to be.
+    renderer.setSize(containerRef.clientWidth, containerRef.clientHeight, false);
     containerRef.appendChild(renderer.domElement);
 
     const textureLoader = new THREE.TextureLoader();
@@ -199,7 +212,7 @@ export const SmokeBackground: Component<SmokeBackgroundProps> = (rawProps) => {
 
     camera.aspect = containerRef.clientWidth / containerRef.clientHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(containerRef.clientWidth, containerRef.clientHeight);
+    renderer.setSize(containerRef.clientWidth, containerRef.clientHeight, false);
   };
 
   const cleanup = () => {
@@ -224,6 +237,7 @@ export const SmokeBackground: Component<SmokeBackgroundProps> = (rawProps) => {
     }
 
     window.removeEventListener("resize", handleResize);
+    resizeObserver?.disconnect();
   };
 
   createEffect(
@@ -250,12 +264,29 @@ export const SmokeBackground: Component<SmokeBackgroundProps> = (rawProps) => {
     ),
   );
 
-  onMount(() => {
-    void initScene();
+  onMount(async () => {
+    await initScene();
     window.addEventListener("resize", handleResize);
+
+    // Catches container-size changes window's own "resize" event can't
+    // (MTA's CEF viewport itself never resizes mid-session, but the
+    // CONTAINER can still change size from layout settling after this
+    // point - fonts/images finishing load, a parent flex/grid
+    // recalculating) - re-runs the exact same handleResize the window
+    // listener above uses, just triggered by the container's own box
+    // instead of the window's.
+    if (containerRef) {
+      resizeObserver = new ResizeObserver(handleResize);
+      resizeObserver.observe(containerRef);
+    }
   });
 
   onCleanup(cleanup);
 
-  return <div ref={containerRef} class={`pointer-events-none absolute inset-0 h-full w-full [&>canvas]:block ${rawProps.class ?? ""}`} />;
+  return (
+    <div
+      ref={containerRef}
+      class={`pointer-events-none absolute inset-0 h-full w-full [&>canvas]:block [&>canvas]:h-full [&>canvas]:w-full ${rawProps.class ?? ""}`}
+    />
+  );
 };

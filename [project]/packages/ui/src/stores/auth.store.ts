@@ -12,6 +12,16 @@ const [phase, setPhase] = createSignal<AuthPhase>("checking");
 const [account, setAccount] = createSignal<Account | null>(null);
 const [lastError, setLastError] = createSignal<ApiErrorCode | null>(null);
 
+// Threads the login submitted to login() through to verifyTwoFactor()'s
+// own trust-token save - the trusted-device token is per-account (see
+// TrustedDeviceStore.lua's own module comment: a device trusted for one
+// account must not silently bypass 2FA for a different account typed
+// into the same switcher), but verifyTwoFactor(code, trustDevice) has no
+// login parameter of its own (its caller, AuthCard.tsx's 2FA step,
+// doesn't need to re-thread it either) since 2FA verification only ever
+// follows a login() call that already captured it here.
+let pendingLogin: string | null = null;
+
 export const authStore = {
   phase,
   account,
@@ -63,7 +73,8 @@ export const authStore = {
 
   async login(login: string, password: string): Promise<LoginResult> {
     setLastError(null);
-    const trustToken = await mta.loadTrustedDeviceToken();
+    pendingLogin = login;
+    const trustToken = await mta.loadTrustedDeviceToken(login);
     const response = await authApi.login({ login, password, trustToken: trustToken ?? undefined });
 
     if (!response.success) {
@@ -71,9 +82,11 @@ export const authStore = {
       if (response.error.code === "TWO_FACTOR_REQUIRED") {
         return "twoFactorRequired";
       }
+      pendingLogin = null;
       return "error";
     }
 
+    pendingLogin = null;
     setAccount(response.data);
     setPhase("authenticated");
     return "success";
@@ -88,10 +101,11 @@ export const authStore = {
       return false;
     }
 
-    if (response.data.trustToken) {
-      mta.saveTrustedDeviceToken(response.data.trustToken);
+    if (response.data.trustToken && pendingLogin) {
+      mta.saveTrustedDeviceToken(pendingLogin, response.data.trustToken);
     }
 
+    pendingLogin = null;
     setAccount(response.data.account);
     setPhase("authenticated");
     return true;

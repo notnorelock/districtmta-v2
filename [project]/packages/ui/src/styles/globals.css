@@ -332,6 +332,77 @@
 }
 
 /*
+  AuthCard's own top-level stage transition - switcher <-> form <->
+  post-registration "secure your account" step. Unlike the login/register
+  slide above (which keeps both panels mounted via forceMount so they can
+  cross-fade), these three views are structurally very different (a list
+  of account rows vs. a form vs. a QR code step) and are never shown at
+  once, so a plain solid-transition-group <Transition mode="outin"> (see
+  Overlay.tsx's own identical use of this primitive) - the leaving view
+  fully unmounts before the entering one mounts - is simpler and correct
+  here; no absolute-stacking cross-fade trick needed.
+
+  The height animation is a SEPARATE mechanism from the opacity
+  transition: AuthCard measures the mounted view's own offsetHeight via
+  ResizeObserver and writes it as an explicit inline `height` style on
+  .auth-card__stage - this transition is what turns that discrete style
+  change into a smooth resize, exactly the same technique
+  .auth-panel__viewport already uses one level down for login<->register.
+*/
+.auth-card__stage {
+  overflow: hidden;
+  transition: height var(--transition-duration-slow) var(--ease-height);
+}
+
+.auth-card__stage-enter-active,
+.auth-card__stage-exit-active {
+  transition: opacity var(--transition-duration-base) var(--ease-out);
+}
+
+.auth-card__stage-enter-from,
+.auth-card__stage-exit-to {
+  opacity: 0;
+}
+
+/*
+  App.tsx's own top-level screen transition - login/switcher <->
+  spawn-select <-> dashboard (and the loading/error screens). These are
+  the biggest, least-related jumps in the whole app (entirely different
+  full-screen experiences, not variations of one form), so this is a
+  plain cross-fade only - no slide/resize, which would imply a
+  spatial/hierarchical relationship between screens that don't have one.
+  Slightly longer than the auth-card stage transition (slow, not base)
+  since this is a much bigger visual jump the player should have a beat
+  to register, not just a quick blend.
+*/
+.app-stage-enter-active,
+.app-stage-exit-active {
+  transition: opacity var(--transition-duration-slow) var(--ease-out);
+}
+
+.app-stage-enter-from,
+.app-stage-exit-to {
+  opacity: 0;
+}
+
+/*
+  The LEAVING screen (still mounted for the duration of its own exit
+  transition, even under mode="outin") must not stay in normal document
+  flow - each top-level screen is its own full h-full/w-full block, so
+  while both the old and the about-to-be-removed element briefly coexist
+  in the DOM, their heights summed to more than the viewport and produced
+  a real, visible vertical scrollbar for the whole ~350ms fade (confirmed
+  live switching into SpawnSelectView). Taking the exiting element out of
+  flow via absolute positioning (anchored to App.tsx's own relative
+  h-full/w-full root) means only the ENTERING screen's normal-flow height
+  is ever counted, so no transient overflow is possible.
+*/
+.app-stage-exit-active {
+  position: absolute;
+  inset: 0;
+}
+
+/*
   Overlay enter/leave transitions (components/common/Overlay.tsx, driven by
   solid-transition-group's <Transition mode="outin"> - the leave finishes
   before the next enter starts, same as Vue's mode="out-in"). Named per

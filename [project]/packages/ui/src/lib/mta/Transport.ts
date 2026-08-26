@@ -1,5 +1,5 @@
 import type { MtaFetchRequestEnvelope, MtaPushEventName, MtaResponse } from "@/types/api";
-import type { SavedCredentials } from "@/types/account";
+import type { RememberedAccount } from "@/types/account";
 
 // MtaBridge is the only consumer of this interface - nothing else should care which
 // transport (real MTA Lua vs BrowserDevTransport) is active.
@@ -8,10 +8,11 @@ export interface MtaTransportLike {
   onResponse(handler: (requestId: string, response: MtaResponse<unknown>) => void): () => void;
   onPush(handler: (event: MtaPushEventName | string, data: unknown) => void): () => void;
   notify(eventName: string, ...args: unknown[]): void;
-  saveCredentials(login: string, password: string): void;
-  clearCredentials(): void;
-  loadCredentials(): Promise<SavedCredentials | null>;
-  saveTrustedDeviceToken(token: string): void;
-  clearTrustedDeviceToken(): void;
-  loadTrustedDeviceToken(): Promise<string | null>;
+  upsertAccount(login: string, password: string, rememberPassword: boolean): void;
+  touchAccount(login: string): void;
+  removeAccount(login: string): void;
+  listAccounts(): Promise<RememberedAccount[]>;
+  saveTrustedDeviceToken(login: string, token: string): void;
+  clearTrustedDeviceToken(login: string): void;
+  loadTrustedDeviceToken(login: string): Promise<string | null>;
 }

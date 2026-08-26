@@ -9,7 +9,7 @@ local hud
 addEventHandler("onClientResourceStart", resourceRoot, function()
     hud = HUDBase.new()
 
-    hud:addComponent(FPSComponent.new())
+    -- hud:addComponent(FPSComponent.new())
     hud:addComponent(RadarComponent.new())
     hud:addComponent(NotificationsComponent.new())
     hud:addComponent(SpeedoComponent.new())

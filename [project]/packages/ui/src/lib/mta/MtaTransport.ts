@@ -1,9 +1,9 @@
 import type { MtaFetchRequestEnvelope, MtaPushEventName, MtaResponse } from "@/types/api";
-import type { SavedCredentials } from "@/types/account";
+import type { RememberedAccount } from "@/types/account";
 import type { MtaTransportLike } from "./Transport";
 import { obfuscatePayload, deobfuscatePayload } from "./payloadObfuscation";
 
-const CREDENTIALS_LOAD_TIMEOUT_MS = 3000;
+const ACCOUNTS_LIST_TIMEOUT_MS = 3000;
 const TRUSTED_DEVICE_LOAD_TIMEOUT_MS = 3000;
 
 /** Real transport used inside MTA's CEF browser. See docs/UiBridge.md for the protocol. */
@@ -87,30 +87,41 @@ export class MtaTransport implements MtaTransportLike {
     window.mta.triggerEvent("ui.notify", eventName, JSON.stringify({ args }));
   }
 
-  saveCredentials(login: string, password: string): void {
+  upsertAccount(login: string, password: string, rememberPassword: boolean): void {
     if (typeof window.mta?.triggerEvent !== "function") {
-      console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot saveCredentials");
+      console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot upsertAccount");
       return;
     }
 
-    const payload: SavedCredentials = { login, password };
+    const payload = { login, password, rememberPassword };
     const obfuscated = obfuscatePayload(JSON.stringify(payload), this.sessionKey());
-    window.mta.triggerEvent("credentials.save", obfuscated);
+    window.mta.triggerEvent("accounts.upsert", obfuscated);
   }
 
-  clearCredentials(): void {
+  touchAccount(login: string): void {
     if (typeof window.mta?.triggerEvent !== "function") {
-      console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot clearCredentials");
+      console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot touchAccount");
       return;
     }
 
-    window.mta.triggerEvent("credentials.clear");
+    const obfuscated = obfuscatePayload(JSON.stringify({ login }), this.sessionKey());
+    window.mta.triggerEvent("accounts.touch", obfuscated);
   }
 
-  loadCredentials(): Promise<SavedCredentials | null> {
+  removeAccount(login: string): void {
     if (typeof window.mta?.triggerEvent !== "function") {
-      console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot loadCredentials");
-      return Promise.resolve(null);
+      console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot removeAccount");
+      return;
+    }
+
+    const obfuscated = obfuscatePayload(JSON.stringify({ login }), this.sessionKey());
+    window.mta.triggerEvent("accounts.remove", obfuscated);
+  }
+
+  listAccounts(): Promise<RememberedAccount[]> {
+    if (typeof window.mta?.triggerEvent !== "function") {
+      console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot listAccounts");
+      return Promise.resolve([]);
     }
 
     return new Promise((resolve) => {
@@ -119,50 +130,51 @@ export class MtaTransport implements MtaTransportLike {
       const timeoutId = window.setTimeout(() => {
         if (settled) return;
         settled = true;
-        delete window.__mtaCredentialsLoaded;
-        console.warn("[MtaTransport] loadCredentials timed out");
-        resolve(null);
-      }, CREDENTIALS_LOAD_TIMEOUT_MS);
+        delete window.__mtaAccountsLoaded;
+        console.warn("[MtaTransport] listAccounts timed out");
+        resolve([]);
+      }, ACCOUNTS_LIST_TIMEOUT_MS);
 
-      window.__mtaCredentialsLoaded = (obfuscatedResponse: string) => {
+      window.__mtaAccountsLoaded = (obfuscatedResponse: string) => {
         if (settled) return;
         settled = true;
         window.clearTimeout(timeoutId);
-        delete window.__mtaCredentialsLoaded;
+        delete window.__mtaAccountsLoaded;
 
-        const parsed = this.parseObfuscated<{ login: string | null; password: string | null }>(obfuscatedResponse);
-        if (!parsed.ok || !parsed.value.login || !parsed.value.password) {
-          resolve(null);
+        const parsed = this.parseObfuscated<{ accounts: RememberedAccount[] | null }>(obfuscatedResponse);
+        if (!parsed.ok || !Array.isArray(parsed.value.accounts)) {
+          resolve([]);
           return;
         }
 
-        resolve({ login: parsed.value.login, password: parsed.value.password });
+        resolve(parsed.value.accounts);
       };
 
-      window.mta!.triggerEvent("credentials.load");
+      window.mta!.triggerEvent("accounts.list");
     });
   }
 
-  saveTrustedDeviceToken(token: string): void {
+  saveTrustedDeviceToken(login: string, token: string): void {
     if (typeof window.mta?.triggerEvent !== "function") {
       console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot saveTrustedDeviceToken");
       return;
     }
 
-    const obfuscated = obfuscatePayload(JSON.stringify({ token }), this.sessionKey());
+    const obfuscated = obfuscatePayload(JSON.stringify({ login, token }), this.sessionKey());
     window.mta.triggerEvent("trustedDevice.save", obfuscated);
   }
 
-  clearTrustedDeviceToken(): void {
+  clearTrustedDeviceToken(login: string): void {
     if (typeof window.mta?.triggerEvent !== "function") {
       console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot clearTrustedDeviceToken");
       return;
     }
 
-    window.mta.triggerEvent("trustedDevice.clear");
+    const obfuscated = obfuscatePayload(JSON.stringify({ login }), this.sessionKey());
+    window.mta.triggerEvent("trustedDevice.clear", obfuscated);
   }
 
-  loadTrustedDeviceToken(): Promise<string | null> {
+  loadTrustedDeviceToken(login: string): Promise<string | null> {
     if (typeof window.mta?.triggerEvent !== "function") {
       console.error("[MtaTransport] window.mta.triggerEvent is not available - cannot loadTrustedDeviceToken");
       return Promise.resolve(null);
@@ -194,7 +206,8 @@ export class MtaTransport implements MtaTransportLike {
         resolve(parsed.value.token);
       };
 
-      window.mta!.triggerEvent("trustedDevice.load");
+      const obfuscated = obfuscatePayload(JSON.stringify({ login }), this.sessionKey());
+      window.mta!.triggerEvent("trustedDevice.load", obfuscated);
     });
   }
 
@@ -221,7 +234,7 @@ declare global {
   interface Window {
     __mtaFetchResponse?: (requestId: string, obfuscatedResponse: string) => void;
     __mtaPushEvent?: (event: string, obfuscatedData: string) => void;
-    __mtaCredentialsLoaded?: (obfuscatedResponse: string) => void;
+    __mtaAccountsLoaded?: (obfuscatedResponse: string) => void;
     __mtaTrustedDeviceLoaded?: (obfuscatedResponse: string) => void;
     __mtaSessionKey?: string;
   }
