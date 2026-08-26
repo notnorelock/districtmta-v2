@@ -6,7 +6,7 @@
         type="script"
     />
 
-    <script src="gp.lua" type="shared" />>
+    <script src="gp.lua" type="shared" />
 
     <include resource="core_shared" />
 

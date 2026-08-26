@@ -182,6 +182,7 @@ local toggleConditions = {
     requiresSpawned = true,
     whileOpenInventory = false,
     whileBlackout = false,
+    inVehicle = true
 }
 local function toggleInteractionMode()
     if not exports.core_shared:canPlayerInteract(nil, toggleConditions) then
