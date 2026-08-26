@@ -45,7 +45,14 @@ end
 -- here - there is no better native primitive to reach for.
 local function generateTokenHalf(length)
     local timestamp = getRealTime().timestamp
-    return sha256(string.format("%d:%s:%d", timestamp, randomString(length), math.random(1, 2 ^ 31)))
+    -- 2147483647 (2^31 - 1, Lua 5.1's LUA_MAXINTEGER-adjacent safe upper
+    -- bound for math.random's integer overload) is used as a literal
+    -- integer, NOT `2 ^ 31` - the `^` operator always returns a float in
+    -- Lua 5.1 (confirmed live: math.random(1, 2^31) errored with "bad
+    -- argument #2 to 'random' (interval is empty)", since MTA's
+    -- math.random rejects a non-integer bound outright rather than
+    -- truncating it).
+    return sha256(string.format("%d:%s:%d", timestamp, randomString(length), math.random(1, 2147483647)))
 end
 
 --- Issues a brand-new trusted-device token for an account. Returns the RAW
