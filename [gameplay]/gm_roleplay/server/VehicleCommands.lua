@@ -7,8 +7,7 @@ local SPAWN_OFFSET_DISTANCE = 3
 local FLIP_LIFT_HEIGHT = 0.5
 
 local function isReady(player)
-    return getElementData(player, ElementData.Player.LOGGED) == true
-        and getElementData(player, ElementData.Player.SPAWNED) == true
+    return exports.core_shared:isPlayerReady(player)
 end
 
 --- Driver-only lookup, since /fix and /flip acting on a vehicle a mere

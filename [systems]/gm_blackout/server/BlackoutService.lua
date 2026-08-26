@@ -107,6 +107,10 @@ addEventHandler("onPlayerDamage", root, function(attacker, damageCausingId, body
     if BlackoutService.isBlackedOut(source) then
         return
     end
+    -- Deliberately manual, not canPlayerInteract - server-side event
+    -- guard; that helper's chatbox/interaction/inventory branches are
+    -- client-only dead code here anyway, and this doesn't need
+    -- vehicle/blackout gating.
     if getElementData(source, ElementData.Player.SPAWNED) ~= true then
         return
     end
@@ -127,6 +131,8 @@ end)
 --- dead/ragdolled by the time this fires, so this has to revive them in
 --- place rather than just correct their health.
 addEventHandler("onPlayerWasted", root, function()
+    -- Deliberately manual, not canPlayerInteract - see onPlayerDamage's
+    -- own handler above for why (server-side event guard).
     if getElementData(source, ElementData.Player.SPAWNED) ~= true then
         return
     end

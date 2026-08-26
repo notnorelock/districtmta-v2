@@ -18,6 +18,9 @@ local blips = {}
 --         interior/dimension as localPlayer, spawned, and not invisible
 --         (getElementAlpha 0 - e.g. an admin's /vanish or similar).
 local function shouldHaveBlip(player)
+    -- Checks a REMOTE player's spawned state, not the local caller's own
+    -- interaction eligibility - canPlayerInteract is designed around
+    -- localPlayer's own state (vehicle/chatbox/blackout), not a fit here.
     return getElementData(player, ElementData.Player.SPAWNED) == true
         and getElementInterior(player) == getElementInterior(localPlayer)
         and getElementDimension(player) == getElementDimension(localPlayer)
@@ -55,10 +58,6 @@ end
 --- cap), and simpler/more robust against missed events than trying to
 --- track every interior/dimension/spawn/alpha change individually.
 PlayerBlips.update = function()
-    if getElementData(localPlayer, ElementData.Player.SPAWNED) ~= true then
-        return
-    end
-
     for player in pairs(blips) do
         if not isElement(player) or not shouldHaveBlip(player) then
             removeBlip(player)

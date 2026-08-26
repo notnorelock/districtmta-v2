@@ -177,8 +177,14 @@ function isLookingForInteraction()
     return isLookingForInteractions
 end
 
+local toggleConditions = {
+    withChatbox = false,
+    requiresSpawned = true,
+    whileOpenInventory = false,
+    whileBlackout = false,
+}
 local function toggleInteractionMode()
-    if not exports.core_shared:canPlayerInteract() then
+    if not exports.core_shared:canPlayerInteract(nil, toggleConditions) then
         return
     end
 

@@ -7,7 +7,7 @@ VoiceModeState = VoiceModeState or {}
 local KEY = "b"
 
 local function requestCycleMode()
-    if getElementData(localPlayer, ElementData.Player.SPAWNED) ~= true then
+    if not exports.core_shared:canPlayerInteract(nil, { requiresSpawned = true, inVehicle = false, whileBlackout = false }) then
         return
     end
     triggerServerEvent(Events.VOICE_CYCLE_MODE, resourceRoot)

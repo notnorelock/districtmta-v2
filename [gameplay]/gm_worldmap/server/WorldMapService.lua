@@ -10,6 +10,11 @@ WorldMapService = WorldMapService or {}
 -- @return table|nil plain-data entry, or nil if the player has no
 --         position worth showing yet (not spawned into the world)
 local function toPlayerEntry(player)
+    -- Deliberately manual, not canPlayerInteract - this is a positive
+    -- selection filter, not a boolean interaction guard, and
+    -- canPlayerInteract's default vehicle-blocking semantics would
+    -- wrongly exclude players who are legitimately in a vehicle from the
+    -- world map.
     if getElementData(player, ElementData.Player.SPAWNED) ~= true then
         return nil
     end

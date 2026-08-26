@@ -41,6 +41,11 @@ end
 
 addEvent(Events.INTERACTION_REQUEST_LIST, true)
 addEventHandler(Events.INTERACTION_REQUEST_LIST, root, function(element)
+    -- Deliberately manual, not canPlayerInteract - this is a
+    -- server-authoritative security mirror of a client-side gate; it must
+    -- check ONLY whether the player is spawned, not vehicle/blackout
+    -- state, since a legitimately spawned player sending this while in a
+    -- vehicle or blacked out should still be served.
     if getElementData(client, ElementData.Player.SPAWNED) ~= true then
         return
     end
@@ -50,6 +55,9 @@ end)
 
 addEvent(Events.INTERACTION_CALL, true)
 addEventHandler(Events.INTERACTION_CALL, root, function(element, key)
+    -- Deliberately manual, not canPlayerInteract - see
+    -- INTERACTION_REQUEST_LIST's own handler above for why (security
+    -- mirror, spawned-only).
     if getElementData(client, ElementData.Player.SPAWNED) ~= true then
         return
     end

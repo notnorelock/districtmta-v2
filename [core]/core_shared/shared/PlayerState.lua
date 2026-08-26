@@ -26,7 +26,14 @@ function canPlayerInteract(player, data)
         end
     end
     
-    local spawned = data.requiresSpawned == true and (getElementData(localPlayer, ElementData.Player.SPAWNED) == true) or true
+    -- NOT `data.requiresSpawned == true and (...) or true` - that's the
+    -- classic Lua a-and-b-or-c trap: when requiresSpawned is true AND the
+    -- player genuinely isn't spawned, `b` is false, so the whole
+    -- expression fell through `or true` and returned true anyway (the
+    -- spawned check never actually blocked anything). This De Morgan'd
+    -- form has no such trap - each operand of the outer `or` is
+    -- independently correct on its own.
+    local spawned = data.requiresSpawned ~= true or getElementData(localPlayer, ElementData.Player.SPAWNED) == true
     local hasBlackout = data.whileBlackout == false and (type(getElementData(localPlayer, ElementData.Player.BLACKOUT_UNTIL)) == "number") or false
 
     if data.inVehicle == true and isPedInVehicle(localPlayer) then
@@ -50,21 +57,13 @@ function canPlayerInteract(player, data)
     return spawned and not hasBlackout
 end
 
--- TODO @ canLocalPlayerUse
---[[
-    - może używać tego interfejsu?
-    - inne jakies gowna kekw
-]]
-
--- function canLocalPlayerUse()
---     if not isElement(localPlayer) then
---         if hasPlayerInArg(player) then
---             localPlayer = player
---         else
---             return false
---         end
---     end
---     local spawned = getElementData(localPlayer, ElementData.Player.SPAWNED) == true
---     local hasBlackout = type(getElementData(localPlayer, ElementData.Player.BLACKOUT_UNTIL)) == "number"
---     return spawned and not hasBlackout
--- end
+--- @param player element
+-- @return boolean true if the player is both logged in and has spawned -
+--- the minimum bar for any gameplay command to be meaningful. Distinct
+--- from canPlayerInteract (which has no LOGGED concept and carries
+--- client-only chatbox/interaction/inventory checks irrelevant to a
+--- server-side command-permission gate).
+function isPlayerReady(player)
+    return getElementData(player, ElementData.Player.LOGGED) == true
+        and getElementData(player, ElementData.Player.SPAWNED) == true
+end

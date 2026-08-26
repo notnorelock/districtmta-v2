@@ -114,6 +114,10 @@ local MUTE_NOTICE_COOLDOWN_MS = 10000
 local lastMuteNotice = {}
 
 addEventHandler("onPlayerVoiceStart", root, function()
+    -- Deliberately manual, not canPlayerInteract - server-side event
+    -- guard; that helper's chatbox/interaction/inventory branches are
+    -- client-only dead code here anyway, and this doesn't need
+    -- vehicle/blackout gating.
     if getElementData(source, ElementData.Player.SPAWNED) ~= true then
         cancelEvent()
         return

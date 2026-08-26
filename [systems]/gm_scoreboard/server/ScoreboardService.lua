@@ -31,6 +31,8 @@ local function statusOf(player)
         return ScoreboardService.Status.AUTHENTICATING
     end
 
+    -- Deliberately manual, not canPlayerInteract - this is a multi-state
+    -- classifier (4 possible statuses), not a boolean interaction guard.
     if getElementData(player, ElementData.Player.SPAWNED) ~= true then
         return ScoreboardService.Status.SELECTING_SPAWN
     end

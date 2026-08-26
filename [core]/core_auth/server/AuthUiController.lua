@@ -55,6 +55,10 @@ addEventHandler(Events.LOADING_READY, root, function()
     -- in but not yet spawned" by reopening spawn-select, so this is the
     -- one remaining case neither branch handled - see Events.
     -- AUTH_ALREADY_IN_WORLD's own comment.
+    -- Deliberately manual, not canPlayerInteract - this is an
+    -- auth/session-lifecycle check, not a gameplay interaction guard;
+    -- using the interaction helper here would be a conceptual mismatch
+    -- even though the boolean value would happen to match.
     if getElementData(player, ElementData.Player.SPAWNED) == true then
         triggerClientEvent(player, Events.AUTH_ALREADY_IN_WORLD, player)
     end
@@ -64,6 +68,10 @@ local function reopenSpawnSelectForUnspawnedPlayers()
     for _, player in ipairs(getElementsByType("player")) do
         local logged = getElementData(player, ElementData.Player.LOGGED)
         local authenticated = PlayerService.isAuthenticated(player)
+        -- Deliberately manual, not canPlayerInteract - "spawned ~= true"
+        -- is a positive selection criterion here (players needing
+        -- spawn-select reopened), combined with LOGGED/authenticated
+        -- flags canPlayerInteract has no concept of at all.
         local spawned = getElementData(player, ElementData.Player.SPAWNED)
         if logged and authenticated and spawned ~= true then
             triggerClientEvent(player, Events.SPAWN_SELECT_OPEN, player)

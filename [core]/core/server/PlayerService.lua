@@ -227,6 +227,9 @@ local function reconnectAlreadyLoggedInPlayers()
                 Logger.warn("PlayerService", "player:logged set but account:id missing/invalid - skipping reconnect", {
                     player = getPlayerName(player),
                 })
+            -- Deliberately manual, not canPlayerInteract - this is a
+            -- 3-way branch selector (skip/silently-restore/full-resolve),
+            -- not a boolean interaction guard.
             elseif getElementData(player, ElementData.Player.SPAWNED) == true then
                 AccountRepository.findById(accountId, function(ok, account)
                     if not ok or not account then

@@ -32,9 +32,7 @@ local function colorForPlayer(player)
         return "#FFFFFF"
     end
 
-    local logged = getElementData(player, ElementData.Player.LOGGED)
-    local spawned = getElementData(player, ElementData.Player.SPAWNED)
-    if not logged or not spawned then
+    if not exports.core_shared:isPlayerReady(player) then
         return "#FFFFFF"
     end
 
@@ -53,9 +51,7 @@ addEventHandler("onPlayerChat", root, function(message, messageType)
         return
     end
 
-    local logged = getElementData(source, ElementData.Player.LOGGED)
-    local spawned = getElementData(source, ElementData.Player.SPAWNED)
-    if not logged or not spawned then
+    if not exports.core_shared:isPlayerReady(source) then
         return
     end
 

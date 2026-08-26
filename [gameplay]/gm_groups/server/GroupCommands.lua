@@ -13,8 +13,7 @@
 --- @param player element
 -- @return boolean
 local function isReady(player)
-    return getElementData(player, ElementData.Player.LOGGED) == true
-        and getElementData(player, ElementData.Player.SPAWNED) == true
+    return exports.core_shared:isPlayerReady(player)
 end
 
 --- @param player element

@@ -61,7 +61,7 @@ local function closeMap()
 end
 
 local function toggleMap()
-    if getElementData(localPlayer, ElementData.Player.SPAWNED) ~= true then
+    if not exports.core_shared:canPlayerInteract(nil, { requiresSpawned = true, inVehicle = false, whileBlackout = false }) then
         return
     end
 

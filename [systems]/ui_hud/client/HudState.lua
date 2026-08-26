@@ -200,7 +200,7 @@ end
 addEventHandler("onClientResourceStart", resourceRoot, function()
     restoreUserPreferenceFromSettings()
 
-    if getElementData(localPlayer, ElementData.Player.SPAWNED) == true then
+    if exports.core_shared:canPlayerInteract(nil, { requiresSpawned = true, inVehicle = false, whileBlackout = true }) then
         HUD.start()
     end
 end)

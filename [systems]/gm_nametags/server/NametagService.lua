@@ -82,6 +82,11 @@ end
 local function reportAllPlayers()
     local spawnedPlayers = {}
     for _, player in ipairs(getElementsByType("player")) do
+        -- Deliberately manual, not canPlayerInteract - this is a positive
+        -- selection filter, not a boolean interaction guard, and
+        -- canPlayerInteract's default vehicle-blocking semantics would
+        -- wrongly exclude players who are legitimately in a vehicle from
+        -- getting nametags.
         if getElementData(player, ElementData.Player.SPAWNED) == true then
             spawnedPlayers[#spawnedPlayers + 1] = player
         end

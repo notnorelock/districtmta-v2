@@ -174,6 +174,11 @@ addEventHandler(Events.GROUP_REQUEST_VEHICLES, root, function(data)
     if type(data) ~= "table" or type(data.groupId) ~= "number" then
         return
     end
+    -- Deliberately manual, not canPlayerInteract - this is a
+    -- server-authoritative security mirror of a client-side gate; it must
+    -- check ONLY whether the player is spawned, not vehicle/blackout
+    -- state, since a legitimately spawned player sending this while in a
+    -- vehicle or blacked out should still be served.
     if getElementData(client, ElementData.Player.SPAWNED) ~= true then
         return
     end

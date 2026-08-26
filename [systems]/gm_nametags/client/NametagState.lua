@@ -214,6 +214,9 @@ addEventHandler("onClientElementStreamIn", root, function()
     if getElementType(source) ~= "player" then
         return
     end
+    -- Checks a REMOTE player's spawned state, not the local caller's own
+    -- interaction eligibility - canPlayerInteract is designed around
+    -- localPlayer's own state (vehicle/chatbox/blackout), not a fit here.
     if getElementData(source, ElementData.Player.SPAWNED) ~= true then
         return
     end
@@ -247,6 +250,8 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
     for _, player in ipairs(getElementsByType("player")) do
         -- if player ~= localPlayer then
             setPlayerNametagShowing(player, false)
+            -- Checks a REMOTE player's spawned state, not the local
+            -- caller's own interaction eligibility - not a canPlayerInteract fit.
             if isElementStreamedIn(player) and getElementData(player, ElementData.Player.SPAWNED) == true then
                 addNametag(player)
             end

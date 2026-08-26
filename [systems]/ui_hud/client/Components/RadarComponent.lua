@@ -512,7 +512,7 @@ RadarComponent.new = function()
 
     self:loadResources()
 
-    if getElementData(localPlayer, ElementData.Player.SPAWNED) == true then
+    if exports.core_shared:canPlayerInteract(nil, { requiresSpawned = true, inVehicle = false, whileBlackout = true }) then
         self:show(500)
     end
 

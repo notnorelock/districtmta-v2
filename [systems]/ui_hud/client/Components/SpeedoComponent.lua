@@ -189,6 +189,9 @@ SpeedoComponent.new = function()
 
     self:loadResources()
 
+    -- Deliberately not canPlayerInteract - that helper can express "not in
+    -- vehicle" or "don't care", never "must be in a vehicle", which is
+    -- what a speedometer needs.
     if getElementData(localPlayer, ElementData.Player.SPAWNED) == true and getPedOccupiedVehicle(localPlayer) then
         self:show(0)
     end

@@ -61,7 +61,7 @@ local toggleConditions = {
     requiresSpawned = true,
 }
 local function togglePanel()
-    if exports.core_shared:canPlayerInteract(nil, toggleConditions) then
+    if not exports.core_shared:canPlayerInteract(nil, toggleConditions) then
         return
     end
 
@@ -79,7 +79,7 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
     -- itself is never opened this session - request them once up front,
     -- same reasoning as GROUP_INVITE_RECEIVED's own push not being gated
     -- behind panelOpen either.
-    if getElementData(localPlayer, ElementData.Player.SPAWNED) == true then
+    if exports.core_shared:canPlayerInteract(nil, { requiresSpawned = true, inVehicle = false, whileBlackout = true }) then
         triggerServerEvent(Events.GROUP_REQUEST_INVITES, resourceRoot)
     end
 end)
