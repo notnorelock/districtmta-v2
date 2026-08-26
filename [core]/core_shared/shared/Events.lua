@@ -774,6 +774,27 @@ Events = {
     -- side (see gm_vehicles/server/VehicleStorageService.lua's
     -- onStoreZoneHit/tryStoreVehicle) - no client involvement at all.
 
+    -- Client -> server: gm_weather/client/WeatherState.lua asking for the
+    -- current weather of the region the local player is standing in right
+    -- now (fired on region change and on resource start - see
+    -- WeatherState.lua's own module comment). Server rerolls that region's
+    -- weather lazily on first request rather than eagerly for every
+    -- region on startup - see WeatherService.lua's own getRegionWeather.
+    WEATHER_REQUEST_CURRENT = "weather:requestCurrent",
+
+    -- Server -> requesting client only: response to WEATHER_REQUEST_CURRENT,
+    -- { region, weatherId, label, icon } - see WeatherService.lua's own
+    -- toPayload for the exact shape. Also broadcast to every player
+    -- currently standing in a region whose weather just rerolled (the
+    -- periodic timer - see WeatherService.lua's own module comment), not
+    -- just a single requester, so nobody has to leave and re-enter the
+    -- region to see the change.
+    WEATHER_CURRENT_RECEIVED = "weather:currentReceived",
+
+    -- Pushed into the CEF HUD once WEATHER_CURRENT_RECEIVED arrives - see
+    -- WeatherCard.tsx.
+    PUSH_WEATHER_CURRENT = "weather.current",
+
     -- Server-to-server, core -> gm_vehicles (fire-and-forget, no response -
     -- unlike VEHICLE_REPOSITORY_REQUEST/_RESPONSE, nothing here needs a
     -- result back). core/server/commands/AdminCommands.lua's own

@@ -1,0 +1,25 @@
+<meta>
+    <info
+        author="norelock"
+        version="1.0.0"
+        type="script"
+    />
+    <download_priority_group>3</download_priority_group>
+
+    <include resource="core_shared" />
+    <include resource="core_ui" />
+
+    <!-- SA's own timecyc.dat (unmodified game data, not project-authored) -
+    the timecyc interpolation math in TimeCycle.lua reads this by weather
+    id block, same file format the client GTA renderer itself ships with. -->
+    <file src="client/timecyc.dat" />
+
+    <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/TimeService.lua" type="server" cache="false" />
+    <script src="server/WeatherRegions.lua" type="server" cache="false" />
+    <script src="server/WeatherService.lua" type="server" cache="false" />
+
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
+    <script src="client/TimeCycle.lua" type="client" cache="false" />
+    <script src="client/WeatherState.lua" type="client" cache="false" />
+</meta>

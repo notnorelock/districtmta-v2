@@ -89,6 +89,11 @@ export const en: Record<keyof typeof pl, string> = {
   "radio.footerLabel": "Music from phone",
   "radio.off": "Radio off",
 
+  "weather.sunny": "Sunny",
+  "weather.rain": "Rainy",
+  "weather.partialyCloudy": "Partly cloudy",
+  "weather.snow": "Snowfall",
+
   "scoreboard.searchPlaceholder": "Type nick or ID",
   "scoreboard.searchClear": "Clear search",
   "scoreboard.status.downloading": "Downloading",

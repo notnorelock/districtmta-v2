@@ -87,6 +87,11 @@ export const pl = {
   "radio.footerLabel": "Muzyka z telefonu",
   "radio.off": "Radio wyłączone",
 
+  "weather.sunny": "Słonecznie",
+  "weather.rain": "Deszczowo",
+  "weather.partialyCloudy": "Częściowe zachmurzenie",
+  "weather.snow": "Opady śniegu",
+
   "scoreboard.searchPlaceholder": "Wpisz nick lub ID",
   "scoreboard.searchClear": "Wyczyść wyszukiwanie",
   "scoreboard.status.downloading": "Pobiera zasoby",

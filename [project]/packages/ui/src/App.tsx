@@ -11,6 +11,7 @@ import { ResourceCheckScreen } from "@/features/loading/ResourceCheckScreen";
 import { HudBar } from "@/features/hud/HudBar";
 import { VoiceIndicator } from "@/features/hud/VoiceIndicator";
 import { RadioCard } from "@/features/hud/RadioCard";
+import { WeatherCard } from "@/features/hud/WeatherCard";
 import { ItemToast } from "@/features/hud/ItemToast";
 import { BlackoutOverlay } from "@/features/blackout/BlackoutOverlay";
 import { ScoreboardOverlay } from "@/features/scoreboard/ScoreboardOverlay";
@@ -96,6 +97,9 @@ const AppContent: Component = () => {
           independent system (gm_radio, not ui_hud) and should show even
           if the HUD itself is hidden, same reasoning as Watermark. */}
       <RadioCard />
+      {/* Same reasoning as RadioCard above - gm_weather is its own
+          independent system, unconditionally rendered. */}
+      <WeatherCard />
       {/* Uses its own "blackout" overlay key internally (Overlay name
           prop) - rendered unconditionally here so it can show up
           regardless of auth/HUD state, same reasoning as Watermark/RadioCard. */}

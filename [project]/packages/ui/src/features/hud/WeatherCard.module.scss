@@ -1,0 +1,116 @@
+// CSS Modules + Sass, scoped to features/hud/ only - see
+// webpack.config.js's *.module.scss rule comment for why.
+// @reference (not @import "tailwindcss"), relative path not the "@/"
+// alias - see HudIcon.module.scss's comment on the same directive for why.
+@reference "../../styles/globals.css";
+
+.dock {
+  @apply pointer-events-none fixed left-1/2 top-6 z-40 -translate-x-1/2;
+}
+
+// font-display (Titillium Web, matches Watermark/RadioCard) - see
+// RadioCard.module.scss's own comment on the same rule for why.
+.card {
+  @apply flex items-center gap-3 rounded-xl border border-border bg-popover/95 px-4 py-3 font-display shadow-lg;
+}
+
+.iconWrap {
+  @apply flex size-11 shrink-0 items-center justify-center rounded-lg text-primary-foreground;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent-violet));
+}
+
+.info {
+  @apply flex min-w-0 flex-col;
+}
+
+.city {
+  @apply truncate text-sm font-semibold text-foreground;
+}
+
+.label {
+  @apply truncate text-xs text-muted-foreground;
+}
+
+.cardEnterActive,
+.cardExitActive {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.cardEnterFrom,
+.cardExitTo {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+// Sun: slow, steady rotation - the classic "shining" cue, subtle enough
+// not to distract from the city/label text next to it.
+.animSunny {
+  animation: weather-spin 8s linear infinite;
+}
+
+@keyframes weather-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Rain: a short downward "drop" bounce, distinct from the sun's smooth
+// rotation - reads as droplets falling rather than spinning.
+.animRain {
+  animation: weather-rain 1.4s ease-in-out infinite;
+}
+
+@keyframes weather-rain {
+  0%,
+  100% {
+    transform: translateY(-1px);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}
+
+// Partly cloudy: a gentle side-to-side drift, like a cloud passing in
+// front of the sun - slower and wider than the rain bounce so the two
+// don't read as the same motion.
+.animCloudy {
+  animation: weather-drift 4s ease-in-out infinite;
+}
+
+@keyframes weather-drift {
+  0%,
+  100% {
+    transform: translateX(-1.5px);
+  }
+  50% {
+    transform: translateX(1.5px);
+  }
+}
+
+// Snow: a slow pendulum tilt, like a snowflake tumbling as it falls.
+.animSnow {
+  animation: weather-tumble 3s ease-in-out infinite;
+}
+
+@keyframes weather-tumble {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(12deg);
+  }
+}
+
+// Cosmetic-only motion - disable every weather-icon animation outright
+// rather than just shortening it, same as this project's own motion-token
+// convention elsewhere (nothing here carries gameplay meaning that would
+// need to survive in some reduced form).
+@media (prefers-reduced-motion: reduce) {
+  .animSunny,
+  .animRain,
+  .animCloudy,
+  .animSnow {
+    animation: none;
+  }
+}
