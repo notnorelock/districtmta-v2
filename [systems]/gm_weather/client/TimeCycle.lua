@@ -2,7 +2,7 @@ local INTERPOLATION_LENGTH_HOURS = 1
 local HOUR_BOUNDARIES = { 0, 5, 6, 7, 12, 19, 20, 22, 24 }
 local NUM_HOUR_SLOTS = 8
 
-local Timecyc = {} -- forget i removed it bruh and i made it brok
+local Timecyc = {}
 
 Weather = {
     interpolateStart = 0,
