@@ -19,16 +19,6 @@
   @apply flex items-center gap-3 border-b border-border px-4 py-3;
 }
 
-// Text placeholder until a real logo asset is provided (see
-// ScoreboardOverlay.tsx's own module comment) - swap for an <img> then.
-.logo {
-  @apply flex shrink-0 items-center gap-1 font-mono text-sm font-semibold uppercase tracking-wide text-foreground;
-}
-
-.logoAccent {
-  color: var(--color-primary);
-}
-
 .search {
   @apply flex-1;
 }

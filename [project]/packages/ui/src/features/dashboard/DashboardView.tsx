@@ -1,6 +1,7 @@
 import { type Component, For, Show, createSignal } from "solid-js";
 import { Home, SlidersHorizontal, UserCog, ClipboardCheck, Gift, Gavel, Car } from "lucide-solid";
 import { authStore } from "@/stores/auth.store";
+import { Logo } from "@/components/common/Logo";
 import { Progress } from "@/components/ui/Progress";
 import { HomePage } from "./HomePage";
 import { SettingsPage } from "./SettingsPage";
@@ -46,7 +47,7 @@ const PLACEHOLDER_LEVEL_PROGRESS = 35; // percent
 /**
  * F10 player dashboard - a real blocking CEF window (see
  * ui_dashboard/client/DashboardState.lua), not an additive overlay.
- * Full-width top navbar (logo, centered level/XP bar, avatar/name/role)
+ * Full-width top navbar (logo image, centered level/XP bar, avatar/name/role)
  * above a vertical nav-only sidebar + content pane. Opened/closed by
  * DashboardState.lua's F10 keybind via UI.open/UI.close
  * (Enums.UiWindow.DASHBOARD) - cursor/GUI-input/weapon lock are all
@@ -72,10 +73,7 @@ export const DashboardView: Component = () => {
   return (
     <div class={styles.root}>
       <header class={styles.topbar}>
-        <div class={styles.logo}>
-          <span class={styles.logoAccent}>district</span>
-          <span>MTA</span>
-        </div>
+        <Logo markHeightClass="h-7" wordmarkHeightClass="h-5" />
 
         {/* Placeholder only - see PLACEHOLDER_LEVEL_* comment above. */}
         <div class={styles.topbarLevelBlock}>

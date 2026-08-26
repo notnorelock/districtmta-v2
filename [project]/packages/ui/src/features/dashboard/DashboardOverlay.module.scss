@@ -22,19 +22,6 @@
   @apply flex w-full shrink-0 items-center justify-between gap-6 border-b border-border bg-background px-6 py-4;
 }
 
-// Same text-placeholder logo shape ScoreboardOverlay.module.scss already
-// uses ("district" in the primary accent color + "MTA" in the default
-// foreground) - reused verbatim for visual consistency rather than
-// inventing a second logo treatment; see that file's own module comment
-// on why it's a text placeholder until a real asset is provided.
-.logo {
-  @apply flex shrink-0 items-center gap-1 text-sm font-semibold uppercase tracking-widest text-foreground;
-}
-
-.logoAccent {
-  color: var(--color-primary);
-}
-
 // Centered level/XP bar block - "25 [====progress====] 26" shape: two
 // number spans flanking a horizontal bar, all in one row. Placeholder
 // only - see PLACEHOLDER_LEVEL_* comment in DashboardView.tsx.

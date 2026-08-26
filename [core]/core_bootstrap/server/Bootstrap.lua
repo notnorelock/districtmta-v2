@@ -54,7 +54,22 @@
 -- as gm_interactions) - no dependency on gm_vehicles/gm_items/any other
 -- gameplay resource, so it's placed alongside gm_interactions/gm_items
 -- rather than at the very end of the chain.
-local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "markers", "models", "gm_3dtext", "gm_nametags", "gm_voice", "gm_vehicles", "gm_vehicles_interaction", "gm_interactions", "gm_items", "gm_groups", "gm_radio", "gm_blackout", "gm_scoreboard", "ui_hud", "ui_dashboard", "gm_settings", "gm_worldmap", "gm_roleplay" }
+
+-- gm_licenses before gm_vehicles_interaction: VehicleInteractionService.lua
+-- calls gm_licenses' exports (licenseServiceGetRequiredCategory/
+-- licenseServiceHasLicense) to gate entering a vehicle that needs a
+-- category the player doesn't hold - wrapped in pcall with a permissive
+-- fallback (missing license data never blocks entry), but gm_licenses
+-- should still exist first so that fallback isn't the normal case.
+-- gm_licenses itself only depends on core/core_ui (LicenseBridge.lua's
+-- repository bridge, same shape as gm_vehicles'/gm_groups' own), so it can
+-- start anywhere after those two - placed right before
+-- gm_vehicles_interaction specifically to satisfy that one dependency.
+
+-- gm_weather has no dependents of its own (nothing calls into it via
+-- exports) and only depends on core_shared/core_ui - placed alongside
+-- gm_radio/gm_blackout in the same "no gameplay-tier dependency" tier.
+local START_ORDER = { "core_shared", "core", "core_ui", "core_loading", "core_auth", "core_admin", "markers", "models", "gm_3dtext", "gm_nametags", "gm_voice", "gm_vehicles", "gm_licenses", "gm_vehicles_interaction", "gm_interactions", "gm_items", "gm_groups", "gm_radio", "gm_weather", "gm_blackout", "gm_scoreboard", "ui_hud", "ui_dashboard", "gm_settings", "gm_worldmap", "gm_roleplay" }
 local START_TIMEOUT_MS = 15000
 
 --- Extra pause after a resource's SERVER-side start before starting the

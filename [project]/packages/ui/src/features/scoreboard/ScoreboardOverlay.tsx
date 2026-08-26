@@ -1,6 +1,7 @@
 import { type Component, For, Show, createMemo, createSignal } from "solid-js";
 import { Users, Wifi, X } from "lucide-solid";
 import { Overlay } from "@/components/common/Overlay";
+import { Logo } from "@/components/common/Logo";
 import { Badge } from "@/components/ui/Badge";
 import { TextField, TextFieldInput } from "@/components/ui/TextField";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/Tooltip";
@@ -76,7 +77,6 @@ function initialOf(name: string): string {
  * this project and are deliberately NOT implemented: the avatar is a
  * plain initial-letter placeholder, and there is no middle "friends"
  * column, only the existing role/faction data this project actually has.
- * The header's logo is a text placeholder until a real asset is provided.
  */
 export const ScoreboardOverlay: Component = () => {
   const [search, setSearch] = createSignal("");
@@ -112,10 +112,7 @@ export const ScoreboardOverlay: Component = () => {
       <div class={styles.root}>
         <div class={styles.panel}>
           <div class={styles.header}>
-            <div class={styles.logo}>
-              <span class={styles.logoAccent}>district</span>
-              <span>MTA</span>
-            </div>
+            <Logo markHeightClass="h-6" wordmarkHeightClass="h-4" />
 
             <TextField class={styles.search} value={search()} onChange={setSearch}>
               <div class={styles.searchInputWrap}>

@@ -5,44 +5,12 @@
 
 SpawnLocations = {
     {
-        x = 2495.0,
-        y = -1687.0,
-        z = 13.5,
-        id = "grove_street",
-        name = "Grove Street",
+        x=1692.58,y=1456.73,z=10.76,
+        id = "lv_lot",
+        name = "Las Venturas",
         interior = 0,
         dimension = 0,
-        description = "Los Santos - South Central",
-    },
-    {
-        x = 2000.0,
-        y = -1780.0,
-        z = 13.5,
-        id = "idlewood",
-        name = "Idlewood",
-        interior = 0,
-        dimension = 0,
-        description = "Los Santos - Idlewood",
-    },
-    {
-        x = 2000.0,
-        y = 1544.0,
-        z = 10.8,
-        id = "las_venturas_strip",
-        name = "The Strip",
-        interior = 0,
-        dimension = 0,
-        description = "Las Venturas - kasyna i neony",
-    },
-    {
-        x = -2035.0,
-        y = 158.0,
-        z = 30.7,
-        id = "san_fierro_downtown",
-        name = "San Fierro Downtown",
-        interior = 0,
-        dimension = 0,
-        description = "San Fierro - centrum miasta",
+        description = "Spawn LV",
     },
 }
 
