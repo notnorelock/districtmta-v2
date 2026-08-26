@@ -10,6 +10,7 @@
     <script src="shared/Totp.lua" type="shared" cache="false" />
     <script src="shared/ElementData.lua" type="shared" cache="false" />
     <script src="shared/Registry.lua" type="shared" cache="false" />
+    <script src="shared/PlayerState.lua" type="shared" cache="false" />
 
     <export function="getEvents" type="shared" />
     <export function="getErrorCodes" type="shared" />
@@ -17,7 +18,7 @@
     <export function="getEnums" type="shared" />
     <export function="totpGenerateSecretKey" type="shared" />
     <export function="totpVerify" type="shared" />
-    <export function="getElementData" type="shared" />
+    <export function="getElementDatas" type="shared" />
     <export function="elementDataAccountField" type="shared" />
 
     <export function="validationRulesIsValidLogin" type="shared" />
@@ -28,4 +29,6 @@
 
     <export function="successResponse" type="shared" />
     <export function="errorResponse" type="shared" />
+
+    <export function="canPlayerInteract" type="shared" />
 </meta>

@@ -19,7 +19,7 @@ local function enterWorld(player, location)
 
     fadeCamera(player, true)
     setCameraTarget(player, player)
-
+    
     setElementData(player, ElementData.Player.SPAWNED, true)
 
     outputServerLog(string.format(

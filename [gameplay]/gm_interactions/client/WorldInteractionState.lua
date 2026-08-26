@@ -147,15 +147,6 @@ local function openInteractionMode()
     if lookingForInteractions then
         return
     end
-    if getElementData(localPlayer, ElementData.Player.SPAWNED) ~= true then
-        return
-    end
-    if isPedInVehicle(localPlayer) then
-        return
-    end
-    if isChatBoxInputActive() then
-        return
-    end
 
     lookingForInteractions = true
     activeTarget = nil
@@ -182,7 +173,15 @@ local function closeInteractionMode()
     exports.core_ui:uiHideOverlay("worldInteraction")
 end
 
+function isLookingForInteraction()
+    return isLookingForInteractions
+end
+
 local function toggleInteractionMode()
+    if not exports.core_shared:canPlayerInteract() then
+        return
+    end
+
     if lookingForInteractions then
         closeInteractionMode()
     else

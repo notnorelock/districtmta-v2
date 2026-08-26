@@ -55,7 +55,7 @@ local ElementData = setmetatable({
             if not isResourceAvailable("core_shared") then
                 return nil
             end
-            cachedTables.ElementData = exports.core_shared:getElementData()
+            cachedTables.ElementData = exports.core_shared:getElementDatas()
         end
         return cachedTables.ElementData[key]
     end,

@@ -5,7 +5,11 @@
 local IGNORE_KEYS = {
     ["email"] = true,
     ["login"] = true,
+    ["money"] = true,
     ["mta_serial"] = true,
+    ["created_at"] = true,
+    ["updated_at"] = true,
+    ["last_seen_at"] = true,
     ["password_hash"] = true,
     ["two_factor_secret"] = true,
     ["premium_expires_at"] = true,

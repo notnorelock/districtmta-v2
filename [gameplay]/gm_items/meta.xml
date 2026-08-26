@@ -27,4 +27,6 @@
 
     <export function="itemServiceHasVehicleKey" type="server" />
     <export function="itemServiceGiveItem" type="server" />
+
+    <export function="hasOpenInventory" type="client" />
 </meta>

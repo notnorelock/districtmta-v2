@@ -53,7 +53,7 @@ end
 -- ElementData.* group must be listed here explicitly - this whitelist
 -- doesn't automatically pick up a new group added to ElementData.lua (see
 -- the ElementData.Vehicle addition that initially went missing here).
-function getElementData()
+function getElementDatas()
     -- Every top-level ElementData.* group is re-listed here by hand - see
     -- this function's own module comment for why (MTA's exports strip
     -- function fields from returned tables, so this can't just return

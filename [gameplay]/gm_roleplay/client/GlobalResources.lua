@@ -22,7 +22,7 @@ local ElementData = setmetatable({
             if not isResourceAvailable("core_shared") then
                 return nil
             end
-            cachedElementData = exports.core_shared:getElementData()
+            cachedElementData = exports.core_shared:getElementDatas()
         end
         return cachedElementData[key]
     end,

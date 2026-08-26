@@ -20,5 +20,7 @@
     <script src="client/WallShader.lua" type="client" />
     <script src="client/WorldInteractionState.lua" type="client" cache="false" />
 
+    <export function="isLookingForInteraction" type="client" />
+
     <min_mta_version client="1.3.0-9.04431" />
 </meta>

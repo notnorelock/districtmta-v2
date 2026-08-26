@@ -55,8 +55,13 @@ local function closePanel()
     exports.core_ui:uiHideOverlay("groupPanel")
 end
 
+local toggleConditions = {
+    withChatbox = false,
+    whileBlackout = false,
+    requiresSpawned = true,
+}
 local function togglePanel()
-    if getElementData(localPlayer, ElementData.Player.SPAWNED) ~= true then
+    if exports.core_shared:canPlayerInteract(nil, toggleConditions) then
         return
     end
 

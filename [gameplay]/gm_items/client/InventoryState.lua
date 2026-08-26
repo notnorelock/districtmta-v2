@@ -107,3 +107,7 @@ addEventHandler("onClientResourceStop", resourceRoot, function()
         closeInventory()
     end
 end)
+
+function hasOpenInventory()
+    return inventoryOpen
+end
