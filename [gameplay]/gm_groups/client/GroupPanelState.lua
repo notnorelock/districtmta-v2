@@ -11,6 +11,37 @@ GroupPanelState = GroupPanelState or {}
 local panelOpen = false
 local cursorActive = false
 
+-- Tracks whether THIS module (not the panel's own onRightClick toggle
+-- above) currently owns the browser focus/cursor + movement lock, for
+-- the pending-invite prompt below. GROUP_INVITE_RECEIVED/
+-- GROUP_INVITES_RECEIVED are pushed to CEF whether or not the group
+-- panel is open (see that handler's own comment) - the prompt's Accept/
+-- Decline buttons were unclickable because nothing ever gave the player
+-- a cursor for them unless the panel ALSO happened to be open with
+-- cursorActive already true. Blocks movement too (toggleAllControls),
+-- confirmed with the user - a pending invite is a blocking prompt, not
+-- a passive HUD element the player can ignore while running around.
+-- Only requests focus when the panel itself is closed - if the panel is
+-- open, its own cursorActive state already governs cursor+movement, and
+-- this module must never fight it over UI.focusBrowser (see
+-- BrowserManager.lua's own warning on that function).
+local pendingInviteCount = 0
+local inviteFocusActive = false
+
+local function updateInviteFocus()
+    if panelOpen then
+        return
+    end
+
+    local shouldFocus = pendingInviteCount > 0
+    if shouldFocus == inviteFocusActive then
+        return
+    end
+    inviteFocusActive = shouldFocus
+    toggleAllControls(not shouldFocus)
+    exports.core_ui:uiFocusBrowser(shouldFocus)
+end
+
 local function requestMine()
     triggerServerEvent(Events.GROUP_REQUEST_MINE, resourceRoot)
 end
@@ -34,6 +65,18 @@ local function openPanel()
     end
     panelOpen = true
 
+    -- Hand off any focus the invite prompt was holding to the panel
+    -- itself, rather than dropping it (which would yank the cursor away
+    -- mid-interaction) or doubly-owning it (which would desync the
+    -- panel's own cursorActive from the real cursor state - see
+    -- onRightClick's next toggle). No exports.core_ui:uiFocusBrowser
+    -- call here - the cursor is already on from the invite prompt, this
+    -- just transfers WHO thinks they own it.
+    if inviteFocusActive then
+        inviteFocusActive = false
+        cursorActive = true
+    end
+
     exports.core_ui:uiShowOverlay("groupPanel")
     addEventHandler("onClientKey", root, onRightClick)
     requestMine()
@@ -53,6 +96,15 @@ local function closePanel()
     end
 
     exports.core_ui:uiHideOverlay("groupPanel")
+
+    -- If a group invite arrived (or is still pending) while the panel
+    -- was open, panelOpen's guard in updateInviteFocus above was
+    -- swallowing every focus request until now - re-run it so the
+    -- invite prompt reclaims cursor+movement lock instead of the player
+    -- being left able to move around with an unclickable prompt still
+    -- on screen, same bug this whole change fixes for the "panel never
+    -- opened" case.
+    updateInviteFocus()
 end
 
 local toggleConditions = {
@@ -161,21 +213,37 @@ end)
 -- unconditionally alongside "groupPanel".
 addEvent(Events.GROUP_INVITE_RECEIVED, true)
 addEventHandler(Events.GROUP_INVITE_RECEIVED, root, function(payload)
+    pendingInviteCount = pendingInviteCount + 1
+    updateInviteFocus()
     exports.core_ui:uiPushEvent(Events.PUSH_GROUP_INVITE_RECEIVED, payload)
 end)
 
 addEvent(Events.GROUP_INVITES_RECEIVED, true)
 addEventHandler(Events.GROUP_INVITES_RECEIVED, root, function(invites)
+    pendingInviteCount = type(invites) == "table" and #invites or 0
+    updateInviteFocus()
     exports.core_ui:uiPushEvent(Events.PUSH_GROUP_INVITES, invites)
 end)
 
+-- Both decrement pendingInviteCount OPTIMISTICALLY, on the request
+-- leaving this client - mirrors group.store.ts's own acceptInvite/
+-- declineInvite (which remove the invite from pendingInvites the same
+-- way, before the server confirms): the invite is deleted server-side
+-- on accept/decline, so nothing would otherwise push an updated
+-- (shorter) GROUP_INVITES_RECEIVED list back down if the player already
+-- responded and moved on. Never goes negative (a stray double-click on
+-- an already-answered toast entry) - see the max() guard.
 addEvent(Events.GROUP_ACCEPT_INVITE, true)
 addEventHandler(Events.GROUP_ACCEPT_INVITE, root, function(inviteId)
+    pendingInviteCount = math.max(0, pendingInviteCount - 1)
+    updateInviteFocus()
     triggerServerEvent(Events.GROUP_ACCEPT_INVITE, resourceRoot, { inviteId = inviteId })
 end)
 
 addEvent(Events.GROUP_DECLINE_INVITE, true)
 addEventHandler(Events.GROUP_DECLINE_INVITE, root, function(inviteId)
+    pendingInviteCount = math.max(0, pendingInviteCount - 1)
+    updateInviteFocus()
     triggerServerEvent(Events.GROUP_DECLINE_INVITE, resourceRoot, { inviteId = inviteId })
 end)
 
@@ -197,5 +265,14 @@ end)
 addEventHandler("onClientResourceStop", resourceRoot, function()
     if panelOpen then
         closePanel()
+    end
+    -- Release cursor/movement lock if the invite prompt was the one
+    -- holding it - otherwise a resource stop/restart mid-prompt would
+    -- leave the player permanently unable to move (nothing else ever
+    -- calls toggleAllControls(true)/uiFocusBrowser(false) for this case).
+    if inviteFocusActive then
+        inviteFocusActive = false
+        toggleAllControls(true)
+        exports.core_ui:uiFocusBrowser(false)
     end
 end)
