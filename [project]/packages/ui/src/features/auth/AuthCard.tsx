@@ -2,6 +2,7 @@ import { createEffect, createSignal, on, onMount, Show, type Component, type JSX
 import { Transition } from "solid-transition-group";
 import { LogIn, UserPlus } from "lucide-solid";
 import { SmokeBackground } from "@/features/auth/SmokeBackground";
+import { TopographicBackground } from "@/components/common/TopographicBackground";
 import { AccountSwitcher } from "@/features/auth/AccountSwitcher";
 import { useTwoFactorSetup } from "@/features/auth/useTwoFactorSetup";
 import { Logo } from "@/components/common/Logo";
@@ -91,6 +92,13 @@ export const AuthCard: Component = () => {
 
   return (
     <div class="auth-panel relative flex h-full w-full items-center justify-center overflow-hidden font-display">
+      {/* Bottom-most layer - a faint animated contour-line texture on top
+          of the transparent body (see TopographicBackground.tsx's own
+          module comment). Sits BEHIND SmokeBackground/the world-space
+          camera flythrough below, so it only reads once LoginCamera.lua's
+          own scene provides the actual black/dark backdrop it's meant to
+          sit on - never fights the world view for attention. */}
+      <TopographicBackground opacity={0.065} centerFade />
       {/* No bg-black here (unlike the old two-pane layout) and
           transparent on SmokeBackground below - body's own
           background-color: transparent (globals.css) means this whole

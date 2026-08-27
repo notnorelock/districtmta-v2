@@ -12,7 +12,7 @@
 // DashboardView.tsx), not an Overlay - no transition classes needed
 // here, matching LoginView/SpawnSelectView's own plain full-bleed roots.
 .root {
-  @apply flex h-full w-full flex-col overflow-hidden bg-background font-display;
+  @apply relative flex h-full w-full flex-col overflow-hidden bg-background font-display;
 }
 
 // Full-width bar across the top: logo left, level/XP bar centered,
@@ -103,6 +103,15 @@
 
 .content {
   @apply relative flex-1 overflow-y-auto bg-popover p-8;
+}
+
+// Actual page markup wrapper inside .content, stacked above
+// TopographicBackground's absolutely-positioned canvas (DOM order alone
+// is enough for default z-index:auto stacking, but z-10 makes the
+// layering explicit and keeps it correct even if .content's own paint
+// order changes later).
+.contentInner {
+  @apply relative z-10;
 }
 
 // "Strona główna" empty-state placeholder - see HomePage.tsx's own comment.

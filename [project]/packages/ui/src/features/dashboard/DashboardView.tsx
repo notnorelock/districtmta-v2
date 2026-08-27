@@ -2,6 +2,7 @@ import { type Component, For, Show, createSignal } from "solid-js";
 import { Home, SlidersHorizontal, UserCog, ClipboardCheck, Gift, Gavel, Car } from "lucide-solid";
 import { authStore } from "@/stores/auth.store";
 import { Logo } from "@/components/common/Logo";
+import { TopographicBackground } from "@/components/common/TopographicBackground";
 import { Progress } from "@/components/ui/Progress";
 import { HomePage } from "./HomePage";
 import { SettingsPage } from "./SettingsPage";
@@ -116,15 +117,25 @@ export const DashboardView: Component = () => {
         </div>
 
         <div class={styles.content}>
-          <Show when={page() === "home"}>
-            <HomePage />
-          </Show>
-          <Show when={page() === "settings"}>
-            <SettingsPage />
-          </Show>
-          <Show when={page() === "accountSettings"}>
-            <AccountSettingsPage />
-          </Show>
+          {/* Faint ambient contour texture behind this page's own content
+              only - NOT the sidebar/navbar (see TopographicBackground.tsx's
+              own module comment). .content is already `relative`
+              (DashboardOverlay.module.scss), so this absolutely-positioned
+              layer is scoped to this pane; the actual page markup below is
+              stacked on top via styles.contentInner's z-10. */}
+          <TopographicBackground opacity={0.04} />
+
+          <div class={styles.contentInner}>
+            <Show when={page() === "home"}>
+              <HomePage />
+            </Show>
+            <Show when={page() === "settings"}>
+              <SettingsPage />
+            </Show>
+            <Show when={page() === "accountSettings"}>
+              <AccountSettingsPage />
+            </Show>
+          </div>
         </div>
       </div>
     </div>
