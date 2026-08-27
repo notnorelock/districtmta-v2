@@ -11,6 +11,15 @@
 
 UiIntegrity = UiIntegrity or {}
 
+-- Flip to true while iterating locally with `--dev` builds (build-ui.mjs
+-- --dev skips writing integrity.json entirely, and doesn't clean up an
+-- old manifest from a previous real build either, so a stale
+-- integrity.json left over from the last production build gets checked
+-- against the new --dev bundle and always fails). Skips verify()
+-- entirely, not just its BLOCK_ON_FAILURE consequence - flip back to
+-- false before shipping a real build.
+local DEV_MODE = true
+
 local MANIFEST_PATH = "client/html/integrity.json"
 -- when true a failed check hard-blocks uiOpen; when false it only logs
 local BLOCK_ON_FAILURE = true
@@ -86,6 +95,11 @@ local function manifestCount()
 end
 
 addEventHandler("onResourceStart", resourceRoot, function()
+    if DEV_MODE then
+        logInfo("UI integrity check SKIPPED (DEV_MODE=true in IntegrityGate.lua).")
+        return
+    end
+
     verify()
     if state.ok then
         logInfo("UI integrity OK (" .. tostring(manifestCount()) .. " files verified)")
@@ -100,6 +114,7 @@ end)
 --- Other server code (BrowserManager's open path) should gate on this.
 --- @return boolean ok, table failures
 function uiIntegrityStatus()
+    if DEV_MODE then return true, {} end
     if not state.checked then verify() end
     return state.ok, state.failures
 end
@@ -107,6 +122,7 @@ end
 --- Hard gate: returns true only if the UI is safe to open.
 --- @return boolean
 function uiIntegrityAllowsOpen()
+    if DEV_MODE then return true end
     if not state.checked then verify() end
     if state.ok then return true end
     return not BLOCK_ON_FAILURE
@@ -125,11 +141,17 @@ end)
 
 -- Ops: `/uiintegrity` re-runs the check and prints the result to the caller.
 addCommandHandler("uiintegrity", function(player)
-    verify()
     local target = isElement(player) and player or nil
     local say = function(m)
         if target then outputChatBox("[core_ui] " .. m, target) else outputServerLog("[core_ui] " .. m) end
     end
+
+    if DEV_MODE then
+        say("DEV_MODE=true - integrity check is skipped entirely, UI always allowed to open.")
+        return
+    end
+
+    verify()
     if state.ok then
         say(("integrity OK - %d files match the manifest"):format(manifestCount()))
     else
