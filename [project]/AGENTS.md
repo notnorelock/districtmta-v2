@@ -255,7 +255,7 @@ confidentiality/integrity guarantees.
 
 ## Frontend (`packages/ui`)
 
-SolidJS + TypeScript + Webpack + Tailwind CSS v4. React patterns
+SolidJS + TypeScript + Vite + Tailwind CSS v4. React patterns
 (`useState`, `useEffect`, `React.memo`) are wrong here - use Solid's
 fine-grained reactivity (`createSignal`, `createStore`, `createMemo`,
 `createEffect`, `onCleanup`, `Show`/`For`/`Switch`/`Match`). No Redux, no

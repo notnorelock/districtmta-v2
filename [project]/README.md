@@ -45,7 +45,7 @@ district/                                  MTA server runtime root
 │   │   └── gm_roleplay/     the gamemode entry resource
 │   └── [project]/            <- you are here - not a resource, MTA never loads this
 │       ├── packages/
-│       │   └── ui/           SolidJS + TypeScript + Webpack + Tailwind v4 CEF frontend
+│       │   └── ui/           SolidJS + TypeScript + Vite + Tailwind v4 CEF frontend
 │       ├── scripts/
 │       │   └── build-ui.mjs  builds packages/ui and copies it into core_ui's client/html
 │       ├── docs/
@@ -121,7 +121,7 @@ pnpm install
 pnpm dev
 ```
 
-This starts a `webpack-dev-server` instance (`http://localhost:5173` by
+This starts a Vite dev server instance (`http://localhost:5173` by
 default) serving the SolidJS app in a plain browser tab. Outside MTA's
 CEF, the app automatically falls back to a `BrowserDevTransport` that
 fakes just enough of the FetchBridge protocol (auth status/register/current)

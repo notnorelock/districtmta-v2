@@ -88,7 +88,7 @@ export const SmokeBackground: Component<SmokeBackgroundProps> = (rawProps) => {
     containerRef.appendChild(renderer.domElement);
 
     const textureLoader = new THREE.TextureLoader();
-    smokeTexture = await textureLoader.loadAsync(new URL("@/assets/textures/smoke.png", import.meta.url).href);
+    smokeTexture = await textureLoader.loadAsync(new URL("../../assets/textures/smoke.png", import.meta.url).href);
 
     const geometry = new THREE.PlaneGeometry(props.size[0], props.size[1]);
 

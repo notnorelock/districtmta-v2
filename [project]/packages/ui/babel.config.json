@@ -1,6 +1,0 @@
-{
-  "presets": [
-    ["@babel/preset-typescript", { "onlyRemoveTypeImports": true }],
-    ["babel-preset-solid", { "moduleName": "solid-js/web" }]
-  ]
-}

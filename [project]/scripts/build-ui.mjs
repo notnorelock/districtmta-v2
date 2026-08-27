@@ -13,19 +13,18 @@ import { existsSync, mkdirSync, rmSync, cpSync, readdirSync, readFileSync, write
 import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
-// --dev keeps webpack's own "production" --mode (still required - it's
-// what makes publicPath the fixed "http://mta/local/client/html/" every
-// asset reference needs to actually resolve once this ships into
-// core_ui/client/html; webpack's "development" mode's publicPath: "auto"
-// is only correct for pnpm dev's own localhost server, and would 404
-// every font/texture/CSS reference here - see webpack.config.js's own
-// publicPath comment), but passes --env debug so TerserPlugin skips
-// drop_console/drop_debugger (see keepDebugOutput in webpack.config.js),
-// and skips the js-confuser obfuscation pass below - use this while
-// chasing a bug through /browserdebug's console, where a normal
-// production build's stripped console.* calls and concealed/mangled
-// output make the actual failure unreadable. Never pass --dev for a
-// build meant to ship.
+// --dev still runs a real `vite build` (required - it's what makes base
+// the fixed "http://mta/local/client/html/" every asset reference needs
+// to actually resolve once this ships into core_ui/client/html; vite
+// dev's own base "/" is only correct for pnpm dev's own localhost
+// server, and would 404 every font/texture/CSS reference here - see
+// vite.config.ts's own base comment), but sets KEEP_DEBUG_OUTPUT=1 so
+// vite.config.ts skips esbuild's drop: ["console", "debugger"] (see
+// keepDebugOutput there), and skips the js-confuser obfuscation pass
+// below - use this while chasing a bug through /browserdebug's console,
+// where a normal production build's stripped console.* calls and
+// concealed/mangled output make the actual failure unreadable. Never
+// pass --dev for a build meant to ship.
 const isDevBuild = process.argv.includes("--dev");
 
 // This file lives at mods/deathmatch/resources/[project]/scripts/build-ui.mjs.
@@ -41,16 +40,16 @@ const uiDir = path.join(projectDir, "packages", "ui");
 const distDir = path.join(uiDir, "dist");
 const targetDir = path.join(resourcesDir, "[core]", "core_ui", "client", "html");
 
-console.log(`[build-ui] Building packages/ui${isDevBuild ? " (--env debug: console.* kept)" : ""}...`);
-const webpackBin = path.join(uiDir, "node_modules", "webpack-cli", "bin", "cli.js");
-const webpackArgs = ["--mode", "production"];
-if (isDevBuild) {
-  webpackArgs.push("--env", "debug");
-}
-const build = spawnSync(process.execPath, [webpackBin, ...webpackArgs], { cwd: uiDir, stdio: "inherit" });
+console.log(`[build-ui] Building packages/ui${isDevBuild ? " (--dev: console.* kept)" : ""}...`);
+const viteBin = path.join(uiDir, "node_modules", "vite", "bin", "vite.js");
+const build = spawnSync(process.execPath, [viteBin, "build"], {
+  cwd: uiDir,
+  stdio: "inherit",
+  env: { ...process.env, KEEP_DEBUG_OUTPUT: isDevBuild ? "1" : "" },
+});
 
 if (build.status !== 0) {
-  console.error("[build-ui] webpack build failed.");
+  console.error("[build-ui] vite build failed.");
   process.exit(build.status ?? 1);
 }
 

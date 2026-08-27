@@ -211,7 +211,7 @@
 
 @font-face {
   font-family: "Titillium Web";
-  src: url("~@/assets/fonts/TitilliumWeb-Regular.ttf") format("truetype");
+  src: url("../assets/fonts/TitilliumWeb-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -219,7 +219,7 @@
 
 @font-face {
   font-family: "Titillium Web";
-  src: url("~@/assets/fonts/TitilliumWeb-SemiBold.ttf") format("truetype");
+  src: url("../assets/fonts/TitilliumWeb-SemiBold.ttf") format("truetype");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -227,7 +227,7 @@
 
 @font-face {
   font-family: "Titillium Web";
-  src: url("~@/assets/fonts/TitilliumWeb-Bold.ttf") format("truetype");
+  src: url("../assets/fonts/TitilliumWeb-Bold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -235,7 +235,7 @@
 
 @font-face {
   font-family: "Titillium Web";
-  src: url("~@/assets/fonts/TitilliumWeb-Black.ttf") format("truetype");
+  src: url("../assets/fonts/TitilliumWeb-Black.ttf") format("truetype");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -243,7 +243,7 @@
 
 @font-face {
   font-family: "JetBrains Mono";
-  src: url("~@/assets/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+  src: url("../assets/fonts/JetBrainsMono-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -251,7 +251,7 @@
 
 @font-face {
   font-family: "JetBrains Mono";
-  src: url("~@/assets/fonts/JetBrainsMono-Medium.ttf") format("truetype");
+  src: url("../assets/fonts/JetBrainsMono-Medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -259,7 +259,7 @@
 
 @font-face {
   font-family: "JetBrains Mono";
-  src: url("~@/assets/fonts/JetBrainsMono-Bold.ttf") format("truetype");
+  src: url("../assets/fonts/JetBrainsMono-Bold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
