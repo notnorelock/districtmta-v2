@@ -1,0 +1,41 @@
+// CSS Modules + Sass, scoped to features/loading/ only - see
+// webpack.config.js's *.module.scss rule comment for why.
+@reference "../../styles/globals.css";
+
+.root {
+  @apply pointer-events-none fixed inset-0 z-50 flex items-end justify-center pb-6 font-display;
+}
+
+// Bare div (no shared <Overlay>), own <Transition> for the slide-up/down
+// - same split as BlackoutOverlay.tsx/RadioCard.tsx use for their own
+// dock+card, see BlackoutOverlay.module.scss's own comment on why.
+.card {
+  @apply relative flex w-full max-w-72 flex-col gap-2 border border-border bg-popover/95 px-4 py-3 shadow-none;
+}
+
+.cardEnterActive,
+.cardExitActive {
+  transition: opacity var(--transition-duration-slow) var(--ease-out), transform var(--transition-duration-slow) var(--ease-out);
+}
+
+.cardEnterFrom,
+.cardExitTo {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.info {
+  @apply flex items-baseline justify-between gap-3;
+}
+
+.title {
+  @apply text-xs font-semibold text-foreground;
+}
+
+.subtitle {
+  @apply shrink-0 font-mono text-2xs tabular-nums text-muted-foreground;
+}
+
+.bar {
+  @apply w-full;
+}

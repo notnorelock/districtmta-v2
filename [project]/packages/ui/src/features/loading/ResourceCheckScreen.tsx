@@ -2,13 +2,8 @@ import { Show, type Component } from "solid-js";
 import { Progress } from "@/components/ui/Progress";
 import { TopographicBackground } from "@/components/common/TopographicBackground";
 import { loadingStore } from "@/stores/loading.store";
+import { formatBytes } from "@/lib/formatBytes";
 import { t } from "@/i18n";
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 // Falls back to a plain spinner until the first loading.progress push arrives.
 export const ResourceCheckScreen: Component = () => {

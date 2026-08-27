@@ -8,6 +8,7 @@ import { LoginView } from "@/features/auth/LoginView";
 import { SpawnSelectView } from "@/features/spawn/SpawnSelectView";
 import { DashboardView } from "@/features/dashboard/DashboardView";
 import { ResourceCheckScreen } from "@/features/loading/ResourceCheckScreen";
+import { DownloadProgressBar } from "@/features/loading/DownloadProgressBar";
 import { HudBar } from "@/features/hud/HudBar";
 import { VoiceIndicator } from "@/features/hud/VoiceIndicator";
 import { TopCenterStack } from "@/features/hud/TopCenterStack";
@@ -113,6 +114,13 @@ const AppContent: Component = () => {
       </Overlay>
 
       <Watermark />
+      {/* Not gated behind any screen/overlay - a background resource
+          download (e.g. new assets pulled mid-session by a resource
+          restart) can happen while the player is anywhere in the app, not
+          just on ResourceCheckScreen (which only covers the FIRST,
+          startup download pass, gated on LOADING_READY). See
+          DownloadProgressBar.tsx's own module comment. */}
+      <DownloadProgressBar />
       {/* Not gated behind the "hud" overlay - both cards are their own
           independent systems (gm_radio/gm_weather, not ui_hud) and should
           show even if the HUD itself is hidden, same reasoning as
