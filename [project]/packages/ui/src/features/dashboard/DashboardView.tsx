@@ -3,6 +3,7 @@ import { Home, SlidersHorizontal, UserCog, ClipboardCheck, Gift, Gavel, Car } fr
 import { authStore } from "@/stores/auth.store";
 import { Logo } from "@/components/common/Logo";
 import { TopographicBackground } from "@/components/common/TopographicBackground";
+import { GrainOverlay } from "@/components/common/GrainOverlay";
 import { Progress } from "@/components/ui/Progress";
 import { HomePage } from "./HomePage";
 import { SettingsPage } from "./SettingsPage";
@@ -73,6 +74,10 @@ export const DashboardView: Component = () => {
 
   return (
     <div class={styles.root}>
+      {/* Static film-grain texture across the whole dashboard window -
+          see GrainOverlay.tsx's own module comment. */}
+      <GrainOverlay />
+
       <header class={styles.topbar}>
         <Logo markHeightClass="h-7" wordmarkHeightClass="h-5" />
 

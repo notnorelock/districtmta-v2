@@ -91,25 +91,35 @@
   --color-black: #000000;
   --color-white: #ffffff;
 
-  /* Deepened toward near-black for the terminal-dashboard direction
-     (was #100d0b) - card/popover/surface unified to one panel tone
-     (was two slightly different browns: #1a1512/#201a16) and border/
-     input tightened to read as a thin hairline against the darker
-     background (was #2e2620). --color-primary/-ring and everything
-     else below is unchanged - see this file's own top-of-block comment. */
-  --color-background: #0a0908;
-  --color-foreground: #efebe8;
+  /* Deepened further toward near-black for the landing-page redesign
+     pass (was #0a0908) - matches the reference's --bg: #080808 almost
+     exactly. card/popover/surface unified to one panel tone (was two
+     slightly different browns: #1a1512/#201a16, then #121110) and
+     border/input tightened to a true hairline (#1e1e1e is an OPAQUE hex
+     equivalent of the reference's translucent rgba(255,255,255,.11)
+     hairline blended over this background - kept opaque rather than an
+     actual rgba/alpha color token because 8+ call sites already do
+     border-border/40 elsewhere in the app (Table, DashboardOverlay,
+     GroupPanelOverlay, InventoryOverlay, ScoreboardOverlay,
+     VehicleMenuOverlay, VehicleStorageOverlay); Tailwind's /NN opacity
+     modifier multiplies an existing alpha channel rather than replacing
+     it, so an already-translucent token would have made every one of
+     those /40 usages read as a near-invisible ~3.6% line instead of the
+     intended 40%). --color-primary/-ring and everything else below is
+     unchanged - see this file's own top-of-block comment. */
+  --color-background: #080808;
+  --color-foreground: #f0f0ed;
 
-  --color-card: #121110;
-  --color-card-foreground: #efebe8;
+  --color-card: #101010;
+  --color-card-foreground: #f0f0ed;
 
-  --color-popover: #121110;
-  --color-popover-foreground: #efebe8;
+  --color-popover: #101010;
+  --color-popover-foreground: #f0f0ed;
 
-  --color-surface: #121110;
-  --color-surface-elevated: #17150f;
-  --color-border: #232019;
-  --color-input: #232019;
+  --color-surface: #101010;
+  --color-surface-elevated: #161616;
+  --color-border: #1e1e1e;
+  --color-input: #1e1e1e;
   --color-ring: #fc8c5b;
 
   --color-primary: #fc8c5b;
@@ -139,28 +149,23 @@
   --color-accent-indigo: #ffab48;
   --color-accent-violet: #dc604f;
 
-  /* font-sans now points at Titillium Web too (not Inter) - this project
-     doesn't actually load Inter anywhere (no @font-face for it, just a
-     browser-default fallback), and every panel is meant to use the same
-     Titillium Web look. Previously every new component needed an explicit
-     font-display class or it silently fell back to whatever system sans
-     font Chromium picked - see Tooltip.tsx's own comment on exactly that
-     bug. font-display stays defined (identical value) purely so existing
-     explicit font-display classes keep working, not because anything
-     still needs to distinguish the two. */
-  --font-sans: "Titillium Web", "Inter", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Titillium Web", "Inter", "Segoe UI", system-ui, sans-serif;
+  /* Manrope replaces Titillium Web as the project-wide sans/display face
+     (landing-page-style redesign pass - see globals.css's own
+     @font-face block below). font-display stays defined (identical
+     value to font-sans) purely so existing explicit font-display
+     classes keep working, not because anything still needs to
+     distinguish the two - same reasoning as before the swap. */
+  --font-sans: "Manrope", "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Manrope", "Inter", "Segoe UI", system-ui, sans-serif;
 
-  /* font-mono was ALREADY referenced by font-mono classes in 7 files
-     (AuthCard, DashboardOverlay, DutyIndicator, ItemToast,
-     LicenseExamDialog, LicenseExamHud, WorldMapOverlay) with no token
-     defined here - they were silently falling back to Tailwind's
-     default system-mono stack. Defining it retroactively re-skins all
-     7 correctly, same "attach point" font-display already is for
-     font-sans call sites. JetBrains Mono files are bundled locally
-     (see the @font-face blocks below) - no network font dependency,
-     since CEF in-game has no reliable internet access for players. */
-  --font-mono: "JetBrains Mono", "Consolas", "SF Mono", monospace;
+  /* DM Mono replaces JetBrains Mono as the project-wide mono/label face
+     (same redesign pass) - font-mono is referenced by font-mono classes
+     in 7+ files (AuthCard, DashboardOverlay, DutyIndicator, ItemToast,
+     LicenseExamDialog, LicenseExamHud, WorldMapOverlay). DM Mono files
+     are bundled locally (see the @font-face blocks below) - no network
+     font dependency, since CEF in-game has no reliable internet access
+     for players. */
+  --font-mono: "DM Mono", "Consolas", "SF Mono", monospace;
 
   /* 0 across the board for the terminal-dashboard direction (was
      0.25rem/0.5rem/0.75rem) - see this file's own top-of-block comment. */
@@ -209,59 +214,65 @@
   --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Manrope-Variable.ttf is a variable font (confirmed via its internal
+   name table listing ExtraLight/Light/Regular/Medium/SemiBold/Bold/
+   ExtraBold) - one @font-face with a font-weight RANGE covers every
+   weight this project uses (400/500/600/700/800) instead of needing a
+   separate static file per weight, unlike the old per-weight Titillium
+   Web files this replaced. */
 @font-face {
-  font-family: "Titillium Web";
-  src: url("../assets/fonts/TitilliumWeb-Regular.ttf") format("truetype");
+  font-family: "Manrope";
+  src: url("../assets/fonts/Manrope-Variable.ttf") format("truetype-variations");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("../assets/fonts/DMMono-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("../assets/fonts/DMMono-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Titillium Web";
-  src: url("../assets/fonts/TitilliumWeb-SemiBold.ttf") format("truetype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Titillium Web";
-  src: url("../assets/fonts/TitilliumWeb-Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Titillium Web";
-  src: url("../assets/fonts/TitilliumWeb-Black.ttf") format("truetype");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../assets/fonts/JetBrainsMono-Regular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../assets/fonts/JetBrainsMono-Medium.ttf") format("truetype");
+  font-family: "DM Mono";
+  src: url("../assets/fonts/DMMono-Medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "JetBrains Mono";
-  src: url("../assets/fonts/JetBrainsMono-Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
+  font-family: "DM Mono";
+  src: url("../assets/fonts/DMMono-LightItalic.ttf") format("truetype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("../assets/fonts/DMMono-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("../assets/fonts/DMMono-MediumItalic.ttf") format("truetype");
+  font-weight: 500;
+  font-style: italic;
   font-display: swap;
 }
 
@@ -282,6 +293,49 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+}
+
+/*
+  Button hover shine-sweep - ported from the "Project Pillow"
+  landing-page reference's own .button::before (a diagonal light band
+  that sweeps across the button on hover). Applied as a shared class in
+  Button.tsx's buttonVariants BASE string (every variant except
+  "link", which stays a plain text link with no surface to sweep
+  across) rather than duplicated per-variant. Pure CSS - the ::before
+  pseudo-element can't be expressed as a Tailwind arbitrary-value
+  utility without becoming unreadable, so it lives here instead, same
+  reasoning as the auth-panel/auth-card-stage transition blocks below.
+
+  Deliberately does NOT set position:relative here (unlike a typical
+  ::before-positioning-context class) - Button.tsx's own "relative"
+  Tailwind utility handles that instead. A raw custom class and a
+  Tailwind utility both declaring `position` at the same (single-class)
+  specificity race on CSS SOURCE ORDER, not markup order - this custom
+  class happens to compile after Tailwind's utility layer, so its
+  position:relative silently WON over an absolutely-positioned child
+  button's own `absolute` utility one level up (confirmed live: broke
+  AuthField's password-reveal button, which needs `absolute` to stay
+  anchored inside its parent - .button-sweep's own position:relative
+  overrode the STRUCTURAL absolute/relative pair between that button
+  and its wrapper div, not just cosmetic properties). overflow:hidden
+  has no such Tailwind-utility conflict risk, so it's still set here.
+*/
+.button-sweep {
+  overflow: hidden;
+}
+
+.button-sweep::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.16) 48%, transparent 70%);
+  transform: translateX(-140%);
+  transition: transform 0.65s ease;
+  pointer-events: none;
+}
+
+.button-sweep:hover::before {
+  transform: translateX(140%);
 }
 
 /*
@@ -615,6 +669,28 @@
 .licenseExam-exit-to {
   opacity: 0;
   transform: scale(0.98);
+}
+
+/*
+  Scroll-reveal for the dashboard's content pane (see
+  useRevealOnScroll.ts) - ported from the "Project Pillow" landing-page
+  reference's own .reveal/.reveal.is-visible. Starts translated down +
+  transparent, animates to its natural position once the element's own
+  IntersectionObserver reports it entered the viewport. Renamed from
+  the reference's bare .reveal to avoid ever colliding with an
+  Overlay/Transition name elsewhere in this file (every other block
+  above is named after its own screen/overlay, e.g. .app-stage-*,
+  .hud-*) - not tied to any single screen the way those are.
+*/
+.reveal-up {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity var(--transition-duration-slow) var(--ease-out), transform var(--transition-duration-slow) var(--ease-out);
+}
+
+.reveal-up-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @keyframes marquee-slide {

@@ -1,5 +1,6 @@
 import type { Component } from "solid-js";
 import { t } from "@/i18n";
+import { useRevealOnScroll } from "@/components/common/useRevealOnScroll";
 import styles from "./DashboardOverlay.module.scss";
 
 /**
@@ -10,8 +11,12 @@ import styles from "./DashboardOverlay.module.scss";
  * shipping fabricated data would be worse than an honest "coming soon".
  * Replace once a real home-page system exists.
  */
-export const HomePage: Component = () => (
-  <div class={styles.placeholder}>
-    <span class={`${styles.placeholderText} font-mono uppercase tracking-widest`}>{t()("dashboard.home.placeholder")}</span>
-  </div>
-);
+export const HomePage: Component = () => {
+  const { ref, visible } = useRevealOnScroll();
+
+  return (
+    <div ref={ref} class={`${styles.placeholder} reveal-up ${visible() ? "reveal-up-visible" : ""}`}>
+      <span class={`${styles.placeholderText} font-mono uppercase tracking-widest`}>{t()("dashboard.home.placeholder")}</span>
+    </div>
+  );
+};

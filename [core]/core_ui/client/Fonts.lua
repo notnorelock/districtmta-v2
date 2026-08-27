@@ -17,7 +17,7 @@ local FONTS_UNPROCESSED = {
         small = 14,
         normal = 18.5,
     },
-    Black = {
+    ExtraBold = {
         big = 32,
         small = 14,
         normal = 18.5,
@@ -38,7 +38,7 @@ local FONTS = {}
 
 addEventHandler("onClientResourceStart", resourceRoot, function()
     for fontName, fontData in pairs(FONTS_UNPROCESSED) do
-        local fontPath = string.format("client/html/assets/TitilliumWeb-%s.ttf", fontName)
+        local fontPath = string.format("client/html/assets/Manrope-%s.ttf", fontName)
 
         if fileExists(fontPath) then
             for sizeName, size in pairs(fontData) do

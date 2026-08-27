@@ -16,8 +16,28 @@ local TABLE_RESOURCE_MAP = {
 }
 local cachedTables = {}
 
+-- ElementData is a nested table (ElementData.Player.SPAWNED), not a flat
+-- one like Events, so it can't go through TABLE_RESOURCE_MAP's single
+-- getter-call pattern - needs its own lazy-metatable proxy, same as
+-- gm_nametags/server/GlobalResources.lua's own ElementData block.
+local ElementData = setmetatable({}, {
+    __index = function(table, key)
+        if cachedTables.ElementData == nil then
+            if not isResourceAvailable("core_shared") then
+                return nil
+            end
+            cachedTables.ElementData = exports.core_shared:getElementDatas()
+        end
+        return cachedTables.ElementData[key]
+    end,
+})
+
 setmetatable(_G, {
     __index = function(table, key)
+        if key == "ElementData" then
+            return isResourceAvailable("core_shared") and ElementData or false
+        end
+
         local tableSpec = TABLE_RESOURCE_MAP[key]
         if tableSpec then
             if cachedTables[key] == nil then

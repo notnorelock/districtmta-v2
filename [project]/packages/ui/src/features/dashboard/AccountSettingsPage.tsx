@@ -6,6 +6,7 @@ import { accountApi } from "@/lib/api/accountApi";
 import { AccountRole } from "@/types/account";
 import type { ApiErrorCode } from "@/types/api";
 import { t } from "@/i18n";
+import { useRevealOnScroll } from "@/components/common/useRevealOnScroll";
 import { TwoFactorSection } from "./TwoFactorSection";
 import styles from "./DashboardOverlay.module.scss";
 
@@ -31,6 +32,7 @@ export const ROLE_LABEL: Record<number, string> = {
  */
 export const AccountSettingsPage: Component = () => {
   const account = authStore.account;
+  const { ref, visible } = useRevealOnScroll();
 
   const [currentPassword, setCurrentPassword] = createSignal("");
   const [newPassword, setNewPassword] = createSignal("");
@@ -79,7 +81,7 @@ export const AccountSettingsPage: Component = () => {
   };
 
   return (
-    <div class={styles.accountCard}>
+    <div ref={ref} class={`${styles.accountCard} reveal-up ${visible() ? "reveal-up-visible" : ""}`}>
       <Show when={account()}>
         {(acc) => (
           <div class={styles.listWrap}>

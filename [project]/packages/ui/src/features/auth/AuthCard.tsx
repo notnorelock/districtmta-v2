@@ -3,6 +3,7 @@ import { Transition } from "solid-transition-group";
 import { LogIn, UserPlus } from "lucide-solid";
 import { SmokeBackground } from "@/components/common/SmokeBackground";
 import { TopographicBackground } from "@/components/common/TopographicBackground";
+import { GrainOverlay } from "@/components/common/GrainOverlay";
 import { AccountSwitcher } from "@/features/auth/AccountSwitcher";
 import { useTwoFactorSetup } from "@/features/auth/useTwoFactorSetup";
 import { Logo } from "@/components/common/Logo";
@@ -106,6 +107,10 @@ export const AuthCard: Component = () => {
           black canvas, once a world-space camera flythrough is running
           behind it (see core_auth/client/LoginCamera.lua). */}
       <SmokeBackground color="#ffffff" opacity={0.2} enableWind enableTurbulence transparent />
+      {/* Static film-grain texture (z-5) - above the TopographicBackground/
+          SmokeBackground layers but still below the card content
+          (z-10) - see GrainOverlay.tsx's own module comment. */}
+      <GrainOverlay />
 
       <div class="relative z-10 flex w-full max-w-md flex-col gap-8 px-4 py-10">
         <Logo markHeightClass="h-8" wordmarkHeightClass="h-5" class="mx-auto" />
@@ -227,7 +232,7 @@ const SecureAccountStep: Component = () => {
   return (
     <div class="flex flex-col gap-6">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-foreground">{t()("auth.secureAccount.title")}</h1>
+        <h1 class="text-2xl font-bold tracking-[-0.03em] text-foreground">{t()("auth.secureAccount.title")}</h1>
         <p class="mt-1 text-sm text-muted-foreground">{t()("auth.secureAccount.subtitle")}</p>
       </div>
 
@@ -482,7 +487,7 @@ const LoginForm: Component<LoginFormProps> = (props) => {
       }
     >
       <div class="text-center">
-        <h1 class="text-2xl font-bold tracking-tight text-foreground">{t()("auth.login.title")}</h1>
+        <h1 class="text-2xl font-bold tracking-[-0.03em] text-foreground">{t()("auth.login.title")}</h1>
         <p class="mt-1 text-sm text-muted-foreground">{t()("auth.login.subtitle")}</p>
       </div>
 
@@ -545,7 +550,7 @@ const TwoFactorStepForm: Component<TwoFactorStepFormProps> = (props) => {
   return (
     <>
       <div class="text-center">
-        <h1 class="text-2xl font-bold tracking-tight text-foreground">{t()("auth.twoFactor.title")}</h1>
+        <h1 class="text-2xl font-bold tracking-[-0.03em] text-foreground">{t()("auth.twoFactor.title")}</h1>
         <p class="mt-1 text-sm text-muted-foreground">{t()("auth.twoFactor.subtitle")}</p>
       </div>
 
@@ -636,7 +641,7 @@ const RegisterForm: Component<{ onSwitchToLogin: () => void }> = (props) => {
   return (
     <>
       <div class="text-center">
-        <h1 class="text-2xl font-bold tracking-tight text-foreground">{t()("auth.register.title")}</h1>
+        <h1 class="text-2xl font-bold tracking-[-0.03em] text-foreground">{t()("auth.register.title")}</h1>
         <p class="mt-1 text-sm text-muted-foreground">{t()("auth.register.subtitle")}</p>
       </div>
 

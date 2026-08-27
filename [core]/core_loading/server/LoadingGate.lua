@@ -75,6 +75,7 @@ addEventHandler("onResourceStart", resourceRoot, function()
     for _, player in ipairs(getElementsByType("player")) do
         startPolling(player)
     end
+    setTransferBoxVisible (false)
 end)
 
 addEventHandler("onPlayerQuit", root, function()

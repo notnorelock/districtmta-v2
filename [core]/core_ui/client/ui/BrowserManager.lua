@@ -264,10 +264,35 @@ addEventHandler(Events.UI_INTEGRITY_RESULT, root, function(allowed, failures)
     end
 end)
 
-addEventHandler("onClientBrowserDocumentReady", root, function()
-    if source ~= browser then
-        return
-    end
+-- browserReady deliberately does NOT flip on onClientBrowserDocumentReady
+-- (MTA's own "the HTML document parsed" event) - that only means the DOM
+-- exists, not that the SolidJS app has actually mounted and installed
+-- window.__mtaPushEvent (see MtaTransport.ts's onPush). sendToBrowser
+-- checks browserReady to decide "execute now" vs. "queue for later"; if it
+-- flipped true on document-ready alone, a UI.open/close/push call arriving
+-- in that window would execute window.__mtaPushEvent && window.__mtaPushEvent(...)
+-- against a still-undefined function - the `&&` makes that a silent no-op,
+-- so the call is lost forever instead of queued (queuedMessages is only
+-- ever drained by flushQueuedMessages, called from THIS flip). Confirmed
+-- live: a production build's heavier JSVM-obfuscated bundle takes long
+-- enough to parse/execute that AuthUiController.lua's UI.open(AUTHENTICATION)
+-- (fired right after Events.LOADING_READY) lands in that window often
+-- enough to leave the player stuck on ResourceCheckScreen forever, even
+-- though the server-side LOADING_READY chain completed correctly - a dev
+-- build's lighter bundle rarely loses the race, which is why this only
+-- showed up after switching to a production launch. Events.BROWSER_READY
+-- (== "ui.ready", see Transport.lua's own handler on the same event) is
+-- the actual "JS finished booting" signal - App.tsx's onMount() fires
+-- mta.notify("ui.ready") only once the whole app has mounted.
+-- addEvent here even though Transport.lua (loaded after this file per
+-- meta.xml's own <script> order) also registers this same event name -
+-- addEventHandler requires addEvent to have already run for that event
+-- name IN THIS RESOURCE'S OWN LOAD ORDER, and this file loads first
+-- (see meta.xml), so waiting for Transport.lua's own addEvent would be
+-- too late. A second addEvent call for the same name from the same
+-- resource is a harmless no-op in MTA, not an error.
+addEvent(Events.BROWSER_READY, true)
+addEventHandler(Events.BROWSER_READY, root, function()
     browserReady = true
     flushQueuedMessages()
 end)
