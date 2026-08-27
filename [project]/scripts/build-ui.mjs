@@ -9,9 +9,10 @@
  * plain browser tab and never touches this directory.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, rmSync, cpSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, cpSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { createHash } from "node:crypto";
 
 // --dev still runs a real `vite build` (required - it's what makes base
 // the fixed "http://mta/local/client/html/" every asset reference needs
@@ -72,5 +73,24 @@ mkdirSync(targetDir, { recursive: true });
 
 console.log(`[build-ui] Copying dist -> ${targetDir}...`);
 cpSync(distDir, targetDir, { recursive: true });
+
+// ---- integrity manifest ---------------------------------------------------
+// Record a SHA-256 for every shipped JS asset. The core_ui server resource
+// re-hashes these files on start and refuses to serve the UI if any differ
+// (someone swapped the obfuscated bundle on the server's disk). Skipped for
+// --dev builds, which aren't meant to ship and aren't obfuscated.
+if (!isDevBuild) {
+  const assetsDir = path.join(targetDir, "assets");
+  const manifest = { generatedAt: new Date().toISOString(), algo: "sha256", files: {} };
+  const sha256 = (p) => createHash("sha256").update(readFileSync(p)).digest("hex");
+  for (const name of readdirSync(assetsDir)) {
+    if (!name.endsWith(".js")) continue;
+    manifest.files[`assets/${name}`] = sha256(path.join(assetsDir, name));
+  }
+  manifest.files["index.html"] = sha256(path.join(targetDir, "index.html"));
+  const manifestPath = path.join(targetDir, "integrity.json");
+  writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+  console.log(`[build-ui] Wrote integrity manifest (${Object.keys(manifest.files).length} files) -> ${manifestPath}`);
+}
 
 console.log("[build-ui] Done. Restart (or refresh) the core_ui resource in-game to pick up the new build.");

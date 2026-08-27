@@ -230,11 +230,38 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
     setBlurShaderEnabled(true, browser)
 end)
 
+-- Before loading the UI, ask the server to confirm the shipped bundle still
+-- matches the build manifest (server/IntegrityGate.lua). The server owns the
+-- files and the manifest, so a swapped/edited obfuscated bundle is caught here
+-- even though the browser-side self-checksum could be patched out.
+local integrityAnswered = false
+
 addEventHandler("onClientBrowserCreated", root, function()
     if source ~= browser then
         return
     end
-    loadBrowserURL(browser, UI_URL)
+    triggerServerEvent(Events.UI_INTEGRITY_QUERY, resourceRoot)
+    -- fail-safe: if the server never answers (older core, event dropped), load
+    -- anyway after a short grace period so the UI isn't permanently dark
+    setTimer(function()
+        if not integrityAnswered and browser and isElement(browser) then
+            integrityAnswered = true
+            loadBrowserURL(browser, UI_URL)
+        end
+    end, 4000, 1)
+end)
+
+addEvent(Events.UI_INTEGRITY_RESULT, true)
+addEventHandler(Events.UI_INTEGRITY_RESULT, root, function(allowed, failures)
+    if integrityAnswered then return end
+    integrityAnswered = true
+    if allowed then
+        loadBrowserURL(browser, UI_URL)
+    else
+        if type(failures) == "table" then
+            for _, f in ipairs(failures) do outputConsole("[core_ui] integrity: " .. tostring(f)) end
+        end
+    end
 end)
 
 addEventHandler("onClientBrowserDocumentReady", root, function()

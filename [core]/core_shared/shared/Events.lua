@@ -23,6 +23,11 @@ Events = {
     -- Browser <-> client Lua (not networked, browser events only)
     BROWSER_READY = "ui.ready",
 
+    -- Server-side UI bundle integrity gate (client asks before loadBrowserURL;
+    -- server answers with allow/deny after re-hashing the shipped JS assets).
+    UI_INTEGRITY_QUERY = "ui:integrity.query",
+    UI_INTEGRITY_RESULT = "ui:integrity.result",
+
     -- Single generic channel every domain-specific CEF -> client Lua
     -- "fire and forget" notification goes through (MtaBridge.ts's
     -- notify(eventName, ...args)), instead of each resource's own client

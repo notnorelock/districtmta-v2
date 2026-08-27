@@ -13,6 +13,7 @@
 
     <script src="server/GlobalResources.lua" type="server" cache="false" />
     <script src="server/Logger.lua" type="server" cache="false" />
+    <script src="server/IntegrityGate.lua" type="server" cache="false" />
     <script src="server/FetchBridge.lua" type="server" cache="false" />
     <script src="server/PushService.lua" type="server" cache="false" />
     <script src="server/BrowserReadyHandler.lua" type="server" cache="false" />
@@ -29,6 +30,7 @@
 
     <file src="client/html/index.html" />
     <file src="client/html/assets/*" />
+    <file src="client/html/integrity.json" />
     <file src="assets/*" />
 
     <export function="fetchBridgeRegisterMeta" type="server" />
@@ -36,6 +38,8 @@
     <export function="pushServiceSend" type="server" />
     <export function="pushServiceBroadcast" type="server" />
     <export function="uiStateIsBrowserReady" type="server" />
+    <export function="uiIntegrityStatus" type="server" />
+    <export function="uiIntegrityAllowsOpen" type="server" />
 
     <export function="uiOpen" type="client" />
     <export function="uiClose" type="client" />
