@@ -127,6 +127,21 @@ Events = {
     -- discovering it up to POLL_INTERVAL_MS later.
     DOWNLOAD_FINISHED = "loading:downloadFinished",
 
+    -- Client -> server: fired by core_auth/client/AuthUiClient.lua's own
+    -- onClientResourceStart, once every core_auth client script has
+    -- actually loaded and registered its addEvent/addEventHandler pairs
+    -- (Events.AUTH_BEGIN_AUTHENTICATION included) on THIS client. Server-
+    -- side "core_auth resource started" (part of core_bootstrap's chain,
+    -- what isChainReady() already covers) only means the server half is
+    -- up - it says nothing about whether a given player's own client has
+    -- finished downloading/executing core_auth's client scripts yet.
+    -- LoadingGate.lua's poll() now waits on this too, per-player, before
+    -- firing LOADING_READY - without it, AuthUiController.lua could
+    -- (and did) triggerClientEvent(AUTH_BEGIN_AUTHENTICATION) before this
+    -- player's own core_auth client had loaded, which MTA logs as
+    -- "event is not added clientside" and silently drops.
+    AUTH_CLIENT_READY = "auth:clientReady",
+
     -- Push event names delivered over UI_PUSH_EVENT (CEF-bound only)
     PUSH_ACCOUNT_UPDATED = "account.updated",
     PUSH_ACCOUNT_RESOLVED = "account.resolved",

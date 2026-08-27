@@ -14,6 +14,7 @@
     <file src="assets/*" />
 
     <script src="server/GlobalResources.lua" type="server" cache="false" />
+    <script src="server/AuthClientReadyState.lua" type="server" cache="false" />
     <script src="server/AuthUiController.lua" type="server" cache="false" />
     <script src="server/SpawnLocations.lua" type="server" cache="false" />
     <script src="server/SpawnEndpoints.lua" type="server" cache="false" />
@@ -29,4 +30,6 @@
     <script src="client/AccountsTransport.lua" type="client" cache="false" />
     <script src="client/TrustedDeviceStore.lua" type="client" cache="false" />
     <script src="client/TrustedDeviceTransport.lua" type="client" cache="false" />
+
+    <export function="authClientReadyIsReady" type="server" />
 </meta>

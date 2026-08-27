@@ -4,6 +4,19 @@ local function noop()
     end
 end
 
+-- Tells the server this client's own core_auth scripts have actually
+-- loaded and registered every addEvent below - see Events.
+-- AUTH_CLIENT_READY's own comment for why this matters:
+-- core_bootstrap's chain finishing (isChainReady()) only means the
+-- SERVER side of core_auth started, not that any given player's client
+-- has finished downloading/executing this file yet. Fired from
+-- onClientResourceStart (this whole resource, not just this file) so it
+-- lands after every other core_auth client script's own addEvent calls
+-- have already run, not just this one's.
+addEventHandler("onClientResourceStart", resourceRoot, function()
+    triggerServerEvent(Events.AUTH_CLIENT_READY, localPlayer)
+end)
+
 addEvent(Events.AUTH_BEGIN_AUTHENTICATION, true)
 addEventHandler(Events.AUTH_BEGIN_AUTHENTICATION, root, function()
     UI.open(Enums.UiWindow.AUTHENTICATION)
