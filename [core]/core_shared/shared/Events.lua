@@ -120,6 +120,13 @@ Events = {
     -- Fired once BOTH core_bootstrap's chain and this player's CEF are ready.
     LOADING_READY = "loading:ready",
 
+    -- Client -> server: fired by core_loading/client/DownloadTracker.lua
+    -- when MTA's own transfer box reports it's done (onClientTransferBoxVisibilityChange(false)) -
+    -- an independent "resource download actually finished" signal
+    -- LoadingGate.lua's poll can react to immediately instead of only
+    -- discovering it up to POLL_INTERVAL_MS later.
+    DOWNLOAD_FINISHED = "loading:downloadFinished",
+
     -- Push event names delivered over UI_PUSH_EVENT (CEF-bound only)
     PUSH_ACCOUNT_UPDATED = "account.updated",
     PUSH_ACCOUNT_RESOLVED = "account.resolved",

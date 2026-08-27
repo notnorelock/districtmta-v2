@@ -11,6 +11,10 @@ local POLL_INTERVAL_MS = 200
 
 -- This resource owns Events.LOADING_READY, so addEvent is called here before any triggerEvent.
 addEvent(Events.LOADING_READY, true)
+-- Client -> server, fired by core_loading/client/DownloadTracker.lua once
+-- MTA's own transfer box reports downloads are done - lets a poll() run
+-- immediately instead of waiting up to POLL_INTERVAL_MS for the next tick.
+addEvent(Events.DOWNLOAD_FINISHED, true)
 
 local readyFired = {}
 local pollTimers = {}
@@ -36,34 +40,45 @@ local function stopPolling(player)
     pollTimers[player] = nil
 end
 
+-- Extracted from startPolling so Events.DOWNLOAD_FINISHED's handler
+-- below can force an immediate check for a player instead of waiting up
+-- to POLL_INTERVAL_MS for the next scheduled tick.
+local function poll(player)
+    if not isElement(player) then
+        stopPolling(player)
+        return
+    end
+    if readyFired[player] then
+        return
+    end
+
+    local browserReady = isBrowserReady(player)
+    local chainReady = isChainReady()
+
+    if browserReady and chainReady then
+        stopPolling(player)
+        readyFired[player] = true
+        setElementData(player, ElementData.Player.LOADING_READY, true)
+        triggerEvent(Events.LOADING_READY, player)
+        outputServerLog(string.format("[INFO] [core_loading] LOADING_READY fired (player=%s)", getPlayerName(player)))
+    end
+end
+
 local function startPolling(player)
     if readyFired[player] or pollTimers[player] then
         return
     end
 
-    local function poll()
-        if not isElement(player) then
-            stopPolling(player)
-            return
-        end
-
-        local browserReady = isBrowserReady(player)
-        local chainReady = isChainReady()
-
-        if browserReady and chainReady then
-            stopPolling(player)
-            readyFired[player] = true
-            setElementData(player, ElementData.Player.LOADING_READY, true)
-            triggerEvent(Events.LOADING_READY, player)
-            outputServerLog(string.format("[INFO] [core_loading] LOADING_READY fired (player=%s)", getPlayerName(player)))
-        end
-    end
-
-    poll()
+    poll(player)
     if not readyFired[player] then
-        pollTimers[player] = setTimer(poll, POLL_INTERVAL_MS, 0)
+        pollTimers[player] = setTimer(poll, POLL_INTERVAL_MS, 0, player)
     end
 end
+
+addEventHandler(Events.DOWNLOAD_FINISHED, root, function()
+    outputServerLog(string.format("[INFO] [core_loading] DOWNLOAD_FINISHED received (player=%s), forcing immediate poll", getPlayerName(client)))
+    poll(client)
+end)
 
 addEventHandler("onPlayerJoin", root, function()
     startPolling(source)

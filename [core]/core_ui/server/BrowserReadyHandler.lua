@@ -6,6 +6,7 @@ local readyPlayers = {}
 addEvent(Events.BROWSER_READY, true)
 addEventHandler(Events.BROWSER_READY, root, function()
     readyPlayers[client] = true
+    outputServerLog("[DEBUG][core_ui] BROWSER_READY server handler fired for " .. tostring(isElement(client) and getPlayerName(client) or "?"))
     Logger.debug("core_ui", "Browser reported ready", { player = getPlayerName(client) })
 end)
 

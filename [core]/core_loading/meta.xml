@@ -13,5 +13,6 @@
     <script src="server/GlobalResources.lua" type="server" cache="false" />
     <script src="server/LoadingGate.lua" type="server" cache="false" />
 
+    <script src="client/GlobalResources.lua" type="client" cache="false" />
     <script src="client/DownloadTracker.lua" type="client" cache="false" />
 </meta>

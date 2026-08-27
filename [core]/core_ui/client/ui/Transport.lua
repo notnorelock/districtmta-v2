@@ -34,6 +34,7 @@ addEventHandler(Events.UI_NOTIFY, root, function(eventName, argsJson)
     local ok, decoded = pcall(fromJSON, argsJson)
     local args = (ok and type(decoded) == "table" and decoded.args) or {}
 
+    outputDebugString("[DEBUG][core_ui] UI_NOTIFY relay: " .. tostring(eventName))
     triggerEvent(eventName, root, unpack(args))
 end)
 
@@ -92,6 +93,8 @@ end)
 -- does not (and must not) re-check source against the browser element.
 addEvent(Events.BROWSER_READY, true)
 addEventHandler(Events.BROWSER_READY, root, function()
+    outputDebugString("[DEBUG][core_ui] Transport.lua BROWSER_READY client handler fired, forwarding to server")
+
     -- Harmless no-op if the session key hasn't arrived yet (two
     -- independent async handshakes) - see pushSessionKeyToBrowser's own guard.
     pushSessionKeyToBrowser()
