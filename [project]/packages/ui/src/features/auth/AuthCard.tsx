@@ -1,7 +1,7 @@
 import { createEffect, createSignal, on, onMount, Show, type Component, type JSX } from "solid-js";
 import { Transition } from "solid-transition-group";
 import { LogIn, UserPlus } from "lucide-solid";
-import { SmokeBackground } from "@/features/auth/SmokeBackground";
+import { SmokeBackground } from "@/components/common/SmokeBackground";
 import { TopographicBackground } from "@/components/common/TopographicBackground";
 import { AccountSwitcher } from "@/features/auth/AccountSwitcher";
 import { useTwoFactorSetup } from "@/features/auth/useTwoFactorSetup";

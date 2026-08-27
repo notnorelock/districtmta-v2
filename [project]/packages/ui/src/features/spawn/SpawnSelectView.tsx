@@ -1,7 +1,7 @@
 import { Show, createMemo, createSignal, onMount, type Component } from "solid-js";
 import { Map2D, type MapPin } from "@/components/common/Map2D";
 import { SpawnPreviewPanel } from "./SpawnPreviewPanel";
-import { SmokeBackground } from "@/features/auth/SmokeBackground";
+import { SmokeBackground } from "@/components/common/SmokeBackground";
 import { spawnApi } from "@/lib/api/spawnApi";
 import type { SpawnLocation } from "@/types/spawn";
 import { t } from "@/i18n";

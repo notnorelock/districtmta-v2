@@ -134,17 +134,6 @@ const FRAGMENT_SHADER = /* glsl */ `
     return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
   }
 
-  // Just 2 octaves, second octave at only 1.8x frequency (not the usual
-  // fbm doubling) and a much smaller amplitude - keeps the field smooth
-  // and low-frequency (clean, sparse "hills", like the reference) rather
-  // than adding fine-grained detail that reads as static once banded
-  // into contour lines. No separate domain-warp pass at all: warping the
-  // sample coordinates with a second noise call at a similar frequency
-  // to the main field (an earlier version of this shader did that) makes
-  // the warp itself change almost as fast as the field from one pixel to
-  // the next, which shows up as high-frequency noise between the lines
-  // instead of smooth, organic distortion - not worth the visual cost
-  // here, so the field is a single smooth fbm with no warp.
   float elevationField(vec2 st, float time) {
     vec3 p1 = vec3(st, time * 0.25);
     vec3 p2 = vec3(st * 1.8 + 4.7, time * 0.25 + 30.0);
@@ -157,21 +146,12 @@ const FRAGMENT_SHADER = /* glsl */ `
 
     float elevation = elevationField(st, uTime);
 
-    // Isoline extraction, same technique as before, but with a much
-    // thinner, sharper line - the reference is thin crisp strokes, not a
-    // soft wide band.
     float bands = 7.0;
     float field = elevation * bands;
     float line = abs(fract(field) - 0.5) * 2.0;
     float width = fwidth(field) * 1.5 + 0.025;
     float contour = 1.0 - smoothstep(0.0, width, line);
 
-    // Optional toggle (uCenterFade is 0.0 or 1.0, set from centerFade
-    // prop) - fades lines out approaching the surface's center, for
-    // callers layering centered foreground content (a login card, a
-    // dialog) on top where the lines would otherwise show through it.
-    // mix(1.0, ...) keeps the default (centerFade off) an exact no-op -
-    // the even, edge-to-edge wash this shader normally produces.
     float centerDistance = length(uv - 0.5);
     float centerFadeAmount = mix(1.0, smoothstep(0.1, 0.5, centerDistance), uCenterFade);
 
@@ -202,9 +182,6 @@ export const TopographicBackground: Component<TopographicBackgroundProps> = (raw
 
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    // updateStyle=false - see SmokeBackground.tsx's own comment on why
-    // the canvas box is CSS-owned (w-full h-full below) rather than a
-    // JS-computed inline px size written once at init time.
     renderer.setSize(containerRef.clientWidth, containerRef.clientHeight, false);
     containerRef.appendChild(renderer.domElement);
 
