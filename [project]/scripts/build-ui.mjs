@@ -9,8 +9,8 @@
  * plain browser tab and never touches this directory.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, rmSync, cpSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { existsSync, mkdirSync, rmSync, cpSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 // --dev still runs a real `vite build` (required - it's what makes base
@@ -20,11 +20,11 @@ import path from "node:path";
 // server, and would 404 every font/texture/CSS reference here - see
 // vite.config.ts's own base comment), but sets KEEP_DEBUG_OUTPUT=1 so
 // vite.config.ts skips esbuild's drop: ["console", "debugger"] (see
-// keepDebugOutput there), and skips the js-confuser obfuscation pass
-// below - use this while chasing a bug through /browserdebug's console,
-// where a normal production build's stripped console.* calls and
-// concealed/mangled output make the actual failure unreadable. Never
-// pass --dev for a build meant to ship.
+// keepDebugOutput there) AND skips the JSVM obfuscation Vite plugin (see
+// vite-plugin-jsvm.ts) - use this while chasing a bug through
+// /browserdebug's console, where a normal production build's stripped
+// console.* calls and VM-wrapped output make the actual failure
+// unreadable. Never pass --dev for a build meant to ship.
 const isDevBuild = process.argv.includes("--dev");
 
 // This file lives at mods/deathmatch/resources/[project]/scripts/build-ui.mjs.
@@ -58,66 +58,11 @@ if (!existsSync(distDir)) {
   process.exit(1);
 }
 
-// Post-processes the already-minified/Terser'd output with js-confuser -
-// this is on top of, not instead of, webpack.config.js's own
-// mode: "production" minification. Deliberately a MODERATE preset, not
-// js-confuser's own "high": renaming + string concealing only.
-// controlFlowFlattening is left off on purpose - it's the one option
-// js-confuser's own docs flag as "significantly impacts performance",
-// and this bundle runs inside MTA's CEF browser rendering the HUD every
-// frame, not a page that loads once. renameGlobals is off too (also
-// per js-confuser's own guidance for "web-related scripts") - webpack's
-// output relies on a few real global bindings (window.mta, __mtaSessionKey,
-// etc. - see MtaTransport.ts) that must keep their real names to still
-// work at runtime.
-const JS_CONFUSER_OPTIONS = {
-  target: "browser",
-  preset: false,
-  renameVariables: false,
-  renameGlobals: false,
-  renameLabels: true,
-  identifierGenerator: "mangled",
-  stringConcealing: true,
-  controlFlowFlattening: true,
-  compact: true,
-  lock: {
-    integrity: true,
-  }
-};
-
-if (isDevBuild) {
-  console.log("[build-ui] --dev: skipping js-confuser obfuscation.");
-} else {
-  console.log("[build-ui] Obfuscating built JS with js-confuser...");
-  // [project] has no package.json of its own (see CLAUDE.md) - js-confuser
-  // is only installed under packages/ui's own node_modules, so it's
-  // imported from there explicitly by path rather than as a bare specifier.
-  const { default: JsConfuser } = await import(
-    pathToFileURL(path.join(uiDir, "node_modules", "js-confuser", "dist", "index.js"))
-  );
-  const jsAssetsDir = path.join(distDir, "assets");
-  // vendor.js (node_modules: solid-js, @kobalte/core, lucide-solid, ...) is
-  // deliberately skipped - nothing project-specific worth hiding lives
-  // there, and obfuscating it roughly tripled its size (103KB -> 293KB)
-  // for no real benefit, on a bundle that runs inside CEF rendering the
-  // HUD every frame. Only index.js (this project's own source) is worth
-  // the size/runtime cost.
-  const jsFiles = existsSync(jsAssetsDir) ? readdirSync(jsAssetsDir).filter((name) => name === "index.js") : [];
-
-  for (const fileName of jsFiles) {
-    const filePath = path.join(jsAssetsDir, fileName);
-    const source = readFileSync(filePath, "utf-8");
-
-    try {
-      const { code } = await JsConfuser.obfuscate(source, JS_CONFUSER_OPTIONS);
-      writeFileSync(filePath, code, "utf-8");
-      console.log(`[build-ui] Obfuscated ${fileName}`);
-    } catch (error) {
-      console.error(`[build-ui] js-confuser failed on ${fileName}:`, error);
-      process.exit(1);
-    }
-  }
-}
+// Obfuscation of this project's own index.js happens inside `vite build` itself
+// now, via packages/ui/vite-plugin-jsvm.ts (a JSVM bytecode-VM wrapper). vendor.js
+// and the rolldown runtime are left plain on purpose. Set JSVM_OBFUSCATE=0 (or
+// pass --dev) to build without it. The old js-confuser post-build pass has been
+// removed - see packages/ui/vite-plugin-jsvm.README.md.
 
 console.log(`[build-ui] Clearing ${targetDir}...`);
 if (existsSync(targetDir)) {

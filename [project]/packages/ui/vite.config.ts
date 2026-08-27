@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
+import jsvmObfuscate from "./vite-plugin-jsvm.ts";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 const srcDir = path.join(rootDir, "src");
@@ -26,8 +27,29 @@ export default defineConfig(({ command }) => {
   // build meant to ship.
   const keepDebugOutput = process.env.KEEP_DEBUG_OUTPUT === "1";
 
+  // JSVM obfuscation of this project's own "index" chunk (NOT vendor, NOT the
+  // rolldown runtime). Runs only for a real production build, and is skipped
+  // for a --dev build (same KEEP_DEBUG_OUTPUT gate the js-confuser step in
+  // scripts/build-ui.mjs uses) so /browserdebug's console stays readable.
+  // Needs the jsvm compile server reachable — set JSVM_ENDPOINT to override the
+  // default http://127.0.0.1:3010/api/compile, or JSVM_OBFUSCATE=0 to disable.
+  const jsvmDisabled =
+    !isBuild || keepDebugOutput || process.env.JSVM_OBFUSCATE === "0";
+
   return {
-    plugins: [solid()],
+    plugins: [
+      solid(),
+      jsvmObfuscate({
+        disabled: jsvmDisabled,
+        include: ["index"],
+        endpoint: process.env.JSVM_ENDPOINT,
+        // don't fail the build if the compile server is down — the chunk is
+        // just left un-obfuscated (a warning is logged)
+        strict: process.env.JSVM_STRICT === "1",
+        // JSVM_DEBUG=1 -> emit the diagnostic VM (logs non-callable call targets)
+        debug: process.env.JSVM_DEBUG === "1",
+      }),
+    ],
 
     resolve: {
       alias: {
