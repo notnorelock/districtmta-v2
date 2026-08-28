@@ -1,12 +1,3 @@
--- Forwards GroupDutyService.lua's duty start/end/sync pushes into CEF for
--- DutyIndicator.tsx - always-mounted, driven purely by store state (no
--- overlay show/hide here, unlike GroupPanelState.lua's own panel toggle).
--- Also runs a local 1-second ticker between server syncs so the HUD's
--- elapsed time counts up smoothly instead of jumping every
--- DUTY_TICK_INTERVAL_MS (10s) - self-corrects on every server push, so a
--- lost/delayed sync is never more than one tick's worth of drift.
-GroupDutyState = GroupDutyState or {}
-
 local tickTimer = nil
 local totalSeconds = 0
 
@@ -29,12 +20,6 @@ end
 
 addEvent(Events.GROUP_DUTY_STARTED, true)
 addEventHandler(Events.GROUP_DUTY_STARTED, root, function(data)
-    -- data.totalSeconds here is member.stat_workduty_seconds - the
-    -- ALL-TIME accrued total /dutypayout pays out against, reset to 0
-    -- only on a successful payout, NOT per-session. The HUD's own clock
-    -- is a per-SESSION timer instead (confirmed with the user - it should
-    -- always start counting up from 00:00 on entering duty, the lifetime
-    -- total stays a database/payout-only concept, never shown here).
     totalSeconds = 0
     exports.core_ui:uiPushEvent(Events.PUSH_GROUP_DUTY_STARTED, data)
     startTicker()
@@ -43,18 +28,11 @@ end)
 addEvent(Events.GROUP_DUTY_ENDED, true)
 addEventHandler(Events.GROUP_DUTY_ENDED, root, function()
     stopTicker()
-    -- uiPushEvent always needs a real value for its data argument -
-    -- BrowserManager.lua's UI.pushEvent runs it through toJSON, which
-    -- errors on a bare nil - see PUSH_GROUP_DUTY_STARTED/_SYNC's own
-    -- table payloads above, this one just has nothing to say.
     exports.core_ui:uiPushEvent(Events.PUSH_GROUP_DUTY_ENDED, {})
 end)
 
 addEvent(Events.GROUP_DUTY_SYNC, true)
 addEventHandler(Events.GROUP_DUTY_SYNC, root, function(data)
-    -- data.totalSeconds from the server is only the amount flushed THIS
-    -- tick (see GroupDutyService.lua's runDutyTick), not a running total -
-    -- fold it into our own local counter rather than overwriting it.
     if type(data) == "table" and type(data.totalSeconds) == "number" then
         totalSeconds = totalSeconds + data.totalSeconds
     end
